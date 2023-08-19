@@ -1,0 +1,13 @@
+{
+	"extends": "@kbotdev/ts-config",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"baseUrl": "./src",
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
+		"noEmit": true,
+		"typeRoots": ["./src/lib/types/**/*", "./node_modules/@types"]
+	},
+	"include": ["src"],
+	"exclude": ["node_modules"]
+}

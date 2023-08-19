@@ -1,0 +1,9 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"typeRoots": ["./src/lib/types/**/*", "./node_modules/@types"],
+		"allowJs": true,
+		"checkJs": true
+	},
+	"include": ["src", "tests", ".eslintrc.cjs", ".prettierrc.js", "tsup.config.ts", "vitest.config.ts"]
+}
