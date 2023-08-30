@@ -4,5 +4,13 @@ module.exports = {
 	parserOptions: {
 		project: './tsconfig.eslint.json',
 		tsconfigRootDir: __dirname
-	}
+	},
+	overrides: [
+		{
+			files: ['Augments.ts'],
+			rules: {
+				'@typescript-eslint/consistent-type-definitions': 'off'
+			}
+		}
+	]
 };
