@@ -1,4 +1,5 @@
-import { SapphireClient } from '@sapphire/framework';
+import { RedisClient } from '@killbasa/redis-utils';
+import { SapphireClient, container } from '@sapphire/framework';
 import { IntentsBitField } from 'discord.js';
 
 export class AmananekoClient extends SapphireClient {
@@ -9,6 +10,10 @@ export class AmananekoClient extends SapphireClient {
 				IntentsBitField.Flags.Guilds
 			]
 		});
+
+		const { config } = container;
+
+		container.redis = new RedisClient(config.redis);
 	}
 
 	public override async login(token: string): Promise<string> {

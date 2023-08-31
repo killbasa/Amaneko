@@ -1,7 +1,7 @@
 import '@sapphire/plugin-logger/register';
 
-import { AmananekoClient } from 'lib/AmanekoClient';
-import { loadConfig } from 'config';
+import { loadConfig } from '#config';
+import { AmananekoClient } from '#lib/AmanekoClient';
 import { ApplicationCommandRegistries, RegisterBehavior, container } from '@sapphire/framework';
 
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite);
@@ -23,5 +23,5 @@ async function main(): Promise<void> {
 	}
 }
 
-void loadConfig();
+loadConfig();
 void main();

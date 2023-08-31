@@ -3,39 +3,48 @@
 	"version": "0.0.1",
 	"author": "killbasa <contact@shaneb.xyz>",
 	"license": "MIT",
+	"main": "./dist/Amaneko.js",
 	"private": true,
 	"type": "module",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/killbasa/templates.git",
-		"directory": "templates/node-ts"
+		"url": "https://github.com/killbasa/amaneko.git"
 	},
-	"homepage": "https://github.com/killbasa/templates/tree/main/templates/node-ts",
+	"homepage": "https://github.com/killbasa/amaneko",
 	"engines": {
 		"node": ">=20.x"
 	},
 	"scripts": {
 		"build": "tsup",
-		"check": "tsc",
-		"dev": "tsup --watch --onSuccess \"pnpm start\"",
-		"start": "node --preserve-symlinks --enable-source-maps ./dist/KBot.js",
-		"lint": "eslint --ext ts src tests && pnpm check",
+		"check": "tsc -b src",
+		"dev": "tsup --watch --onSuccess \"yarn start\"",
+		"start": "node --preserve-symlinks --enable-source-maps ./dist/Amaneko.js",
+		"lint": "eslint --ext ts src tests",
 		"lint:fix": "eslint --fix --ext ts src tests",
 		"format": "prettier --write --log-level=warn \"{src,tests}/**/*.{js,ts,json}\"",
-		"test": "vitest --watch=false",
+		"db:generate": "prisma generate",
+		"db:push": "prisma db push",
+		"test": "vitest --coverage run",
 		"test:watch": "vitest -w",
-		"build:docker": "docker buildx build -t killbasa/amaneko ."
+		"docker:build": "docker buildx build -t killbasa/amaneko .",
+		"dry-run": "yarn check && yarn lint && yarn build"
 	},
 	"dependencies": {
+		"@killbasa/redis-utils": "^0.0.2",
+		"@prisma/client": "^5.2.0",
+		"@sapphire/decorators": "^6.0.2",
+		"@sapphire/discord.js-utilities": "^7.0.2",
+		"@sapphire/duration": "^1.1.0",
 		"@sapphire/fetch": "^2.4.1",
 		"@sapphire/framework": "^4.5.3",
 		"@sapphire/pieces": "^3.7.0",
 		"@sapphire/plugin-logger": "^3.0.6",
-		"bufferutil": "^4.0.7",
+		"@sapphire/plugin-scheduled-tasks": "^7.1.2",
 		"discord.js": "^14.13.0",
 		"dotenv": "^16.3.1",
-		"utf-8-validate": "^6.0.3",
-		"zlib-sync": "^0.1.8",
+		"ioredis": "^5.3.2",
+		"prom-client": "^14.2.0",
+		"socket.io-client": "^4.7.2",
 		"zod": "^3.22.2"
 	},
 	"devDependencies": {
@@ -46,9 +55,12 @@
 		"@kbotdev/ts-config": "^1.0.0",
 		"@swc/core": "^1.3.80",
 		"@types/node": "^20.5.7",
+		"@vitest/coverage-istanbul": "^0.34.3",
 		"eslint": "^8.48.0",
 		"husky": "^8.0.3",
+		"lint-staged": "^14.0.1",
 		"prettier": "^3.0.3",
+		"prisma": "^5.2.0",
 		"tsup": "^7.2.0",
 		"typescript": "^5.2.2",
 		"vitest": "^0.34.3"
@@ -66,5 +78,11 @@
 		"extends": [
 			"@commitlint/config-conventional"
 		]
-	}
+	},
+	"imports": {
+		"#config": "./dist/config.js",
+		"#lib/*": "./dist/lib/*.js",
+		"#utils/*": "./dist/lib/utils/*.js"
+	},
+	"packageManager": "yarn@3.6.3"
 }

@@ -1,16 +1,14 @@
-## Dependencies ##
-node_modules
-package-lock.json
-
-## Package manager ##
+.git/
 .pnp.*
-
-## Env ##
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+coverage/
+dist/
+node_modules/
 .env
-
-### intellij ###
-.idea/
-
-## Logs ##
-logs
-*.log
+!.env.example
+package-lock.json
