@@ -1,0 +1,46 @@
+datasource database {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model Guild {
+    id String @id @unique
+
+    Subscription Subscription[]
+}
+
+model Channel {
+    id          String  @id @unique
+    name        String
+    englishName String?
+    image       String?
+
+    Video        Video[]
+    Subscription Subscription[]
+}
+
+model Video {
+    id String @id
+
+    channelId String
+    channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+    id                     String  @id @default(uuid())
+    message                String?
+    roleId                 String?
+    discordChannelId       String?
+    memberRoleId           String?
+    memberDiscordChannelId String?
+
+    channelId String
+    channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+    guildId String
+    guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+}

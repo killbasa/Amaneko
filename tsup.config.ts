@@ -4,7 +4,7 @@ export default defineConfig({
 	bundle: false,
 	clean: true,
 	dts: false,
-	entry: ['src/index.ts'],
+	entry: ['src/**/*.ts', '!src/**/*.d.ts'],
 	format: ['esm'],
 	keepNames: true,
 	minify: false,
@@ -12,7 +12,7 @@ export default defineConfig({
 	skipNodeModulesBundle: true,
 	splitting: false,
 	sourcemap: true,
-	target: 'esnext',
+	target: 'es2022',
 	treeshake: true,
-	tsconfig: './tsconfig.json'
+	tsconfig: './src/tsconfig.json'
 });
