@@ -28,14 +28,21 @@ cp .env.example .env
 yarn install
 ```
 
-### 4. Generate the database
+### 4. Start the required services
 
 ```bash
 yarn db:generate
 yarn db:push
 ```
 
-### 5. Build project
+### 5. Generate the database
+
+```bash
+yarn db:generate
+yarn db:push
+```
+
+### 6. Build project
 
 ```bash
 yarn build

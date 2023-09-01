@@ -1,18 +1,19 @@
 import { RedisClient } from '@killbasa/redis-utils';
+import { PrismaClient } from '@prisma/client';
 import { SapphireClient, container } from '@sapphire/framework';
 import { IntentsBitField } from 'discord.js';
 
-export class AmananekoClient extends SapphireClient {
+export class AmanekoClient extends SapphireClient {
 	public constructor() {
 		super({
-			intents: [
-				IntentsBitField.Flags.MessageContent, //
-				IntentsBitField.Flags.Guilds
-			]
+			intents: [IntentsBitField.Flags.Guilds]
 		});
 
 		const { config } = container;
 
+		container.prisma = new PrismaClient({
+			datasources: { database: { url: config.database.url } }
+		});
 		container.redis = new RedisClient(config.redis);
 	}
 
