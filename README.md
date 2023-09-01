@@ -12,7 +12,7 @@
 
 ```bash
 # After forking the repository, copy the url and run:
-git clone https://gitlab.com/[USERNAME]/Amaneko.git
+git clone https://github.com/[USERNAME]/Amaneko.git
 cd Amaneko
 ```
 
