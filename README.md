@@ -31,8 +31,7 @@ yarn install
 ### 4. Start the required services
 
 ```bash
-yarn db:generate
-yarn db:push
+docker compose up -d
 ```
 
 ### 5. Generate the database
