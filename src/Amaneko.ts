@@ -1,18 +1,18 @@
 import '@sapphire/plugin-logger/register';
 
 import { loadConfig } from '#config';
-import { AmananekoClient } from '#lib/AmanekoClient';
+import { AmanekoClient } from '#lib/AmanekoClient';
 import { ApplicationCommandRegistries, RegisterBehavior, container } from '@sapphire/framework';
 
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite);
 
 async function main(): Promise<void> {
-	let client: AmananekoClient | undefined = undefined;
+	let client: AmanekoClient | undefined = undefined;
 
 	try {
 		const { discord } = container.config;
 
-		client = new AmananekoClient();
+		client = new AmanekoClient();
 
 		await client.login(discord.token);
 	} catch (error: unknown) {

@@ -28,14 +28,20 @@ cp .env.example .env
 yarn install
 ```
 
-### 4. Generate the database
+### 4. Start the required services
+
+```bash
+docker compose up -d
+```
+
+### 5. Generate the database
 
 ```bash
 yarn db:generate
 yarn db:push
 ```
 
-### 5. Build project
+### 6. Build project
 
 ```bash
 yarn build
