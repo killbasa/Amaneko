@@ -95,12 +95,12 @@ export class Command extends AmanekoSubcommand {
                 where: {id: interaction.guildId},
                 update: {blacklistedChannels: result ? [...result.blacklistedChannels, idToBlacklist] : [idToBlacklist]},
                 create: {id: interaction.guildId, blacklistedChannels: [idToBlacklist]}
-            })
-        })
+            });
+        });
 
         return interaction.editReply({
             content: `Added **${idToBlacklist}** to the blacklist`
-        })
+        });
     }
 
     public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
