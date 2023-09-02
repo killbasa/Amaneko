@@ -5,8 +5,8 @@ on:
   #push:
   #  branches:
   #    - main
-  #  paths:
-  #    - "!**/*.md"
+  #  paths-ignore:
+  #    - "**/*.md"
 
 permissions:
   contents: read

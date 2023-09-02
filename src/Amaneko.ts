@@ -1,8 +1,9 @@
 import '@sapphire/plugin-logger/register';
 import '@sapphire/plugin-subcommands/register';
+import '@sapphire/plugin-scheduled-tasks/register';
 
 import { loadConfig } from '#config';
-import { AmanekoClient } from '#lib/AmanekoClient';
+import { AmanekoClient } from '#lib/extensions/AmanekoClient';
 import { ApplicationCommandRegistries, RegisterBehavior, container } from '@sapphire/framework';
 
 ApplicationCommandRegistries.setDefaultBehaviorWhenNotIdentical(RegisterBehavior.BulkOverwrite);
