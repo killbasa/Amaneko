@@ -16,18 +16,19 @@
 	},
 	"scripts": {
 		"build": "tsup",
-		"check": "tsc -b src",
+		"typecheck": "tsc -b src",
 		"dev": "tsup --watch --onSuccess \"yarn start\"",
 		"start": "node --preserve-symlinks --enable-source-maps ./dist/Amaneko.js",
 		"lint": "eslint --ext ts src tests",
 		"lint:fix": "eslint --fix --ext ts src tests",
-		"format": "prettier --write --log-level=warn \"{src,tests}/**/*.{js,ts,json}\"",
+		"format": "prettier --check .",
+		"format:fix": "prettier --write --log-level=warn .",
 		"db:generate": "prisma generate",
 		"db:push": "prisma db push",
 		"test": "vitest --coverage run",
 		"test:watch": "vitest -w",
-		"docker:build": "docker buildx build -t killbasa/amaneko .",
-		"dry-run": "yarn check && yarn lint && yarn build"
+		"docker": "docker buildx build -t killbasa/amaneko .",
+		"dry-run": "yarn typecheck && yarn format && yarn lint && yarn build && yarn test"
 	},
 	"dependencies": {
 		"@killbasa/redis-utils": "^0.0.2",
