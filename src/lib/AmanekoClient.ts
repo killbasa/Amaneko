@@ -6,7 +6,8 @@ import { IntentsBitField } from 'discord.js';
 export class AmanekoClient extends SapphireClient {
 	public constructor() {
 		super({
-			intents: [IntentsBitField.Flags.Guilds]
+			intents: [IntentsBitField.Flags.Guilds],
+			loadSubcommandErrorListeners: false
 		});
 
 		const { config } = container;

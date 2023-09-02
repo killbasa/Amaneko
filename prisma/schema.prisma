@@ -10,6 +10,8 @@ generator client {
 model Guild {
     id String @id @unique
 
+    adminRoles String[]
+
     Subscription Subscription[]
 }
 

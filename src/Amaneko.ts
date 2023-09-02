@@ -1,4 +1,5 @@
 import '@sapphire/plugin-logger/register';
+import '@sapphire/plugin-subcommands/register';
 
 import { loadConfig } from '#config';
 import { AmanekoClient } from '#lib/AmanekoClient';

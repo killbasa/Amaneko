@@ -3,12 +3,14 @@ import { mainFolder } from '#lib/utils/constants';
 import { container } from '@sapphire/pieces';
 import { config } from 'dotenv';
 import { resolve } from 'path';
+import type { ClientConfig } from '#lib/types/Config';
+import type { Unvalidated } from '#lib/types/Generic';
 
 export function loadConfig(): void {
 	process.env.NODE_ENV ??= 'dev';
 	config({ path: resolve(mainFolder, '../.env') });
 
-	const clientConfig = ClientConfigSchema.parse({
+	const rawConfig: Unvalidated<ClientConfig> = {
 		isDev: process.env.NODE_ENV !== 'production',
 		discord: {
 			token: process.env.DISCORD_TOKEN,
@@ -25,7 +27,9 @@ export function loadConfig(): void {
 			port: Number(process.env.REDIS_PORT),
 			password: process.env.REDIS_PASSWORD
 		}
-	});
+	};
+
+	const clientConfig = ClientConfigSchema.parse(rawConfig);
 
 	container.config = clientConfig;
 }

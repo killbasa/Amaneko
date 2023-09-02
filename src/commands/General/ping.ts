@@ -5,7 +5,7 @@ import { PermissionFlagsBits } from 'discord.js';
 @ApplyOptions<AmanekoCommand.Options>({
 	description: 'Ping the bot to see if it is alive.'
 })
-export class PingCommand extends AmanekoCommand {
+export class Command extends AmanekoCommand {
 	public override registerApplicationCommands(registry: AmanekoCommand.Registry): void {
 		registry.registerChatInputCommand(
 			(builder) =>
