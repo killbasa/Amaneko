@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  app:
+    image: killbasa/amaneko
+    container_name: amaneko
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres-amaneko:5432/amaneko
+      - REDIS_HOST=redis-amaneko
+      - REDIS_PORT=6379

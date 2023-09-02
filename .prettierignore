@@ -1,8 +1,9 @@
 .git/
 .husky/
+.yarn/
 coverage/
 dist/
-build/
+prisma/migrations/
 node_modules/
 LICENSE
 yarn.lock

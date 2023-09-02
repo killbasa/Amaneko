@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+    paths:
+      - "!**/*.md"
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run typecheck
+        run: yarn typecheck
+
+      - name: Run lint
+        run: |
+          yarn format
+          yarn lint
+
+      - name: Run build
+        run: yarn build
+
+      - name: Run tests
+        run: yarn test
