@@ -1,4 +1,4 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekiSubcommand';
+import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { AmanekoError } from '#lib/structures/AmanekoError';
 import { BrandColors } from '#utils/constants';
 import { ApplyOptions } from '@sapphire/decorators';
