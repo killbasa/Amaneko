@@ -11,6 +11,8 @@ model Guild {
     id String @id @unique
 
     adminRoles String[]
+    
+    blacklistedChannels String[]
 
     Subscription Subscription[]
 }

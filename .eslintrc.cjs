@@ -7,7 +7,7 @@ module.exports = {
 	},
 	overrides: [
 		{
-			files: ['Augments.ts'],
+			files: ['Augments.ts', 'environment.ts'],
 			rules: {
 				'@typescript-eslint/consistent-type-definitions': 'off'
 			}
