@@ -128,8 +128,8 @@ export class Command extends AmanekoSubcommand {
                 data: {
                     blacklistedChannels: newBlacklist
                 }
-            })
-        })
+            });
+        });
 
         return interaction.editReply({
             content: `Removed **${idToUnblacklist}** from the blacklist`
