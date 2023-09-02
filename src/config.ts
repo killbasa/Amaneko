@@ -1,13 +1,14 @@
-import { ClientConfigSchema } from '#lib/types/Config';
+import {ClientConfigSchema, NodeEnvEnum} from '#lib/types/Config';
 import { mainFolder } from '#lib/utils/constants';
 import { container } from '@sapphire/pieces';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import type { ClientConfig } from '#lib/types/Config';
 import type { Unvalidated } from '#lib/types/Generic';
+import * as process from "process";
 
 export function loadConfig(): void {
-	process.env.NODE_ENV ??= 'dev';
+	process.env.NODE_ENV ??= NodeEnvEnum.enum.dev;
 	config({ path: resolve(mainFolder, '../.env') });
 
 	const rawConfig: Unvalidated<ClientConfig> = {
