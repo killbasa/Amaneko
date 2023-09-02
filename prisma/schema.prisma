@@ -15,34 +15,49 @@ model Guild {
     Subscription Subscription[]
 }
 
-model Channel {
+model HolodexChannel {
     id          String  @id @unique
     name        String
     englishName String?
     image       String?
 
-    Video        Video[]
-    Subscription Subscription[]
+    videos         Video[]
+    subscriptions  Subscription[]
+    communityPosts CommunityPost[]
 }
 
 model Video {
     id String @id
 
     channelId String
-    channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+    channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {
-    id                     String  @id @default(uuid())
-    message                String?
+    id String @id @default(uuid())
+
+    // Stream notifs
     roleId                 String?
     discordChannelId       String?
     memberRoleId           String?
     memberDiscordChannelId String?
 
+    // Community post notifs
+    communityPostRoleId    String?
+    communityPostChannelId String?
+
     channelId String
-    channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+    channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
     guildId String
     guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+    @@unique([channelId, guildId])
+}
+
+model CommunityPost {
+    id String @id @default(uuid())
+
+    channelId String
+    channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }

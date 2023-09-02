@@ -5,12 +5,22 @@ import { IntentsBitField } from 'discord.js';
 
 export class AmanekoClient extends SapphireClient {
 	public constructor() {
+		const { config } = container;
+
 		super({
 			intents: [IntentsBitField.Flags.Guilds],
-			loadSubcommandErrorListeners: false
+			loadSubcommandErrorListeners: false,
+			tasks: {
+				bull: {
+					connection: {
+						host: config.redis.host,
+						port: config.redis.port,
+						password: config.redis.password
+					},
+					defaultJobOptions: { removeOnComplete: 0, removeOnFail: 0 }
+				}
+			}
 		});
-
-		const { config } = container;
 
 		container.prisma = new PrismaClient({
 			datasources: { database: { url: config.database.url } }
