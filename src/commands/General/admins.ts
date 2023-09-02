@@ -1,4 +1,4 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekiSubcommand';
+import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { AmanekoError } from '#lib/structures/AmanekoError';
 import { BrandColors } from '#lib/utils/constants';
 import { ApplyOptions } from '@sapphire/decorators';
@@ -60,9 +60,7 @@ export class Command extends AmanekoSubcommand {
 	public override async autocompleteRun(interaction: AmanekoSubcommand.AutocompleteInteraction): Promise<unknown> {
 		const data = await this.container.prisma.guild.findUnique({
 			where: { id: interaction.guildId },
-			select: {
-				adminRoles: true
-			}
+			select: { adminRoles: true }
 		});
 
 		if (!data) {
@@ -86,29 +84,26 @@ export class Command extends AmanekoSubcommand {
 
 		const data = await this.container.prisma.$transaction(async (prisma) => {
 			const result = await prisma.guild.findUnique({
-				where: { id: interaction.guildId }
+				where: { id: interaction.guildId },
+				select: { adminRoles: true }
 			});
 
-			const uniqueAdminRoles = Array.from(
-				new Set(
-					result?.adminRoles //
-						? [...result.adminRoles, role.id]
-						: [role.id]
-				)
-			);
-
-			if (result?.adminRoles.length === uniqueAdminRoles.length) {
+			if (result?.adminRoles.includes(role.id)) {
 				throw new AmanekoError('That role is already in the bot admin list.');
 			}
 
+			const adminRoles = result //
+				? [...result.adminRoles, role.id]
+				: [role.id];
+
 			return prisma.guild.upsert({
 				where: { id: interaction.guildId },
-				update: { adminRoles: { set: uniqueAdminRoles } },
-				create: { id: interaction.guildId, adminRoles: uniqueAdminRoles }
+				update: { adminRoles },
+				create: { id: interaction.guildId, adminRoles }
 			});
 		});
 
-		const embed = this.adminListEmbed(data?.adminRoles);
+		const embed = this.adminListEmbed(data.adminRoles);
 		return interaction.editReply({
 			content: `Added ${roleMention(role.id)} to the bot admin list`,
 			embeds: [embed]
@@ -128,18 +123,24 @@ export class Command extends AmanekoSubcommand {
 
 		const data = await this.container.prisma.$transaction(async (prisma) => {
 			const result = await prisma.guild.findUnique({
-				where: { id: interaction.guildId }
+				where: { id: interaction.guildId },
+				select: { adminRoles: true }
 			});
 
 			if (!result) {
 				throw new AmanekoError('There are no admins roles to remove.');
 			}
 
+			if (!result.adminRoles.includes(role.id)) {
+				throw new AmanekoError('That role is not set as an admin role.');
+			}
+
 			const newAdminRoles = result.adminRoles.filter((roleId) => roleId !== role.id);
 
 			return prisma.guild.update({
 				where: { id: interaction.guildId },
-				data: { adminRoles: { set: newAdminRoles } }
+				data: { adminRoles: { set: newAdminRoles } },
+				select: { adminRoles: true }
 			});
 		});
 
@@ -154,7 +155,8 @@ export class Command extends AmanekoSubcommand {
 		await interaction.deferReply();
 
 		const data = await this.container.prisma.guild.findUnique({
-			where: { id: interaction.guildId }
+			where: { id: interaction.guildId },
+			select: { adminRoles: true }
 		});
 
 		const embed = this.adminListEmbed(data?.adminRoles);

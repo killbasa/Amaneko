@@ -15,6 +15,7 @@
 		"node": ">=20.x"
 	},
 	"scripts": {
+		"postinstall": "husky install",
 		"build": "tsup",
 		"typecheck": "tsc -b src",
 		"dev": "tsup --watch --onSuccess \"yarn start\"",
@@ -42,6 +43,7 @@
 		"@sapphire/plugin-logger": "^3.0.6",
 		"@sapphire/plugin-scheduled-tasks": "^7.1.2",
 		"@sapphire/plugin-subcommands": "^4.2.1",
+		"bullmq": "^4.8.0",
 		"discord.js": "^14.13.0",
 		"dotenv": "^16.3.1",
 		"ioredis": "^5.3.2",
