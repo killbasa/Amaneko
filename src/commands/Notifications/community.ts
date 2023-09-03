@@ -26,37 +26,37 @@ export class Command extends AmanekoSubcommand {
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('add')
-							.setDescription('Add a channel from which to notify community posts.')
+							.setDescription('Add a community post subscription to the channel.')
 							.addStringOption((option) =>
 								option //
 									.setName('channel')
-									.setDescription('idk')
+									.setDescription('The name of the YouTube channel.')
 							)
 							.addRoleOption((option) =>
 								option //
 									.setName('role')
-									.setDescription('idk')
+									.setDescription('The role to ping for notifications.')
 							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('remove')
-							.setDescription('Remove a channel from which to notify community posts.')
+							.setDescription('Remove a community post subscription from the channel.')
 							.addStringOption((option) =>
 								option //
 									.setName('channel')
-									.setDescription('idk')
+									.setDescription('The name of the YouTube channel to remove.')
 							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('clear')
-							.setDescription('Clear all channels from which to notify community posts.')
+							.setDescription('Clear all community post subscriptions in a channel.')
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('list')
-							.setDescription('Clear all channels from which to notify community posts.')
+							.setDescription('List all of the community post subscriptions in the server.')
 					),
 			{
 				idHints: [],
