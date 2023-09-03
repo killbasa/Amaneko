@@ -9,3 +9,5 @@ services:
       - DATABASE_URL=postgresql://user:password@postgres-amaneko:5432/amaneko
       - REDIS_HOST=redis-amaneko
       - REDIS_PORT=6379
+      - MEILI_HOST=meili-amaneko
+      - MEILI_PORT=7700

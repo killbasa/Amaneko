@@ -97,7 +97,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		return interaction.editReply({
-			content: `Added **${channelName !== 'Username not found' ? data.channelName : data.channelId}** to the blacklist.`
+			content: `Added **${channelName === 'Username not found' ? data.channelId : data.channelName}** to the blacklist.`
 		});
 	}
 
@@ -133,7 +133,7 @@ export class Command extends AmanekoSubcommand {
 		);
 
 		return interaction.editReply({
-			content: `Removed **${channelName !== 'Username not found' ? channelName : idToUnblacklist}** from the blacklist.`
+			content: `Removed **${channelName === 'Username not found' ? idToUnblacklist : channelName}** from the blacklist.`
 		});
 	}
 

@@ -1,4 +1,4 @@
-export type HolodexChannel = {
+export type HolodexApiChannel = {
 	id: string;
 	name: string;
 	english_name: string | null;
@@ -15,7 +15,7 @@ export type HolodexChannel = {
 	group: string | null;
 };
 
-export type HolodexChannelMin = {
+export type HolodexApiChannelMin = {
 	id: string;
 	name: string;
 	english_name: string;
@@ -23,7 +23,7 @@ export type HolodexChannelMin = {
 	photo: string;
 };
 
-export type HolodexVideo = {
+export type HolodexApiVideo = {
 	available_at: string;
 	duration: number;
 	id: string;
@@ -37,6 +37,6 @@ export type HolodexVideo = {
 	description: string | null;
 };
 
-export type HolodexVideoWithChannel = HolodexVideo & {
-	channel: HolodexChannelMin;
+export type HolodexApiVideoWithChannel = HolodexApiVideo & {
+	channel: HolodexApiChannelMin;
 };

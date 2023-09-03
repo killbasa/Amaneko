@@ -1,8 +1,11 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { BrandColors } from '#lib/utils/constants';
+import { MeiliCategories } from '#lib/types/Meili';
+import { channelLink } from '#lib/utils/youtube';
+import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
-import { PaginatedMessage } from '@sapphire/discord.js-utilities';
+import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 import type { HolodexChannel } from '@prisma/client';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
@@ -22,7 +25,7 @@ export class Command extends AmanekoSubcommand {
 					.setName('community')
 					.setDescription(this.description)
 					.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-					.setDMPermission(true)
+					.setDMPermission(false)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('add')
@@ -31,6 +34,8 @@ export class Command extends AmanekoSubcommand {
 								option //
 									.setName('channel')
 									.setDescription('The name of the YouTube channel.')
+									.setAutocomplete(true)
+									.setRequired(true)
 							)
 							.addRoleOption((option) =>
 								option //
@@ -44,8 +49,10 @@ export class Command extends AmanekoSubcommand {
 							.setDescription('Remove a community post subscription from the channel.')
 							.addStringOption((option) =>
 								option //
-									.setName('channel')
+									.setName('subscription')
 									.setDescription('The name of the YouTube channel to remove.')
+									.setAutocomplete(true)
+									.setRequired(true)
 							)
 					)
 					.addSubcommand((subcommand) =>
@@ -65,6 +72,34 @@ export class Command extends AmanekoSubcommand {
 		);
 	}
 
+	public override async autocompleteRun(interaction: AmanekoSubcommand.AutocompleteInteraction): Promise<void> {
+		const focusedOption = interaction.options.getFocused(true);
+
+		let options: ApplicationCommandOptionChoiceData[] = [];
+
+		if (focusedOption.name === 'channel') {
+			const result = await this.container.meili.get(MeiliCategories.HolodexChannels, focusedOption.value);
+
+			options = result.hits.map(({ name, englishName, id }) => ({
+				name: englishName ?? name,
+				value: id
+			}));
+		} else if (focusedOption.name === 'subscription') {
+			const channels = await this.container.prisma.subscription.findMany({
+				where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
+				select: { channel: true }
+			});
+			if (channels.length < 1) return interaction.respond([]);
+
+			options = channels.map(({ channel }) => ({
+				name: channel.name,
+				value: channel.id
+			}));
+		}
+
+		return interaction.respond(options);
+	}
+
 	public async handleAdd(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 		const channelId = interaction.options.getString('channel', true);
@@ -75,7 +110,7 @@ export class Command extends AmanekoSubcommand {
 			select: { id: true }
 		});
 		if (!channel) {
-			return interaction.editReply('I was not able to find a channel with that name.');
+			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		const data = await this.container.prisma.subscription.upsert({
@@ -85,17 +120,20 @@ export class Command extends AmanekoSubcommand {
 				communityPostRoleId: role?.id
 			},
 			create: {
-				channelId: channel.id,
-				guildId: interaction.guildId,
 				communityPostChannelId: interaction.channelId,
-				communityPostRoleId: role?.id
+				communityPostRoleId: role?.id,
+				channel: { connect: { id: channel.id } },
+				guild: {
+					connectOrCreate: {
+						where: { id: interaction.guildId },
+						create: { id: interaction.guildId }
+					}
+				}
 			},
-			select: {
-				channel: true
-			}
+			select: { channel: true }
 		});
 
-		const embed = this.communityPostEmbed(data.channel, interaction.channelId, role?.id);
+		const embed = this.communityPostEmbed(data.channel, role?.id);
 		return interaction.editReply({
 			content: `New community posts will now be sent to this channel.`,
 			embeds: [embed]
@@ -104,22 +142,28 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const channelId = interaction.options.getString('channel', true);
+		const channelId = interaction.options.getString('subscription', true);
+
+		const channel = await this.container.prisma.holodexChannel.findUnique({
+			where: { id: channelId },
+			select: { id: true, name: true }
+		});
+		if (!channel) {
+			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
 
 		const data = await this.container.prisma.subscription
 			.update({
-				where: { channelId_guildId: { guildId: interaction.guildId, channelId } },
+				where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
 				data: { communityPostChannelId: null, communityPostRoleId: null },
 				select: { channel: true }
 			})
 			.catch(() => null);
 		if (!data) {
-			return interaction.editReply(`Community posts for ${channelId} weren't being sent to this channel.`);
+			return errorReply(interaction, `Community posts for ${channel.name} weren't being sent to this channel.`);
 		}
 
-		return interaction.editReply({
-			content: `Community posts for ${data.channel.name} (${data.channel.englishName}) will no longer be sent to this channel.`
-		});
+		return successReply(interaction, `Community posts for ${data.channel.name} will no longer be sent to this channel.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -130,41 +174,51 @@ export class Command extends AmanekoSubcommand {
 			data: { communityPostChannelId: null, communityPostRoleId: null }
 		});
 
-		return interaction.editReply({
-			content: 'Community posts will no longer be sent in this channel.'
-		});
+		return successReply(interaction, 'Community posts will no longer be sent in this channel.');
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
 		const data = await this.container.prisma.subscription.findMany({
-			where: { guildId: interaction.guildId, communityPostChannelId: interaction.channelId },
-			include: { channel: true }
+			where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
+			select: {
+				channel: { select: { id: true, name: true } },
+				communityPostChannelId: true,
+				communityPostRoleId: true
+			}
 		});
 
 		if (data.length === 0) {
-			return interaction.editReply({
-				content: 'There are no community posts being sent to this channel.'
-			});
+			return defaultReply(interaction, 'There are no community posts being sent to this server.');
 		}
 
-		const menu = new PaginatedMessage();
+		const embed = new EmbedBuilder() //
+			.setColor(BrandColors.Default)
+			.setTitle('Community Post settings')
+			.setDescription(
+				data
+					.map(({ channel, communityPostChannelId, communityPostRoleId }) => {
+						const role = communityPostRoleId //
+							? ` mentioning ${roleMention(communityPostRoleId)}`
+							: '';
+						return `${channelLink(channel.name, channel.id)} in ${channelMention(communityPostChannelId!)}${role}`;
+					})
+					.join('\n')
+			);
 
-		for (const { channel, communityPostChannelId, communityPostRoleId } of data) {
-			menu.addPageEmbed(this.communityPostEmbed(channel, communityPostChannelId!, communityPostRoleId));
-		}
-
-		return menu.run(interaction);
+		return interaction.editReply({
+			embeds: [embed]
+		});
 	}
 
-	private communityPostEmbed(channel: HolodexChannel, channelId: string, roleId?: string | null): EmbedBuilder {
+	private communityPostEmbed(channel: HolodexChannel, roleId?: string | null): EmbedBuilder {
 		return new EmbedBuilder() //
 			.setColor(BrandColors.Default)
 			.setThumbnail(channel.image)
-			.setTitle(`Community posts for: ${channel.name} (${channel.englishName})`)
+			.setTitle(`Community posts for: ${channel.name}`)
 			.setDescription(
-				`YouTube channel ID: ${channel.id}\nChannel: ${channelMention(channelId)}\nRole: ${
+				`YouTube channel ID: ${channel.id}\nRole: ${
 					roleId //
 						? roleMention(roleId)
 						: 'No role set.'

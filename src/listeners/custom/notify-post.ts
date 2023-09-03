@@ -32,6 +32,8 @@ export class CustomListener extends Listener<typeof AmanekoEvents.CommunityPost>
 				});
 			})
 		]);
+
+		await this.container.redis.hSet('communityposts', post.channelId, post.id);
 	}
 
 	private buildEmbed(post: CommunityPostData): EmbedBuilder {

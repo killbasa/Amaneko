@@ -1,17 +1,27 @@
 import { AmanekoError } from '#lib/structures/AmanekoError';
+import { defaultReply, errorReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
-import { Events, Listener } from '@sapphire/framework';
+import { Events, Listener, container } from '@sapphire/framework';
 import { SubcommandPluginEvents } from '@sapphire/plugin-subcommands';
 import type { ChatInputCommandErrorPayload, ContextMenuCommandErrorPayload } from '@sapphire/framework';
 import type { ChatInputSubcommandErrorPayload } from '@sapphire/plugin-subcommands';
-import type { CommandInteraction } from 'discord.js';
 
-async function handleError(error: Error, interaction: CommandInteraction): Promise<void> {
+async function handleError(data: {
+	message: string;
+	error: Error;
+	payload: ChatInputCommandErrorPayload | ChatInputSubcommandErrorPayload | ContextMenuCommandErrorPayload;
+}): Promise<void> {
+	const { error, message, payload } = data;
+	const { interaction } = payload;
+
 	if (error instanceof AmanekoError) {
-		await interaction.editReply(error.message);
-	} else {
-		await interaction.editReply('Something went wrong when handling your request.');
+		await defaultReply(interaction, error.message);
+		return;
 	}
+
+	container.logger.error(message, error);
+
+	await errorReply(interaction, 'Something went wrong when handling your request.');
 }
 
 @ApplyOptions<Listener.Options>({
@@ -20,7 +30,14 @@ async function handleError(error: Error, interaction: CommandInteraction): Promi
 })
 export class ChatInputCommandError extends Listener<typeof Events.ChatInputCommandError> {
 	public async run(error: Error, payload: ChatInputCommandErrorPayload): Promise<void> {
-		await handleError(error, payload.interaction);
+		const { command } = payload;
+		const { name, location } = command;
+
+		await handleError({
+			message: `Encountered error on chat input command "${name}" at path "${location.full}"`,
+			error,
+			payload
+		});
 	}
 }
 
@@ -30,7 +47,14 @@ export class ChatInputCommandError extends Listener<typeof Events.ChatInputComma
 })
 export class ContextMenuCommandError extends Listener<typeof Events.ContextMenuCommandError> {
 	public async run(error: Error, payload: ContextMenuCommandErrorPayload): Promise<void> {
-		await handleError(error, payload.interaction);
+		const { command } = payload;
+		const { name, location } = command;
+
+		await handleError({
+			message: `Encountered error on context-menu command "${name}" at path "${location.full}"`,
+			error,
+			payload
+		});
 	}
 }
 
@@ -40,6 +64,13 @@ export class ContextMenuCommandError extends Listener<typeof Events.ContextMenuC
 })
 export class ChatInputSubcommandError extends Listener<typeof SubcommandPluginEvents.ChatInputSubcommandError> {
 	public async run(error: Error, payload: ChatInputSubcommandErrorPayload): Promise<void> {
-		await handleError(error, payload.interaction);
+		const { command } = payload;
+		const { name, location } = command;
+
+		await handleError({
+			message: `Encountered error on chat input subcommand "${name}" at path "${location.full}"`,
+			error,
+			payload
+		});
 	}
 }

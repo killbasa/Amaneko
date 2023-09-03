@@ -1,6 +1,8 @@
+import { HolodexClient } from '#lib/extensions/HolodexClient';
+import { MeiliClient } from '#lib/extensions/MeiliClient';
 import { RedisClient } from '@killbasa/redis-utils';
 import { PrismaClient } from '@prisma/client';
-import { SapphireClient, container } from '@sapphire/framework';
+import { LogLevel, SapphireClient, container } from '@sapphire/framework';
 import { IntentsBitField } from 'discord.js';
 
 export class AmanekoClient extends SapphireClient {
@@ -10,6 +12,10 @@ export class AmanekoClient extends SapphireClient {
 		super({
 			intents: [IntentsBitField.Flags.Guilds],
 			loadSubcommandErrorListeners: false,
+			logger: {
+				level: config.isDev ? LogLevel.Debug : LogLevel.Info
+			},
+			allowedMentions: {},
 			tasks: {
 				bull: {
 					connection: {
@@ -22,17 +28,26 @@ export class AmanekoClient extends SapphireClient {
 			}
 		});
 
+		container.holodex = new HolodexClient(config.holodex);
 		container.prisma = new PrismaClient({
 			datasources: { database: { url: config.database.url } }
 		});
 		container.redis = new RedisClient(config.redis);
+		container.meili = new MeiliClient(config.meili);
 	}
 
 	public override async login(token: string): Promise<string> {
+		await container.meili.sync();
+
 		return super.login(token);
 	}
 
 	public override async destroy(): Promise<void> {
+		await Promise.allSettled([
+			container.prisma.$disconnect(), //
+			container.redis.quit()
+		]);
+
 		return super.destroy();
 	}
 }

@@ -1,8 +1,13 @@
 import { getRootData } from '@sapphire/pieces';
-import type { ColorResolvable } from 'discord.js';
 
 export const mainFolder = getRootData().root;
 
-export const BrandColors: Record<string, ColorResolvable> = {
-	Default: '#9966CC'
-};
+export const HOLODEX_BASE_URL = 'https://holodex.net/api/v2';
+
+export const HOLODEX_HEADER = 'X-APIKEY';
+
+export const enum BrandColors {
+	Default = '#9966CC',
+	Success = '#33B54E',
+	Error = 'Red'
+}
