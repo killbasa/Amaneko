@@ -80,6 +80,15 @@ export class Command extends AmanekoSubcommand {
 		const idToBlacklist = interaction.options.getString('id', true);
 		const channelName = await getUsername(idToBlacklist);
 
+		const guildData = await this.container.prisma.guild.findUnique({
+			where: { id: interaction.guildId },
+			select: { blacklist: true }
+		});
+
+		if (guildData?.blacklist.some((entry) => entry.channelId === idToBlacklist)) {
+			throw new AmanekoError('Channel is already blacklisted.');
+		}
+
 		const data = await this.container.prisma.blacklist.upsert({
 			where: { channelId_guildId: { channelId: idToBlacklist, guildId: interaction.guildId } },
 			update: { channelId: idToBlacklist, channelName },
