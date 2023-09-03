@@ -9,6 +9,7 @@ declare global {
 			REDIS_HOST: string | undefined;
 			REDIS_PORT: string | undefined;
 			REDIS_PASSWORD: string | undefined;
+			YOUTUBE_API_KEY: string | undefined;
 		}
 	}
 }

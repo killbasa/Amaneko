@@ -26,6 +26,9 @@ export function loadConfig(): void {
 			host: process.env.REDIS_HOST,
 			port: Number(process.env.REDIS_PORT),
 			password: process.env.REDIS_PASSWORD
+		},
+		youtube: {
+			apikey: process.env.YOUTUBE_API_KEY
 		}
 	};
 

@@ -1,65 +1,77 @@
 datasource database {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 model Guild {
-    id String @id @unique
+  id String @id @unique
 
-    adminRoles String[]
-    
-    blacklistedChannels String[]
+  adminRoles String[]
 
-    Subscription Subscription[]
+  blacklist Blacklist[]
+
+  Subscription Subscription[]
+}
+
+model Blacklist {
+  id String @id @default(uuid())
+
+  channelId   String
+  channelName String
+
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, guildId])
 }
 
 model HolodexChannel {
-    id          String  @id @unique
-    name        String
-    englishName String?
-    image       String?
+  id          String  @id @unique
+  name        String
+  englishName String?
+  image       String?
 
-    videos         Video[]
-    subscriptions  Subscription[]
-    communityPosts CommunityPost[]
+  videos         Video[]
+  subscriptions  Subscription[]
+  communityPosts CommunityPost[]
 }
 
 model Video {
-    id String @id
+  id String @id
 
-    channelId String
-    channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String
+  channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    // Stream notifs
-    roleId                 String?
-    discordChannelId       String?
-    memberRoleId           String?
-    memberDiscordChannelId String?
+  // Stream notifs
+  roleId                 String?
+  discordChannelId       String?
+  memberRoleId           String?
+  memberDiscordChannelId String?
 
-    // Community post notifs
-    communityPostRoleId    String?
-    communityPostChannelId String?
+  // Community post notifs
+  communityPostRoleId    String?
+  communityPostChannelId String?
 
-    channelId String
-    channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String
+  channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 
-    guildId String
-    guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
+  guildId String
+  guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
-    @@unique([channelId, guildId])
+  @@unique([channelId, guildId])
 }
 
 model CommunityPost {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    channelId String
-    channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId String
+  channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }

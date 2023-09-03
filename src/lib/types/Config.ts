@@ -17,6 +17,9 @@ export const ClientConfigSchema = z
 			host: z.string(),
 			port: z.number(),
 			password: z.string()
+		}),
+		youtube: z.object({
+			apikey: z.string()
 		})
 	})
 	.strict();
