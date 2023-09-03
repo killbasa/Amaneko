@@ -11,10 +11,9 @@ model Guild {
   id String @id @unique
 
   adminRoles String[]
+  blacklist  Blacklist[]
 
-  blacklist Blacklist[]
-
-  Subscription Subscription[]
+  subscriptions Subscription[]
 }
 
 model Blacklist {
@@ -35,9 +34,8 @@ model HolodexChannel {
   englishName String?
   image       String?
 
-  videos         Video[]
-  subscriptions  Subscription[]
-  communityPosts CommunityPost[]
+  videos        Video[]
+  subscriptions Subscription[]
 }
 
 model Video {
@@ -67,11 +65,4 @@ model Subscription {
   guild   Guild  @relation(fields: [guildId], references: [id], onDelete: Cascade)
 
   @@unique([channelId, guildId])
-}
-
-model CommunityPost {
-  id String @id @default(uuid())
-
-  channelId String
-  channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }

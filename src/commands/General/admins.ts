@@ -1,6 +1,7 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { AmanekoError } from '#lib/structures/AmanekoError';
 import { BrandColors } from '#lib/utils/constants';
+import { errorReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits, roleMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData, Role } from 'discord.js';
@@ -21,7 +22,7 @@ export class Command extends AmanekoSubcommand {
 					.setName('admins')
 					.setDescription(this.description)
 					.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-					.setDMPermission(true)
+					.setDMPermission(false)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('add')
@@ -116,9 +117,7 @@ export class Command extends AmanekoSubcommand {
 
 		const role = interaction.guild.roles.cache.get(roleId);
 		if (!role) {
-			return interaction.editReply({
-				content: 'A role with that name does not exist.'
-			});
+			return errorReply(interaction, 'A role with that name does not exist.');
 		}
 
 		const data = await this.container.prisma.$transaction(async (prisma) => {

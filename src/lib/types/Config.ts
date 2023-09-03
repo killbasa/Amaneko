@@ -5,10 +5,15 @@ export const ClientConfigSchema = z
 		isDev: z.boolean(),
 		discord: z.object({
 			token: z.string(),
-			id: z.string()
+			id: z.string(),
+			devServer: z.string(),
+			ownerIds: z.array(z.string())
 		}),
 		holodex: z.object({
 			apiKey: z.string()
+		}),
+		youtube: z.object({
+			apikey: z.string()
 		}),
 		database: z.object({
 			url: z.string()
@@ -18,8 +23,9 @@ export const ClientConfigSchema = z
 			port: z.number(),
 			password: z.string()
 		}),
-		youtube: z.object({
-			apikey: z.string()
+		meili: z.object({
+			host: z.string(),
+			port: z.number()
 		})
 	})
 	.strict();
