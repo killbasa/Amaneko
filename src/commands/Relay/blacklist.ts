@@ -89,10 +89,17 @@ export class Command extends AmanekoSubcommand {
 			throw new AmanekoError('Channel is already blacklisted.');
 		}
 
-		const data = await this.container.prisma.blacklist.upsert({
-			where: { channelId_guildId: { channelId: idToBlacklist, guildId: interaction.guildId } },
-			update: { channelId: idToBlacklist, channelName },
-			create: { guildId: interaction.guildId, channelId: idToBlacklist, channelName },
+		const data = await this.container.prisma.blacklist.create({
+			data: {
+				guild: {
+					connectOrCreate: {
+						where: { id: interaction.guildId },
+						create: { id: interaction.guildId }
+					}
+				},
+				channelId: idToBlacklist,
+				channelName
+			},
 			select: { channelName: true, channelId: true }
 		});
 

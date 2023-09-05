@@ -10,6 +10,10 @@ declare global {
 			REDIS_PORT: string | undefined;
 			REDIS_PASSWORD: string | undefined;
 			YOUTUBE_API_KEY: string | undefined;
+			DISCORD_DEVSERVER: string | undefined;
+			DISCORD_OWNERIDS: string | undefined;
+			MEILI_HOST: string | undefined;
+			MEILI_PORT: string | undefined;
 		}
 	}
 }
