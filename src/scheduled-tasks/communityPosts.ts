@@ -8,7 +8,7 @@ import { FetchResultTypes, fetch } from '@sapphire/fetch';
 import type { CommunityPostData } from '#lib/types/YouTube';
 
 @ApplyOptions<ScheduledTask.Options>({
-	name: 'CommunityPosts',
+	name: 'CommunityPostTask',
 	pattern: '0 */5 * * * *', // Every 5 minutes
 	enabled: !container.config.isDev
 })

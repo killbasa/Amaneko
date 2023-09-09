@@ -9,7 +9,7 @@ import type { CommunityPostData } from '#lib/types/YouTube';
 	name: AmanekoEvents.CommunityPost,
 	event: AmanekoEvents.CommunityPost
 })
-export class CustomListener extends Listener<typeof AmanekoEvents.CommunityPost> {
+export class NotificationListener extends Listener<typeof AmanekoEvents.CommunityPost> {
 	public async run(post: CommunityPostData): Promise<void> {
 		const subscriptions = await this.container.prisma.subscription.findMany({
 			where: { channelId: post.channelId, communityPostChannelId: { not: null } },
@@ -22,11 +22,11 @@ export class CustomListener extends Listener<typeof AmanekoEvents.CommunityPost>
 		await Promise.allSettled([
 			subscriptions.map(async ({ communityPostChannelId, communityPostRoleId }) => {
 				const channel = await this.container.client.channels.fetch(communityPostChannelId!);
-				if (!channel || !channel.isTextBased()) return;
+				if (!channel?.isTextBased()) return;
 
 				const rolePing = communityPostRoleId ? roleMention(communityPostRoleId) : '';
 
-				await channel.send({
+				return channel.send({
 					content: `:loudspeaker: ${rolePing} ${post.channelName} just published a community post!\n${post.url}`,
 					embeds: [embed]
 				});

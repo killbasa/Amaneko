@@ -37,8 +37,13 @@ export class Task extends ScheduledTask {
 					id: channel.id,
 					name: channel.name,
 					englishName: channel.english_name,
-					image: channel.photo
+					image: channel.photo,
+					org: channel.org,
+					subOrg: channel.suborg
 				};
+
+				container.cache.holodexChannels.set(channel.id, data);
+
 				return prisma.holodexChannel.upsert({
 					where: { id: channel.id },
 					update: data,
