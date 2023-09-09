@@ -33,6 +33,8 @@ model HolodexChannel {
   name        String
   englishName String?
   image       String?
+  org         String?
+  subOrg      String?
 
   videos        Video[]
   subscriptions Subscription[]
@@ -48,13 +50,13 @@ model Video {
 model Subscription {
   id String @id @default(uuid())
 
-  // Stream notifs
   roleId                 String?
   discordChannelId       String?
   memberRoleId           String?
   memberDiscordChannelId String?
 
-  // Community post notifs
+  relayChannelId String?
+
   communityPostRoleId    String?
   communityPostChannelId String?
 

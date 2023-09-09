@@ -1,15 +1,14 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { BrandColors } from '#lib/utils/constants';
 import { MeiliCategories } from '#lib/types/Meili';
-import { channelLink } from '#lib/utils/youtube';
+import { BrandColors } from '#lib/utils/constants';
 import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { channelLink } from '#lib/utils/youtube';
 import { ApplyOptions } from '@sapphire/decorators';
-import { EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
+import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
-import type { HolodexChannel } from '@prisma/client';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: 'Starts or stops sending community post notifications in the current channel.',
+	description: "Start or stop relaying a streamer's translations in the current Discord channel.",
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
 		{ name: 'remove', chatInputRun: 'handleRemove' },
@@ -22,14 +21,14 @@ export class Command extends AmanekoSubcommand {
 		registry.registerChatInputCommand(
 			(builder) =>
 				builder
-					.setName('community')
+					.setName('relay')
 					.setDescription(this.description)
 					.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-					.setDMPermission(false)
+					.setDMPermission(true)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('add')
-							.setDescription('Add a community post subscription to this channel.')
+							.setDescription('Add a relay subscription to this channel.')
 							.addStringOption((option) =>
 								option //
 									.setName('channel')
@@ -37,16 +36,11 @@ export class Command extends AmanekoSubcommand {
 									.setAutocomplete(true)
 									.setRequired(true)
 							)
-							.addRoleOption((option) =>
-								option //
-									.setName('role')
-									.setDescription('The role to ping for notifications.')
-							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('remove')
-							.setDescription('Remove a community post subscription from this channel.')
+							.setDescription('Remove a relay subscription from this channel.')
 							.addStringOption((option) =>
 								option //
 									.setName('subscription')
@@ -58,12 +52,12 @@ export class Command extends AmanekoSubcommand {
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('clear')
-							.setDescription('Clear all community post subscriptions in this channel.')
+							.setDescription('Clear all relay subscriptions in this channel.')
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('list')
-							.setDescription('List all of the community post subscriptions in the server.')
+							.setDescription('List all of the relay subscriptions in the server.')
 					),
 			{
 				idHints: [],
@@ -86,7 +80,7 @@ export class Command extends AmanekoSubcommand {
 			}));
 		} else if (focusedOption.name === 'subscription') {
 			const channels = await this.container.prisma.subscription.findMany({
-				where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
+				where: { guildId: interaction.guildId, relayChannelId: { not: null } },
 				select: { channel: true }
 			});
 			if (channels.length < 1) return interaction.respond([]);
@@ -103,7 +97,6 @@ export class Command extends AmanekoSubcommand {
 	public async handleAdd(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 		const channelId = interaction.options.getString('channel', true);
-		const role = interaction.options.getRole('role');
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
@@ -113,12 +106,10 @@ export class Command extends AmanekoSubcommand {
 		await this.container.prisma.subscription.upsert({
 			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
 			update: {
-				communityPostChannelId: interaction.channelId,
-				communityPostRoleId: role?.id
+				relayChannelId: interaction.channelId
 			},
 			create: {
-				communityPostChannelId: interaction.channelId,
-				communityPostRoleId: role?.id,
+				relayChannelId: interaction.channelId,
 				channel: { connect: { id: channel.id } },
 				guild: {
 					connectOrCreate: {
@@ -129,11 +120,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		const embed = this.communityPostEmbed(channel, role?.id);
-		return interaction.editReply({
-			content: `New community posts will now be sent to this channel.`,
-			embeds: [embed]
-		});
+		return successReply(interaction, `Relays from ${channel.name} will now be sent to this channel.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -148,53 +135,49 @@ export class Command extends AmanekoSubcommand {
 		const data = await this.container.prisma.subscription
 			.update({
 				where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-				data: { communityPostChannelId: null, communityPostRoleId: null }
+				data: { relayChannelId: null }
 			})
 			.catch(() => null);
 		if (!data) {
-			return errorReply(interaction, `Community posts for ${channel.name} weren't being sent to this channel.`);
+			return errorReply(interaction, `Relays for ${channel.name} weren't being sent to this channel.`);
 		}
 
-		return successReply(interaction, `Community posts for ${channel.name} will no longer be sent to this channel.`);
+		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to this channel.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
 		await this.container.prisma.subscription.updateMany({
-			where: { guildId: interaction.guildId, communityPostChannelId: interaction.channelId },
-			data: { communityPostChannelId: null, communityPostRoleId: null }
+			where: { guildId: interaction.guildId, relayChannelId: interaction.channelId },
+			data: { relayChannelId: null }
 		});
 
-		return successReply(interaction, 'Community posts will no longer be sent in this channel.');
+		return successReply(interaction, 'Relays will no longer be sent in this channel.');
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
 		const data = await this.container.prisma.subscription.findMany({
-			where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
+			where: { guildId: interaction.guildId, relayChannelId: { not: null } },
 			select: {
 				channel: { select: { id: true, name: true } },
-				communityPostChannelId: true,
-				communityPostRoleId: true
+				relayChannelId: true
 			}
 		});
 
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no community posts being sent to this server.');
+			return defaultReply(interaction, 'There are no relays being sent to this server.');
 		}
 
 		const embed = new EmbedBuilder() //
 			.setColor(BrandColors.Default)
-			.setTitle('Community Post settings')
+			.setTitle('Relay settings')
 			.setDescription(
 				data
-					.map(({ channel, communityPostChannelId, communityPostRoleId }) => {
-						const role = communityPostRoleId //
-							? ` mentioning ${roleMention(communityPostRoleId)}`
-							: '';
-						return `${channelLink(channel.name, channel.id)} in ${channelMention(communityPostChannelId!)}${role}`;
+					.map(({ channel, relayChannelId }) => {
+						return `${channelLink(channel.name, channel.id)} in ${channelMention(relayChannelId!)}`;
 					})
 					.join('\n')
 			);
@@ -202,19 +185,5 @@ export class Command extends AmanekoSubcommand {
 		return interaction.editReply({
 			embeds: [embed]
 		});
-	}
-
-	private communityPostEmbed(channel: HolodexChannel, roleId?: string | null): EmbedBuilder {
-		return new EmbedBuilder() //
-			.setColor(BrandColors.Default)
-			.setThumbnail(channel.image)
-			.setTitle(`Community posts for: ${channel.name}`)
-			.setDescription(
-				`YouTube channel ID: ${channel.id}\nRole: ${
-					roleId //
-						? roleMention(roleId)
-						: 'No role set.'
-				}`
-			);
 	}
 }

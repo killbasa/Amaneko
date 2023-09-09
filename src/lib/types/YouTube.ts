@@ -7,6 +7,7 @@ export type CommunityPostData = {
 	content: string;
 	isToday: boolean;
 };
+
 export type Blacklist = {
 	id: string;
 	channelId: string;

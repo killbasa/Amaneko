@@ -1,9 +1,10 @@
-import { HolodexClient } from '#lib/extensions/HolodexClient';
+import { HolodexClient } from '#lib/structures/HolodexClient';
 import { MeiliClient } from '#lib/extensions/MeiliClient';
+import { TLDexClient } from '#lib/structures/TLDexClient';
 import { RedisClient } from '@killbasa/redis-utils';
 import { PrismaClient } from '@prisma/client';
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
-import { IntentsBitField } from 'discord.js';
+import { Collection, IntentsBitField } from 'discord.js';
 
 export class AmanekoClient extends SapphireClient {
 	public constructor() {
@@ -29,6 +30,7 @@ export class AmanekoClient extends SapphireClient {
 		});
 
 		container.holodex = new HolodexClient(config.holodex);
+		container.tldex = new TLDexClient();
 		container.prisma = new PrismaClient({
 			datasources: { database: { url: config.database.url } }
 		});
@@ -38,6 +40,17 @@ export class AmanekoClient extends SapphireClient {
 
 	public override async login(token: string): Promise<string> {
 		await container.meili.sync();
+		container.tldex.connect();
+
+		const channels = await container.prisma.holodexChannel.findMany();
+
+		container.cache = {
+			holodexChannels: new Collection(
+				channels.map((channel) => {
+					return [channel.id, channel];
+				})
+			)
+		};
 
 		return super.login(token);
 	}
@@ -45,7 +58,8 @@ export class AmanekoClient extends SapphireClient {
 	public override async destroy(): Promise<void> {
 		await Promise.allSettled([
 			container.prisma.$disconnect(), //
-			container.redis.quit()
+			container.redis.quit(),
+			container.tldex.destroy()
 		]);
 
 		return super.destroy();

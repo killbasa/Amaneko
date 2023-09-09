@@ -1,6 +1,6 @@
 import { HOLODEX_BASE_URL, HOLODEX_HEADER } from '#lib/utils/constants';
 import { FetchMethods, FetchResultTypes, fetch } from '@sapphire/fetch';
-import type { HolodexApiChannel, HolodexApiVideoWithChannel } from '#lib/types/holodex';
+import type { Holodex } from '#lib/types/Holodex';
 
 export class HolodexClient {
 	private readonly apiKey;
@@ -9,7 +9,7 @@ export class HolodexClient {
 		this.apiKey = options.apiKey;
 	}
 
-	public async getChannels(query: { limit?: number; offset?: number } = {}): Promise<HolodexApiChannel[]> {
+	public async getChannels(query: { limit?: number; offset?: number } = {}): Promise<Holodex.Channel[]> {
 		const { limit = 100, offset = 0 } = query;
 
 		const url = new URL(`${HOLODEX_BASE_URL}/channels`);
@@ -17,14 +17,14 @@ export class HolodexClient {
 		url.searchParams.append('limit', `${limit}`);
 		url.searchParams.append('offset', `${offset}`);
 
-		return this.fetch<HolodexApiChannel[]>(url, this.apiKey);
+		return this.fetch<Holodex.Channel[]>(url, this.apiKey);
 	}
 
-	public async getLiveVideos(query: { channels: string[] }): Promise<HolodexApiVideoWithChannel[]> {
+	public async getLiveVideos(query: { channels: string[] }): Promise<Holodex.VideoWithChannel[]> {
 		const url = new URL(`${HOLODEX_BASE_URL}/users/live`);
 		url.searchParams.append('channels', query.channels.toString());
 
-		return this.fetch<HolodexApiVideoWithChannel[]>(url, this.apiKey);
+		return this.fetch<Holodex.VideoWithChannel[]>(url, this.apiKey);
 	}
 
 	private async fetch<T = unknown>(url: URL, apiKey: string): Promise<T> {

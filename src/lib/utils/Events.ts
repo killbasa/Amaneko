@@ -1,3 +1,4 @@
 export const AmanekoEvents = {
-	CommunityPost: 'CommunityPost' as const
+	CommunityPost: 'CommunityPost' as const,
+	StreamComment: 'StreamComment' as const
 };
