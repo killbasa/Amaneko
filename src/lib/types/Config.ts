@@ -31,6 +31,6 @@ export const ClientConfigSchema = z
 	})
 	.strict();
 
-export const NodeEnv = z.enum(['dev', 'production', 'test']);
+export const NodeEnv = z.enum(['dev', 'production', 'staging', 'test']);
 
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
