@@ -11,16 +11,17 @@ import type { TLDex } from '#lib/types/TLDex';
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamComment> {
 	public async run(channelId: string, comment: TLDex.CommentPayload): Promise<void> {
 		const relayChannelIds = await this.container.prisma.subscription.findMany({
-			where: { channelId, relayChannelId: { not: null } },
+			where: {
+				channelId,
+				relayChannelId: { not: null },
+				guild: {
+					blacklist: {
+						none: { channelId: comment.channel_id }
+					}
+				}
+			},
 			select: { relayChannelId: true }
 		});
-
-		const guildsYoutubeBlacklist = (
-			await this.container.prisma.blacklist.findMany({
-				where: { channelId: comment.channel_id },
-				select: { guildId: true }
-			})
-		).map((entry) => entry.guildId);
 
 		if (relayChannelIds.length < 1) return;
 
@@ -35,8 +36,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 				if (entry.status === 'rejected') return null;
 				return entry.value;
 			})
-			.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased())
-			.filter((channel) => !guildsYoutubeBlacklist.includes(channel.guildId));
+			.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased());
 
 		const content = this.formatMessage(channelId, comment);
 
