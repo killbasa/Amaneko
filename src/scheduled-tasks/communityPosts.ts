@@ -10,7 +10,7 @@ import type { CommunityPostData } from '#lib/types/YouTube';
 @ApplyOptions<ScheduledTask.Options>({
 	name: 'CommunityPostTask',
 	pattern: '0 */5 * * * *', // Every 5 minutes
-	enabled: !container.config.isDev
+	enabled: container.config.enableTasks
 })
 export class Task extends ScheduledTask {
 	public override async run(): Promise<void> {

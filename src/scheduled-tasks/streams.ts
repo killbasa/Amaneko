@@ -9,7 +9,7 @@ import type { Holodex } from '#lib/types/Holodex';
 @ApplyOptions<ScheduledTask.Options>({
 	name: 'StreamTask',
 	pattern: '0 */1 * * * *', // Every minute
-	enabled: !container.config.isDev
+	enabled: container.config.enableTasks
 })
 export class Task extends ScheduledTask {
 	private readonly streamsKey = 'youtube:streams:list';

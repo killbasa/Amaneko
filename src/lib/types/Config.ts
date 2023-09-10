@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const ClientConfigSchema = z
 	.object({
 		isDev: z.boolean(),
+		enableTasks: z.boolean(),
 		discord: z.object({
 			token: z.string(),
 			id: z.string(),
