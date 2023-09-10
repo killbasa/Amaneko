@@ -11,9 +11,18 @@ import type { TLDex } from '#lib/types/TLDex';
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamComment> {
 	public async run(channelId: string, comment: TLDex.CommentPayload): Promise<void> {
 		const relayChannelIds = await this.container.prisma.subscription.findMany({
-			where: { channelId, relayChannelId: { not: null } },
+			where: {
+				channelId,
+				relayChannelId: { not: null },
+				guild: {
+					blacklist: {
+						none: { channelId: comment.channel_id }
+					}
+				}
+			},
 			select: { relayChannelId: true }
 		});
+
 		if (relayChannelIds.length < 1) return;
 
 		const fetchedChannels = await Promise.allSettled(
