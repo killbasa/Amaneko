@@ -14,6 +14,14 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 			where: { channelId, relayChannelId: { not: null } },
 			select: { relayChannelId: true }
 		});
+
+		const guildsYoutubeBlacklist = (
+			await this.container.prisma.blacklist.findMany({
+				where: { channelId: comment.channel_id },
+				select: { guildId: true }
+			})
+		).map((entry) => entry.guildId);
+
 		if (relayChannelIds.length < 1) return;
 
 		const fetchedChannels = await Promise.allSettled(
@@ -27,7 +35,8 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 				if (entry.status === 'rejected') return null;
 				return entry.value;
 			})
-			.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased());
+			.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased())
+			.filter((channel) => !guildsYoutubeBlacklist.includes(channel.guildId));
 
 		const content = this.formatMessage(channelId, comment);
 

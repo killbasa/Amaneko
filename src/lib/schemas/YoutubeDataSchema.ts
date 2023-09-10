@@ -38,7 +38,7 @@ export const YoutubeDataSchema = z.object({
 					title: z.string(),
 					description: z.string()
 				}),
-				country: z.string()
+				country: z.string().optional()
 			}),
 			contentDetails: z.object({
 				relatedPlaylists: z.object({
