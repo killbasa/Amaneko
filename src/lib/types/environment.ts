@@ -1,7 +1,7 @@
 declare global {
 	namespace NodeJS {
 		export interface ProcessEnv {
-			NODE_ENV: 'dev' | 'production' | 'test' | undefined;
+			NODE_ENV: 'dev' | 'production' | 'staging' | 'test' | undefined;
 			DISCORD_TOKEN: string | undefined;
 			DISCORD_ID: string | undefined;
 			HOLODEX_API_KEY: string | undefined;

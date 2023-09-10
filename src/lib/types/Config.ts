@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const ClientConfigSchema = z
 	.object({
 		isDev: z.boolean(),
+		enableTasks: z.boolean(),
 		discord: z.object({
 			token: z.string(),
 			id: z.string(),
@@ -30,6 +31,6 @@ export const ClientConfigSchema = z
 	})
 	.strict();
 
-export const NodeEnv = z.enum(['dev', 'production', 'test']);
+export const NodeEnv = z.enum(['dev', 'production', 'staging', 'test']);
 
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;

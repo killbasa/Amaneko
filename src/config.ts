@@ -10,8 +10,11 @@ export function loadConfig(): void {
 	process.env.NODE_ENV ??= NodeEnv.enum.dev;
 	config({ path: resolve(mainFolder, '../.env') });
 
+	const isDev = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging';
+
 	const rawConfig: Unvalidated<ClientConfig> = {
-		isDev: process.env.NODE_ENV !== 'production',
+		isDev,
+		enableTasks: !isDev || process.env.ENABLE_TASKS === 'true',
 		discord: {
 			token: process.env.DISCORD_TOKEN,
 			id: process.env.DISCORD_ID,
