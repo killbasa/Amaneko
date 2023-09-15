@@ -46,7 +46,7 @@ export class Command extends AmanekoSubcommand {
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('remove')
-							.setDescription('Remove a community post subscription from this channel.')
+							.setDescription('Remove a community post subscription channel.')
 							.addStringOption((option) =>
 								option //
 									.setName('subscription')
@@ -152,10 +152,10 @@ export class Command extends AmanekoSubcommand {
 			})
 			.catch(() => null);
 		if (!data) {
-			return errorReply(interaction, `Community posts for ${channel.name} weren't being sent to this channel.`);
+			return errorReply(interaction, `Community posts for ${channel.name} weren't being sent to this guild.`);
 		}
 
-		return successReply(interaction, `Community posts for ${channel.name} will no longer be sent to this channel.`);
+		return successReply(interaction, `Community posts for ${channel.name} will no longer be sent to this guild.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {

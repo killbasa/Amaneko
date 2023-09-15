@@ -1,5 +1,5 @@
 import { AmanekoError } from '#lib/structures/AmanekoError';
-import { defaultReply, errorReply } from '#lib/utils/discord';
+import { errorReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Events, Listener, container } from '@sapphire/framework';
 import { SubcommandPluginEvents } from '@sapphire/plugin-subcommands';
@@ -15,7 +15,7 @@ async function handleError(data: {
 	const { interaction } = payload;
 
 	if (error instanceof AmanekoError) {
-		await defaultReply(interaction, error.message);
+		await errorReply(interaction, error.message);
 		return;
 	}
 
