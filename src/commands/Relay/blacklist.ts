@@ -2,6 +2,7 @@ import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { AmanekoError } from '#lib/structures/AmanekoError';
 import { BrandColors } from '#utils/constants';
 import { getUsername } from '#utils/YoutubeData';
+import { successReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
@@ -30,13 +31,24 @@ export class Command extends AmanekoSubcommand {
 						subcommand
 							.setName('add')
 							.setDescription('Add a channel to the blacklist.')
-							.addStringOption((option) => option.setName('id').setDescription("The youtube channel's Id").setRequired(true))
+							.addStringOption((option) =>
+								option //
+									.setName('id')
+									.setDescription("The youtube channel's Id")
+									.setRequired(true)
+							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand
 							.setName('remove')
 							.setDescription('Remove a channel from the blacklist.')
-							.addStringOption((option) => option.setName('id').setDescription("The youtube channel's Id").setRequired(true).setAutocomplete(true))
+							.addStringOption((option) =>
+								option //
+									.setName('id')
+									.setDescription("The youtube channel's Id")
+									.setRequired(true)
+									.setAutocomplete(true)
+							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
@@ -66,7 +78,9 @@ export class Command extends AmanekoSubcommand {
 			return interaction.respond([]);
 		}
 
-		const filteredOptions = guildData.blacklist.filter((entry) => entry.channelName.startsWith(focusedValue));
+		const filteredOptions = guildData.blacklist.filter(
+			(entry) => entry.channelName.startsWith(focusedValue) || entry.channelId.startsWith(focusedValue)
+		);
 		const options: ApplicationCommandOptionChoiceData[] = filteredOptions.map((option) => ({
 			name: option.channelName === 'Username not found' ? option.channelId : option.channelName,
 			value: option.channelId
@@ -103,9 +117,7 @@ export class Command extends AmanekoSubcommand {
 			select: { channelName: true, channelId: true }
 		});
 
-		return interaction.editReply({
-			content: `Added **${channelName === 'Username not found' ? data.channelId : data.channelName}** to the blacklist.`
-		});
+		return successReply(interaction, `Added **${channelName === 'Username not found' ? data.channelId : data.channelName}** to the blacklist.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -139,9 +151,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		);
 
-		return interaction.editReply({
-			content: `Removed **${channelName === 'Username not found' ? idToUnblacklist : channelName}** from the blacklist.`
-		});
+		return successReply(interaction, `Removed **${channelName === 'Username not found' ? idToUnblacklist : channelName}** from the blacklist.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -151,9 +161,7 @@ export class Command extends AmanekoSubcommand {
 			where: { guildId: interaction.guildId }
 		});
 
-		return interaction.editReply({
-			content: 'All users have been removed from the blacklist.'
-		});
+		return successReply(interaction, 'All users have been removed from the blacklist.');
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
