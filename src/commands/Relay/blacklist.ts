@@ -31,13 +31,24 @@ export class Command extends AmanekoSubcommand {
 						subcommand
 							.setName('add')
 							.setDescription('Add a channel to the blacklist.')
-							.addStringOption((option) => option.setName('id').setDescription("The youtube channel's Id").setRequired(true))
+							.addStringOption((option) =>
+								option //
+									.setName('id')
+									.setDescription("The youtube channel's Id")
+									.setRequired(true)
+							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand
 							.setName('remove')
 							.setDescription('Remove a channel from the blacklist.')
-							.addStringOption((option) => option.setName('id').setDescription("The youtube channel's Id").setRequired(true).setAutocomplete(true))
+							.addStringOption((option) =>
+								option //
+									.setName('id')
+									.setDescription("The youtube channel's Id")
+									.setRequired(true)
+									.setAutocomplete(true)
+							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //

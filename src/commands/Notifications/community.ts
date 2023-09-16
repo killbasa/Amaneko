@@ -46,7 +46,7 @@ export class Command extends AmanekoSubcommand {
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('remove')
-							.setDescription('Remove a community post subscription channel.')
+							.setDescription('Remove a community post subscription.')
 							.addStringOption((option) =>
 								option //
 									.setName('subscription')

@@ -172,7 +172,7 @@ export class Task extends ScheduledTask {
 			}
 		}
 
-		if (embedsHash.size) {
+		if (embedsHash.size > 0) {
 			await this.container.redis.hmSet(this.embedsKey(video.id), embedsHash);
 		}
 	}
