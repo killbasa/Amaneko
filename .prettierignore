@@ -3,6 +3,7 @@
 .yarn/
 coverage/
 dist/
+docs/.vitepress/cache/
 prisma/migrations/
 node_modules/
 LICENSE

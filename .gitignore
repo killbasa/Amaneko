@@ -6,6 +6,7 @@
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+docs/.vitepress/cache
 coverage/
 dist/
 node_modules/

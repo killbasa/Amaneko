@@ -1,0 +1,55 @@
+name: CD (Docs)
+
+on:
+  workflow_dispatch
+  #push:
+  #  branches:
+  #    - main
+  #  paths:
+  #    - "docs/**"
+  #    - "!**/README.md"
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: Documentation
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run build
+        run: yarn docs:build
+
+      - name: Configure pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload build
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: docs/.vitepress/dist
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v2
