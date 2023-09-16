@@ -1,9 +1,10 @@
-name: CI
+name: CI (Docs)
 
 on:
   pull_request:
-    paths-ignore:
-      - "**/*.md"
+    paths:
+      - "docs/**"
+      - "!**/README.md"
 
 jobs:
   checks:
@@ -23,16 +24,5 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Run typecheck
-        run: yarn typecheck
-
-      - name: Run lint
-        run: |
-          yarn format
-          yarn lint
-
       - name: Run build
-        run: yarn build
-
-      - name: Run tests
-        run: yarn test
+        run: yarn docs:build
