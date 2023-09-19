@@ -179,7 +179,7 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Livestream notifications for **${channel.name}** weren't be sent to this server.`);
+			return errorReply(interaction, `Livestream notifications for **${channel.name}** weren't being sent to this server.`);
 		}
 
 		return successReply(interaction, `Livestream notifications for **${channel.name}** will no longer be sent to this server.`);
@@ -246,7 +246,7 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, `Member livestream notifications for **${channel.name}** weren't being sent to this server.`);
 		}
 
-		return successReply(interaction, `Member livestream notifications for **${channel.name}** will no longer being sent to this server.`);
+		return successReply(interaction, `Member livestream notifications for **${channel.name}** will no longer be sent to this server.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
