@@ -27,7 +27,7 @@ import type { LivestreamSubscription } from '#lib/types/YouTube';
 		{ name: 'list', chatInputRun: 'handleList' }
 	]
 })
-export class Class extends AmanekoSubcommand {
+export class Command extends AmanekoSubcommand {
 	public override registerApplicationCommands(registry: ApplicationCommandRegistry): void {
 		registry.registerChatInputCommand((builder) => {
 			builder
@@ -179,10 +179,10 @@ export class Class extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Livestream notifications for **${channel.name}** weren't being sent to this server.`);
+			return errorReply(interaction, `Livestream notifications for **${channel.name}** weren't be sent to this server.`);
 		}
 
-		return successReply(interaction, `Livestream notifications for **${channel.name}** will no longer being sent to this server.`);
+		return successReply(interaction, `Livestream notifications for **${channel.name}** will no longer be sent to this server.`);
 	}
 
 	public async handleMemberSubscribe(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
