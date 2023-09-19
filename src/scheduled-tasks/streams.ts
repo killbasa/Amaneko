@@ -1,4 +1,5 @@
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
+import { arrayIsEqual } from '#lib/utils/functions';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
@@ -24,7 +25,11 @@ export class Task extends ScheduledTask {
 		const channelIds = await prisma.subscription
 			.groupBy({
 				where: {
-					OR: [{ relayChannelId: { not: null } }, { discordChannelId: { not: null } }, { memberDiscordChannelId: { not: null } }]
+					OR: [
+						{ relayChannelId: { not: null } }, //
+						{ discordChannelId: { not: null } },
+						{ memberDiscordChannelId: { not: null } }
+					]
 				},
 				by: ['channelId']
 			})
@@ -44,10 +49,15 @@ export class Task extends ScheduledTask {
 				})
 			);
 
+		const upcomingStreams: Holodex.VideoWithChannel[] = [];
 		const cachedStreams = await redis.hGetValues<Holodex.VideoWithChannel>(this.streamsKey);
+
+		// Streams that have no subscribers
 		const danglingStreams = cachedStreams.filter(({ channel }) => {
 			return !channelIds.includes(channel.id);
 		});
+
+		// Streams that were cached but not in the Holodex fetch
 		const pastStreams = cachedStreams.filter(({ id }) => {
 			return !danglingStreams.some((stream) => stream.id === id) && !liveStreams.some((stream) => stream.id === id);
 		});
@@ -60,7 +70,7 @@ export class Task extends ScheduledTask {
 			}
 
 			const availableAt = new Date(stream.available_at).getTime();
-			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt < Date.now())) {
+			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
 				tldex.subscribe(stream);
 
 				const notificationSent = await redis.get<boolean>(this.notificationKey(stream.id));
@@ -70,20 +80,23 @@ export class Task extends ScheduledTask {
 					await this.sendLivestreamNotification(stream);
 					await redis.set(this.notificationKey(stream.id), true);
 				}
+			} else if (stream.status === 'upcoming' && availableAt > Date.now()) {
+				upcomingStreams.push(stream);
 			}
 		}
 
-		const upcomingStreams = liveStreams.filter((stream) => stream.status === 'upcoming' && new Date(stream.available_at).getTime() > Date.now());
-		const scheduledGuilds = await prisma.guild.findMany({
-			where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
-			select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
-		});
+		if (upcomingStreams.length >= 0) {
+			const scheduledGuilds = await prisma.guild.findMany({
+				where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
+				select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
+			});
 
-		if (scheduledGuilds.length > 0 && upcomingStreams.length > 0) {
-			await this.handleStreamSchedule(upcomingStreams, scheduledGuilds);
-		} else if (scheduledGuilds.length > 0 && upcomingStreams.length === 0) {
-			for (const guild of scheduledGuilds) {
-				await this.handleNoScheduledStreams(guild);
+			if (upcomingStreams.length > 0) {
+				await this.handleStreamSchedule(upcomingStreams, scheduledGuilds);
+			} else {
+				await Promise.allSettled(
+					scheduledGuilds.map(async (guild) => this.handleNoScheduledStreams(guild)) //
+				);
 			}
 		}
 
@@ -91,8 +104,7 @@ export class Task extends ScheduledTask {
 
 		for (const stream of pastStreams) {
 			tldex.unsubscribe(stream.id);
-			keysToDelete.push(this.notificationKey(stream.id));
-			keysToDelete.push(this.embedsKey(stream.id));
+			keysToDelete.push(this.notificationKey(stream.id), this.embedsKey(stream.id));
 			const embeds = await this.container.redis.hGetAll<string>(this.embedsKey(stream.id));
 			await this.endLivestreamHandler(embeds);
 		}
@@ -117,7 +129,7 @@ export class Task extends ScheduledTask {
 	}
 
 	private async sendLivestreamNotification(video: Holodex.VideoWithChannel): Promise<void> {
-		const membersStream = video.topic_id === 'membersonly';
+		const membersStream = video.topic_id ? HolodexMembersOnlyPatterns.includes(video.topic_id) : false;
 		const subscriptions = await this.container.prisma.subscription.findMany({
 			where: {
 				channelId: video.channel.id,
@@ -218,33 +230,39 @@ export class Task extends ScheduledTask {
 			.setFooter({ text: `Powered by Holodex` })
 			.setTimestamp();
 
-		const result = await Promise.allSettled(
+		await Promise.allSettled(
 			guilds.map(async (guild) => {
 				const guildUpcomingStreams = upcomingStreams //
-					.filter((stream) => guild.subscriptions.some((sub) => sub.channelId === stream.channel.id))
-					.sort((a, b) => new Date(a.available_at).getTime() - new Date(b.available_at).getTime());
+					.filter((stream) => guild.subscriptions.some((subscription) => subscription.channelId === stream.channel.id))
+					.sort((streamOne, streamTwo) => {
+						return new Date(streamOne.available_at).getTime() - new Date(streamTwo.available_at).getTime();
+					});
 
-				const redisParse = JSON.parse((await this.container.redis.get(this.scheduleKey(guild.id))) ?? 'true');
-				const didUpdate = redisParse === true ? true : redisParse.toString() !== guildUpcomingStreams.map((stream) => stream.id).toString();
-				if (!didUpdate) {
-					return null;
-				}
+				const redisParse = (await this.container.redis.get<string[]>(this.scheduleKey(guild.id))) ?? [];
+				const didUpdate = arrayIsEqual(
+					redisParse,
+					guildUpcomingStreams.map((stream) => stream.id)
+				);
+				if (didUpdate) return;
 
 				const streamFields: APIEmbedField[] = guildUpcomingStreams.map((stream) => ({
 					name: `**${stream.channel.name}**`,
 					value: `[${stream.title}](https://youtu.be/${stream.id}) <t:${new Date(stream.available_at).getTime() / 1000}:R>`
 				}));
 
-				embed.setFields(streamFields);
+				const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
+				if (!scheduleChannel || !scheduleChannel.isTextBased()) return;
 
-				const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!).catch(() => null);
-				if (!scheduleChannel || !scheduleChannel.isTextBased()) {
-					return null;
-				}
+				const guildEmbed = EmbedBuilder.from(embed).setFields(streamFields);
 				const scheduleMessage = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
-				if (!scheduleMessage) {
+
+				if (scheduleMessage) {
+					await scheduleMessage.edit({
+						embeds: [guildEmbed]
+					});
+				} else {
 					const message = await scheduleChannel.send({
-						embeds: [embed]
+						embeds: [guildEmbed]
 					});
 					await this.container.prisma.guild.update({
 						where: { id: guild.id },
@@ -252,22 +270,14 @@ export class Task extends ScheduledTask {
 							scheduleMessageId: message.id
 						}
 					});
-
-					return { guildId: guild.id, videoIds: guildUpcomingStreams.map((stream) => stream.id) };
 				}
-				await scheduleMessage.edit({
-					embeds: [embed]
-				});
 
-				return { guildId: guild.id, videoIds: guildUpcomingStreams.map((stream) => stream.id) };
+				return this.container.redis.set<string[]>(
+					this.scheduleKey(guild.id),
+					guildUpcomingStreams.map((stream) => stream.id)
+				);
 			})
 		);
-
-		for (const promise of result) {
-			if (promise.status === 'fulfilled' && promise.value) {
-				await this.container.redis.set(this.scheduleKey(promise.value.guildId), JSON.stringify(promise.value.videoIds));
-			}
-		}
 	}
 
 	private async handleNoScheduledStreams(guild: GuildWithSubscriptions): Promise<void> {
@@ -321,7 +331,7 @@ export class Task extends ScheduledTask {
 				.setLabel('Watch Stream')
 		]);
 
-		const subscriptions = await container.prisma.subscription.findMany({
+		const subscriptions = await this.container.prisma.subscription.findMany({
 			where: { channelId: video.channel.id, relayChannelId: { not: null } },
 			select: { relayChannelId: true }
 		});
@@ -330,7 +340,7 @@ export class Task extends ScheduledTask {
 			subscriptions.map(async ({ relayChannelId }) => {
 				if (!relayChannelId) return;
 
-				const discordChannel = await container.client.channels.fetch(relayChannelId!);
+				const discordChannel = await this.container.client.channels.fetch(relayChannelId!);
 				if (!discordChannel?.isTextBased()) return;
 
 				return discordChannel.send({
