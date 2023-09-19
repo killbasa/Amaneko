@@ -3,8 +3,8 @@ import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
 import { container } from '@sapphire/framework';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Channel, EmbedBuilder, roleMention } from 'discord.js';
-import type { APIEmbedField } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, roleMention } from 'discord.js';
+import type { APIEmbedField, Channel } from 'discord.js';
 import type { Holodex } from '#lib/types/Holodex';
 import type { GuildWithSubscriptions } from '#lib/types/Discord';
 
