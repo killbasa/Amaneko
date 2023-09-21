@@ -95,7 +95,12 @@ export class Task extends ScheduledTask {
 				await this.handleStreamSchedule(upcomingStreams, scheduledGuilds);
 			} else {
 				await Promise.allSettled(
-					scheduledGuilds.map(async (guild) => this.handleNoScheduledStreams(guild)) //
+					scheduledGuilds.map(async (guild) => {
+						const guildScheduledVideosCache = await redis.get<string[]>(this.scheduleKey(guild.id));
+						if (guildScheduledVideosCache !== null && guildScheduledVideosCache.length !== 0) {
+							return this.handleNoScheduledStreams(guild);
+						}
+					}) //
 				);
 			}
 		}
@@ -224,6 +229,10 @@ export class Task extends ScheduledTask {
 	}
 
 	private async handleStreamSchedule(upcomingStreams: Holodex.VideoWithChannel[], guilds: GuildWithSubscriptions[]): Promise<void> {
+		if (guilds.length === 0) {
+			return;
+		}
+
 		const embed = new EmbedBuilder() //
 			.setColor(BrandColors.Default)
 			.setTitle('Upcoming Streams')
