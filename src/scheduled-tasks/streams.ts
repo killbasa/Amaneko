@@ -1,11 +1,13 @@
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
+import { arrayIsEqual } from '#lib/utils/functions';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
 import { container } from '@sapphire/framework';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, roleMention } from 'discord.js';
-import type { Channel } from 'discord.js';
+import type { APIEmbedField, Channel } from 'discord.js';
 import type { Holodex } from '#lib/types/Holodex';
+import type { GuildWithSubscriptions } from '#lib/types/Discord';
 
 @ApplyOptions<ScheduledTask.Options>({
 	name: 'StreamTask',
@@ -23,7 +25,11 @@ export class Task extends ScheduledTask {
 		const channelIds = await prisma.subscription
 			.groupBy({
 				where: {
-					OR: [{ relayChannelId: { not: null } }, { discordChannelId: { not: null } }, { memberDiscordChannelId: { not: null } }]
+					OR: [
+						{ relayChannelId: { not: null } }, //
+						{ discordChannelId: { not: null } },
+						{ memberDiscordChannelId: { not: null } }
+					]
 				},
 				by: ['channelId']
 			})
@@ -43,10 +49,15 @@ export class Task extends ScheduledTask {
 				})
 			);
 
+		const upcomingStreams: Holodex.VideoWithChannel[] = [];
 		const cachedStreams = await redis.hGetValues<Holodex.VideoWithChannel>(this.streamsKey);
+
+		// Streams that have no subscribers
 		const danglingStreams = cachedStreams.filter(({ channel }) => {
 			return !channelIds.includes(channel.id);
 		});
+
+		// Streams that were cached but not in the Holodex fetch
 		const pastStreams = cachedStreams.filter(({ id }) => {
 			return !danglingStreams.some((stream) => stream.id === id) && !liveStreams.some((stream) => stream.id === id);
 		});
@@ -59,7 +70,7 @@ export class Task extends ScheduledTask {
 			}
 
 			const availableAt = new Date(stream.available_at).getTime();
-			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt < Date.now())) {
+			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
 				tldex.subscribe(stream);
 
 				const notificationSent = await redis.get<boolean>(this.notificationKey(stream.id));
@@ -69,6 +80,28 @@ export class Task extends ScheduledTask {
 					await this.sendLivestreamNotification(stream);
 					await redis.set(this.notificationKey(stream.id), true);
 				}
+			} else if (stream.status === 'upcoming' && availableAt > Date.now()) {
+				upcomingStreams.push(stream);
+			}
+		}
+
+		if (upcomingStreams.length >= 0) {
+			const scheduledGuilds = await prisma.guild.findMany({
+				where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
+				select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
+			});
+
+			if (upcomingStreams.length > 0) {
+				await this.handleStreamSchedule(upcomingStreams, scheduledGuilds);
+			} else {
+				await Promise.allSettled(
+					scheduledGuilds.map(async (guild) => {
+						const guildScheduledVideosCache = await redis.get<string[]>(this.scheduleKey(guild.id));
+						if (guildScheduledVideosCache !== null && guildScheduledVideosCache.length !== 0) {
+							return this.handleNoScheduledStreams(guild);
+						}
+					}) //
+				);
 			}
 		}
 
@@ -76,7 +109,7 @@ export class Task extends ScheduledTask {
 
 		for (const stream of pastStreams) {
 			tldex.unsubscribe(stream.id);
-			keysToDelete.push(this.notificationKey(stream.id));
+			keysToDelete.push(this.notificationKey(stream.id), this.embedsKey(stream.id));
 			const embeds = await this.container.redis.hGetAll<string>(this.embedsKey(stream.id));
 			await this.endLivestreamHandler(embeds);
 		}
@@ -101,7 +134,7 @@ export class Task extends ScheduledTask {
 	}
 
 	private async sendLivestreamNotification(video: Holodex.VideoWithChannel): Promise<void> {
-		const membersStream = video.topic_id === 'membersonly';
+		const membersStream = video.topic_id ? HolodexMembersOnlyPatterns.includes(video.topic_id) : false;
 		const subscriptions = await this.container.prisma.subscription.findMany({
 			where: {
 				channelId: video.channel.id,
@@ -142,7 +175,7 @@ export class Task extends ScheduledTask {
 					discordChannel = await this.container.client.channels.fetch(memberDiscordChannelId);
 					if (memberRoleId) {
 						role = `${roleMention(memberRoleId)} `;
-						allowedRoles.push(`${memberRoleId}`);
+						allowedRoles.push(memberRoleId);
 					}
 				} else if (discordChannelId) {
 					discordChannel = await this.container.client.channels.fetch(discordChannelId);
@@ -152,9 +185,7 @@ export class Task extends ScheduledTask {
 					}
 				}
 
-				if (!discordChannel || !discordChannel.isTextBased()) {
-					return;
-				}
+				if (!discordChannel?.isTextBased()) return;
 
 				return discordChannel.send({
 					content: `${role}${video.channel.name} is now live!`,
@@ -181,18 +212,106 @@ export class Task extends ScheduledTask {
 		await Promise.allSettled(
 			Array.from(embeds).map(async ([messageId, channelId]) => {
 				const discordChannel = await this.container.client.channels.fetch(channelId);
-				if (!discordChannel || !discordChannel.isTextBased()) {
-					return;
-				}
+				if (!discordChannel?.isTextBased()) return;
 
 				const embedMessage = await discordChannel.messages.fetch(messageId).catch(() => null);
-				if (!embedMessage) {
-					return;
-				}
+				if (!embedMessage) return;
 
-				await embedMessage.delete();
+				return embedMessage.delete().catch(() => null);
 			})
 		);
+	}
+
+	private async handleStreamSchedule(upcomingStreams: Holodex.VideoWithChannel[], guilds: GuildWithSubscriptions[]): Promise<void> {
+		if (guilds.length === 0) {
+			return;
+		}
+
+		const embed = new EmbedBuilder() //
+			.setColor(BrandColors.Default)
+			.setTitle('Upcoming Streams')
+			.setFooter({ text: 'Powered by Holodex' })
+			.setTimestamp();
+
+		await Promise.allSettled(
+			guilds.map(async (guild) => {
+				const guildUpcomingStreams = upcomingStreams //
+					.filter((stream) => guild.subscriptions.some((subscription) => subscription.channelId === stream.channel.id))
+					.sort((streamOne, streamTwo) => {
+						return new Date(streamOne.available_at).getTime() - new Date(streamTwo.available_at).getTime();
+					});
+
+				const redisParse = (await this.container.redis.get<string[]>(this.scheduleKey(guild.id))) ?? [];
+				const didUpdate = arrayIsEqual(
+					redisParse,
+					guildUpcomingStreams.map((stream) => stream.id)
+				);
+				if (didUpdate) return;
+
+				const streamFields: APIEmbedField[] = guildUpcomingStreams.map((stream) => ({
+					name: `**${stream.channel.name}**`,
+					value: `[${stream.title}](https://youtu.be/${stream.id}) <t:${new Date(stream.available_at).getTime() / 1000}:R>`
+				}));
+
+				const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
+				if (!scheduleChannel?.isTextBased()) return;
+
+				const guildEmbed = EmbedBuilder.from(embed).setFields(streamFields);
+				const scheduleMessage = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
+
+				if (scheduleMessage) {
+					await scheduleMessage.edit({
+						embeds: [guildEmbed]
+					});
+				} else {
+					const message = await scheduleChannel.send({
+						embeds: [guildEmbed]
+					});
+					await this.container.prisma.guild.update({
+						where: { id: guild.id },
+						data: {
+							scheduleMessageId: message.id
+						}
+					});
+				}
+
+				return this.container.redis.set<string[]>(
+					this.scheduleKey(guild.id),
+					guildUpcomingStreams.map((stream) => stream.id)
+				);
+			})
+		);
+	}
+
+	private async handleNoScheduledStreams(guild: GuildWithSubscriptions): Promise<void> {
+		const embed = new EmbedBuilder() //
+			.setColor(BrandColors.Default)
+			.setTitle('Upcoming Streams')
+			.setFooter({ text: 'Powered by Holodex' })
+			.setTimestamp();
+
+		const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
+		if (!scheduleChannel?.isTextBased()) return;
+
+		const message = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
+		if (message) {
+			await message.edit({
+				embeds: [embed]
+			});
+		} else {
+			const message = await scheduleChannel.send({
+				embeds: [embed]
+			});
+
+			await this.container.prisma.guild.update({
+				where: { id: guild.id },
+				data: {
+					scheduleMessageId: message.id
+				}
+			});
+		}
+
+		await this.container.redis.delete(this.scheduleKey(guild.id));
 	}
 
 	private async sendRelayNotification(video: Holodex.VideoWithChannel): Promise<void> {
@@ -215,7 +334,7 @@ export class Task extends ScheduledTask {
 				.setLabel('Watch Stream')
 		]);
 
-		const subscriptions = await container.prisma.subscription.findMany({
+		const subscriptions = await this.container.prisma.subscription.findMany({
 			where: { channelId: video.channel.id, relayChannelId: { not: null } },
 			select: { relayChannelId: true }
 		});
@@ -224,7 +343,7 @@ export class Task extends ScheduledTask {
 			subscriptions.map(async ({ relayChannelId }) => {
 				if (!relayChannelId) return;
 
-				const discordChannel = await container.client.channels.fetch(relayChannelId!);
+				const discordChannel = await this.container.client.channels.fetch(relayChannelId!);
 				if (!discordChannel?.isTextBased()) return;
 
 				return discordChannel.send({
@@ -237,4 +356,5 @@ export class Task extends ScheduledTask {
 
 	private readonly notificationKey = (streamId: string): string => `youtube:streams:${streamId}:notified`;
 	private readonly embedsKey = (streamId: string): string => `youtube:streams:${streamId}:embeds`;
+	private readonly scheduleKey = (guildId: string): string => `discord:guild:${guildId}:videos`;
 }

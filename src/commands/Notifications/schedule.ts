@@ -1,0 +1,180 @@
+import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
+import { defaultReply, errorReply, successReply } from '#utils/discord';
+import { ApplyOptions } from '@sapphire/decorators';
+import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
+import type { ApplicationCommandRegistry } from '@sapphire/framework';
+
+@ApplyOptions<AmanekoSubcommand.Options>({
+	description: 'Sets up and manages a schedule for upcoming streams from currently subscribed channels.',
+	subcommands: [
+		{ name: 'set', chatInputRun: 'handleSet' },
+		{ name: 'settings', chatInputRun: 'handleSettings' },
+		{ name: 'unset', chatInputRun: 'handleUnset' }
+	]
+})
+export class Command extends AmanekoSubcommand {
+	public override registerApplicationCommands(registry: ApplicationCommandRegistry): void {
+		registry.registerChatInputCommand((builder) =>
+			builder //
+				.setName('schedule')
+				.setDescription(this.description)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+				.setDMPermission(false)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('set')
+						.setDescription('Set up a schedule in the specified channel.')
+						.addChannelOption((option) =>
+							option //
+								.setName('channel')
+								.setDescription('The discord channel where the schedule will be posted.')
+								.setRequired(true)
+								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('settings')
+						.setDescription("Change the schedule's settings.")
+						.addChannelOption((option) =>
+							option //
+								.setName('channel')
+								.setDescription('New channel to post the schedule.')
+								.setRequired(false)
+								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('unset')
+						.setDescription('Removes the schedule from the server.')
+				)
+		);
+	}
+
+	public async handleSet(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
+		await interaction.deferReply();
+		const discordChannel = interaction.options.getChannel('channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+
+		const embed = new EmbedBuilder().setTitle('Upcoming Streams').setFooter({ text: `Powered by Holodex` }).setTimestamp();
+
+		const message = await discordChannel
+			.send({
+				embeds: [embed]
+			})
+			.catch(() => null);
+		if (!message) {
+			return errorReply(interaction, `Something went wrong while setting up the schedule.`);
+		}
+
+		await this.container.prisma.guild.upsert({
+			where: { id: interaction.guildId },
+			update: {
+				scheduleChannelId: discordChannel.id,
+				scheduleMessageId: message.id
+			},
+			create: {
+				id: interaction.guildId,
+				scheduleChannelId: discordChannel.id,
+				scheduleMessageId: message.id
+			}
+		});
+
+		return successReply(interaction, `A schedule has been successfully set up in ${channelMention(discordChannel.id)}.`);
+	}
+
+	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
+		await interaction.deferReply();
+
+		const discordChannel = interaction.options.getChannel('channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		if (!discordChannel) {
+			return defaultReply(interaction, `You didn't select a new channel to send the schedule in.`);
+		}
+
+		const embed = new EmbedBuilder().setTitle('Upcoming Streams').setFooter({ text: `Powered by Holodex` }).setTimestamp();
+
+		const previousGuild = await this.container.prisma.guild.findUnique({
+			where: { id: interaction.guildId },
+			select: { scheduleChannelId: true, scheduleMessageId: true }
+		});
+
+		if (!previousGuild?.scheduleMessageId || !previousGuild?.scheduleChannelId) {
+			return errorReply(
+				interaction,
+				`Something went wrong while trying to change the schedule's channel. Please run /schedule set before attempting any changes.`
+			);
+		} else if (previousGuild.scheduleChannelId === discordChannel.id) {
+			return defaultReply(interaction, `Schedule is already set up in that channel.`);
+		}
+
+		try {
+			const message = await discordChannel.send({
+				embeds: [embed]
+			});
+
+			await this.container.prisma.guild.update({
+				where: { id: interaction.guildId },
+				data: {
+					scheduleChannelId: discordChannel.id,
+					scheduleMessageId: message.id
+				}
+			});
+		} catch (err) {
+			this.container.logger.warn(err);
+			return errorReply(interaction, `Something went wrong while changing the schedule's channel.`);
+		}
+
+		try {
+			const channel = await this.container.client.channels.fetch(previousGuild.scheduleChannelId);
+			if (channel?.isTextBased()) {
+				const message = await channel.messages.fetch({ message: previousGuild.scheduleMessageId, force: true });
+				message.delete();
+			}
+		} catch (err) {
+			this.container.logger.warn(err);
+			return defaultReply(interaction, `Could not delete the schedule's old message but the settings have been applied.`);
+		}
+
+		return successReply(interaction, `The schedule will now be sent in ${channelMention(discordChannel.id)}.`);
+	}
+
+	public async handleUnset(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
+		await interaction.deferReply();
+
+		const guildData = await this.container.prisma.guild.findUnique({
+			where: {
+				id: interaction.guildId,
+				scheduleChannelId: { not: null },
+				scheduleMessageId: { not: null }
+			},
+			select: { scheduleChannelId: true, scheduleMessageId: true }
+		});
+		if (!guildData) {
+			return defaultReply(interaction, `This server did not have a set up schedule.`);
+		}
+
+		await this.container.prisma.guild.update({
+			where: { id: interaction.guildId },
+			data: {
+				scheduleChannelId: null,
+				scheduleMessageId: null
+			}
+		});
+
+		try {
+			const channel = await this.container.client.channels.fetch(guildData.scheduleChannelId!);
+			if (channel?.isTextBased()) {
+				const message = await channel.messages.fetch({ force: true, message: guildData.scheduleMessageId! });
+				message.delete();
+			}
+		} catch (err) {
+			// This will only give an error if it cannot fetch a message, which would only happen if either it's been
+			// deleted, or we lost access to the channel. Either way it's not our problem, so we'll just ignore it
+			this.container.logger.warn(err);
+			// On second thought I do want to give some explanation to the users as well
+			return errorReply(interaction, `Could not delete the schedule's old message.`);
+		}
+
+		return successReply(interaction, `A schedule is no longer set up in this server.`);
+	}
+}

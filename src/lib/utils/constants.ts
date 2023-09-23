@@ -17,4 +17,4 @@ export const AmanekoEmojis = {};
 
 export const VTuberOrgs = {};
 
-export const HolodexMembersOnlyPatterns = [`members only`, `member's only`, `member`, `メン限`, `メンバー限定`];
+export const HolodexMembersOnlyPatterns = ['membersonly', 'members only', "member's only", 'member', 'メン限', 'メンバー限定'];
