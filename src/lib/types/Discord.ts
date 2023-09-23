@@ -1,24 +1,11 @@
+import type { Guild, Subscription } from '@prisma/client';
+
 export type BaseGuild = {
-	id: string;
-	scheduleChannelId: string | null;
-	scheduleMessageId: string | null;
-	adminRoles: string[];
+	id: Guild['id'];
+	scheduleChannelId: Guild['scheduleChannelId'];
+	scheduleMessageId: Guild['scheduleMessageId'];
 };
 
-export type GuildWithSubscriptions = {
-	id: string;
-	scheduleChannelId: string | null;
-	scheduleMessageId: string | null;
-	subscriptions: {
-		id: string;
-		roleId: string | null;
-		discordChannelId: string | null;
-		memberRoleId: string | null;
-		memberDiscordChannelId: string | null;
-		relayChannelId: string | null;
-		communityPostRoleId: string | null;
-		communityPostChannelId: string | null;
-		channelId: string | null;
-		guildId: string;
-	}[];
+export type GuildWithSubscriptions = BaseGuild & {
+	subscriptions: Subscription[];
 };

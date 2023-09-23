@@ -10,7 +10,7 @@ import { PermissionFlagsBits } from 'discord.js';
 	cooldownDelay: Time.Minute * 30,
 	cooldownLimit: 1
 })
-export class DevCommand extends AmanekoCommand {
+export class Command extends AmanekoCommand {
 	public override registerApplicationCommands(registry: AmanekoCommand.Registry): void {
 		registry.registerChatInputCommand(
 			(builder) =>
@@ -20,7 +20,6 @@ export class DevCommand extends AmanekoCommand {
 					.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 					.setDMPermission(false),
 			{
-				idHints: [],
 				guildIds: [this.container.config.discord.devServer]
 			}
 		);

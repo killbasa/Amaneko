@@ -6,6 +6,7 @@ import type { ApplicationCommandRegistry } from '@sapphire/framework';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Sets up and manages a schedule for upcoming streams from currently subscribed channels.',
+	runIn: ['GUILD_ANY'],
 	subcommands: [
 		{ name: 'set', chatInputRun: 'handleSet' },
 		{ name: 'settings', chatInputRun: 'handleSettings' },
@@ -26,7 +27,7 @@ export class Command extends AmanekoSubcommand {
 						.setDescription('Set up a schedule in the specified channel.')
 						.addChannelOption((option) =>
 							option //
-								.setName('channel')
+								.setName('discord_channel')
 								.setDescription('The discord channel where the schedule will be posted.')
 								.setRequired(true)
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
@@ -38,9 +39,9 @@ export class Command extends AmanekoSubcommand {
 						.setDescription("Change the schedule's settings.")
 						.addChannelOption((option) =>
 							option //
-								.setName('channel')
+								.setName('discord_channel')
 								.setDescription('New channel to post the schedule.')
-								.setRequired(false)
+								.setRequired(true)
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
 				)
@@ -54,9 +55,12 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleSet(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const discordChannel = interaction.options.getChannel('channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
-		const embed = new EmbedBuilder().setTitle('Upcoming Streams').setFooter({ text: `Powered by Holodex` }).setTimestamp();
+		const discordChannel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const embed = new EmbedBuilder() //
+			.setTitle('Upcoming Streams')
+			.setFooter({ text: `Powered by Holodex` })
+			.setTimestamp();
 
 		const message = await discordChannel
 			.send({
@@ -86,12 +90,11 @@ export class Command extends AmanekoSubcommand {
 	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
-		const discordChannel = interaction.options.getChannel('channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
-		if (!discordChannel) {
-			return defaultReply(interaction, `You didn't select a new channel to send the schedule in.`);
-		}
-
-		const embed = new EmbedBuilder().setTitle('Upcoming Streams').setFooter({ text: `Powered by Holodex` }).setTimestamp();
+		const discordChannel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const embed = new EmbedBuilder() //
+			.setTitle('Upcoming Streams')
+			.setFooter({ text: 'Powered by Holodex' })
+			.setTimestamp();
 
 		const previousGuild = await this.container.prisma.guild.findUnique({
 			where: { id: interaction.guildId },
@@ -150,7 +153,7 @@ export class Command extends AmanekoSubcommand {
 			select: { scheduleChannelId: true, scheduleMessageId: true }
 		});
 		if (!guildData) {
-			return defaultReply(interaction, `This server did not have a set up schedule.`);
+			return defaultReply(interaction, `This server does not have a schedule setup.`);
 		}
 
 		await this.container.prisma.guild.update({
@@ -172,9 +175,9 @@ export class Command extends AmanekoSubcommand {
 			// deleted, or we lost access to the channel. Either way it's not our problem, so we'll just ignore it
 			this.container.logger.warn(err);
 			// On second thought I do want to give some explanation to the users as well
-			return errorReply(interaction, `Could not delete the schedule's old message.`);
+			return errorReply(interaction, "Could not delete the schedule's old message.");
 		}
 
-		return successReply(interaction, `A schedule is no longer set up in this server.`);
+		return successReply(interaction, 'A schedule is no longer set up in this server.');
 	}
 }

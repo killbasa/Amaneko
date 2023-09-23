@@ -4,11 +4,12 @@ import { BrandColors } from '#lib/utils/constants';
 import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
 import { channelLink } from '#lib/utils/youtube';
 import { ApplyOptions } from '@sapphire/decorators';
-import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
+import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: "Start or stop relaying a streamer's translations in the current Discord channel.",
+	description: "Start or stop relaying a streamer's translations.",
+	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
 		{ name: 'remove', chatInputRun: 'handleRemove' },
@@ -18,51 +19,52 @@ import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 })
 export class Command extends AmanekoSubcommand {
 	public override registerApplicationCommands(registry: AmanekoSubcommand.Registry): void {
-		registry.registerChatInputCommand(
-			(builder) =>
-				builder
-					.setName('relay')
-					.setDescription(this.description)
-					.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-					.setDMPermission(true)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('add')
-							.setDescription('Add a relay subscription to this channel.')
-							.addStringOption((option) =>
-								option //
-									.setName('channel')
-									.setDescription('The name of the YouTube channel.')
-									.setAutocomplete(true)
-									.setRequired(true)
-							)
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('remove')
-							.setDescription('Remove a relay subscription from this channel.')
-							.addStringOption((option) =>
-								option //
-									.setName('subscription')
-									.setDescription('The name of the YouTube channel to remove.')
-									.setAutocomplete(true)
-									.setRequired(true)
-							)
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('clear')
-							.setDescription('Clear all relay subscriptions in this channel.')
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('list')
-							.setDescription('List all of the relay subscriptions in the server.')
-					),
-			{
-				idHints: [],
-				guildIds: []
-			}
+		registry.registerChatInputCommand((builder) =>
+			builder
+				.setName('relay')
+				.setDescription(this.description)
+				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+				.setDMPermission(true)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('add')
+						.setDescription('Add a relay subscription to this channel.')
+						.addStringOption((option) =>
+							option //
+								.setName('channel')
+								.setDescription('The name of the YouTube channel.')
+								.setAutocomplete(true)
+								.setRequired(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('remove')
+						.setDescription('Remove a relay subscription from this channel.')
+						.addStringOption((option) =>
+							option //
+								.setName('subscription')
+								.setDescription('The name of the YouTube channel to remove.')
+								.setAutocomplete(true)
+								.setRequired(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('clear')
+						.setDescription('Clear all relay subscriptions in this channel.')
+						.addChannelOption((option) =>
+							option //
+								.setName('discord_channel')
+								.setDescription('The channel to clear community post subscriptions from.')
+								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('list')
+						.setDescription('List all of the relay subscriptions in the server.')
+				)
 		);
 	}
 
@@ -147,9 +149,10 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
+		const discordChannel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
 		await this.container.prisma.subscription.updateMany({
-			where: { guildId: interaction.guildId, relayChannelId: interaction.channelId },
+			where: { guildId: interaction.guildId, relayChannelId: discordChannel?.id ?? interaction.channelId },
 			data: { relayChannelId: null }
 		});
 

@@ -4,12 +4,13 @@ import { MeiliCategories } from '#lib/types/Meili';
 import { channelLink } from '#lib/utils/youtube';
 import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
-import { EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
+import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 import type { HolodexChannel } from '@prisma/client';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: 'Starts or stops sending community post notifications in the current channel.',
+	description: 'Manage YouTube community post notifications.',
+	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
 		{ name: 'remove', chatInputRun: 'handleRemove' },
@@ -19,56 +20,57 @@ import type { HolodexChannel } from '@prisma/client';
 })
 export class Command extends AmanekoSubcommand {
 	public override registerApplicationCommands(registry: AmanekoSubcommand.Registry): void {
-		registry.registerChatInputCommand(
-			(builder) =>
-				builder
-					.setName('community')
-					.setDescription(this.description)
-					.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-					.setDMPermission(false)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('add')
-							.setDescription('Add a community post subscription to this channel.')
-							.addStringOption((option) =>
-								option //
-									.setName('channel')
-									.setDescription('The name of the YouTube channel.')
-									.setAutocomplete(true)
-									.setRequired(true)
-							)
-							.addRoleOption((option) =>
-								option //
-									.setName('role')
-									.setDescription('The role to ping for notifications.')
-							)
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('remove')
-							.setDescription('Remove a community post subscription.')
-							.addStringOption((option) =>
-								option //
-									.setName('subscription')
-									.setDescription('The name of the YouTube channel to remove.')
-									.setAutocomplete(true)
-									.setRequired(true)
-							)
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('clear')
-							.setDescription('Clear all community post subscriptions in this channel.')
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('list')
-							.setDescription('List all of the community post subscriptions in the server.')
-					),
-			{
-				idHints: [],
-				guildIds: []
-			}
+		registry.registerChatInputCommand((builder) =>
+			builder
+				.setName('community')
+				.setDescription(this.description)
+				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+				.setDMPermission(false)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('add')
+						.setDescription('Add a community post subscription to this channel.')
+						.addStringOption((option) =>
+							option //
+								.setName('channel')
+								.setDescription('The name of the YouTube channel.')
+								.setAutocomplete(true)
+								.setRequired(true)
+						)
+						.addRoleOption((option) =>
+							option //
+								.setName('role')
+								.setDescription('The role to ping for notifications.')
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('remove')
+						.setDescription('Remove a community post subscription.')
+						.addStringOption((option) =>
+							option //
+								.setName('subscription')
+								.setDescription('The name of the YouTube channel to remove.')
+								.setAutocomplete(true)
+								.setRequired(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('clear')
+						.setDescription('Remove all community post subscriptions from a channel. (Default: this channel)')
+						.addChannelOption((option) =>
+							option //
+								.setName('discord_channel')
+								.setDescription('The channel to clear community post subscriptions from.')
+								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('list')
+						.setDescription('List all of the community post subscriptions in the server.')
+				)
 		);
 	}
 
@@ -160,9 +162,10 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
+		const discordChannel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
 		await this.container.prisma.subscription.updateMany({
-			where: { guildId: interaction.guildId, communityPostChannelId: interaction.channelId },
+			where: { guildId: interaction.guildId, communityPostChannelId: discordChannel?.id ?? interaction.channelId },
 			data: { communityPostChannelId: null, communityPostRoleId: null }
 		});
 
