@@ -175,7 +175,7 @@ export class Task extends ScheduledTask {
 					discordChannel = await this.container.client.channels.fetch(memberDiscordChannelId);
 					if (memberRoleId) {
 						role = `${roleMention(memberRoleId)} `;
-						allowedRoles.push(`${memberRoleId}`);
+						allowedRoles.push(memberRoleId);
 					}
 				} else if (discordChannelId) {
 					discordChannel = await this.container.client.channels.fetch(discordChannelId);
@@ -185,9 +185,7 @@ export class Task extends ScheduledTask {
 					}
 				}
 
-				if (!discordChannel || !discordChannel.isTextBased()) {
-					return;
-				}
+				if (!discordChannel?.isTextBased()) return;
 
 				return discordChannel.send({
 					content: `${role}${video.channel.name} is now live!`,
@@ -214,16 +212,12 @@ export class Task extends ScheduledTask {
 		await Promise.allSettled(
 			Array.from(embeds).map(async ([messageId, channelId]) => {
 				const discordChannel = await this.container.client.channels.fetch(channelId);
-				if (!discordChannel || !discordChannel.isTextBased()) {
-					return;
-				}
+				if (!discordChannel?.isTextBased()) return;
 
 				const embedMessage = await discordChannel.messages.fetch(messageId).catch(() => null);
-				if (!embedMessage) {
-					return;
-				}
+				if (!embedMessage) return;
 
-				await embedMessage.delete();
+				return embedMessage.delete().catch(() => null);
 			})
 		);
 	}
@@ -236,7 +230,7 @@ export class Task extends ScheduledTask {
 		const embed = new EmbedBuilder() //
 			.setColor(BrandColors.Default)
 			.setTitle('Upcoming Streams')
-			.setFooter({ text: `Powered by Holodex` })
+			.setFooter({ text: 'Powered by Holodex' })
 			.setTimestamp();
 
 		await Promise.allSettled(
@@ -260,7 +254,7 @@ export class Task extends ScheduledTask {
 				}));
 
 				const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
-				if (!scheduleChannel || !scheduleChannel.isTextBased()) return;
+				if (!scheduleChannel?.isTextBased()) return;
 
 				const guildEmbed = EmbedBuilder.from(embed).setFields(streamFields);
 				const scheduleMessage = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
@@ -293,31 +287,31 @@ export class Task extends ScheduledTask {
 		const embed = new EmbedBuilder() //
 			.setColor(BrandColors.Default)
 			.setTitle('Upcoming Streams')
-			.setFooter({ text: `Powered by Holodex` })
+			.setFooter({ text: 'Powered by Holodex' })
 			.setTimestamp();
 
-		const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!).catch(() => null);
-		if (scheduleChannel && scheduleChannel.isTextBased()) {
-			const message = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
-			if (message) {
-				await message.edit({
-					embeds: [embed]
-				});
-			} else {
-				const message = await scheduleChannel.send({
-					embeds: [embed]
-				});
+		const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
+		if (!scheduleChannel?.isTextBased()) return;
 
-				await this.container.prisma.guild.update({
-					where: { id: guild.id },
-					data: {
-						scheduleMessageId: message.id
-					}
-				});
-			}
+		const message = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
+		if (message) {
+			await message.edit({
+				embeds: [embed]
+			});
+		} else {
+			const message = await scheduleChannel.send({
+				embeds: [embed]
+			});
 
-			await this.container.redis.delete(this.scheduleKey(guild.id));
+			await this.container.prisma.guild.update({
+				where: { id: guild.id },
+				data: {
+					scheduleMessageId: message.id
+				}
+			});
 		}
+
+		await this.container.redis.delete(this.scheduleKey(guild.id));
 	}
 
 	private async sendRelayNotification(video: Holodex.VideoWithChannel): Promise<void> {
