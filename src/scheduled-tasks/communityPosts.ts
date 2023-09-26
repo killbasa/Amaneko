@@ -22,7 +22,7 @@ export class Task extends ScheduledTask {
 				by: ['channelId']
 			})
 			.then((res) => res.map(({ channelId }) => channelId));
-		if (channelIds.length < 1) return;
+		if (channelIds.length === 0) return;
 
 		logger.debug(`[CommunityPosts] Checking community posts for ${channelIds.length} channels`);
 

@@ -10,7 +10,7 @@ import { PermissionFlagsBits } from 'discord.js';
 	cooldownDelay: Time.Minute * 30,
 	cooldownLimit: 1
 })
-export class DevCommand extends AmanekoCommand {
+export class Command extends AmanekoCommand {
 	public override registerApplicationCommands(registry: AmanekoCommand.Registry): void {
 		registry.registerChatInputCommand(
 			(builder) =>
@@ -20,18 +20,24 @@ export class DevCommand extends AmanekoCommand {
 					.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 					.setDMPermission(false),
 			{
-				idHints: [],
 				guildIds: [this.container.config.discord.devServer]
 			}
 		);
 	}
 
 	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction): Promise<unknown> {
+		const currentTask = await this.container.tasks.get(AmanekoTasks.HolodexSync);
+
+		if (currentTask) {
+			return interaction.reply(`There is already an ongoing sync.`);
+		}
+
 		await this.container.tasks.create(
 			AmanekoTasks.HolodexSync, //
 			{ page: 0 },
 			{ repeated: false, delay: 0 }
 		);
+
 		return interaction.reply(`Holodex sync started.`);
 	}
 }

@@ -7,11 +7,12 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
-import type { HolodexChannel } from '@prisma/client';
+import type { HolodexChannel, Prisma } from '@prisma/client';
 import type { LivestreamSubscription } from '#lib/types/YouTube';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: 'Manage youtube subscriptions in the current channel.',
+	description: 'Manage YouTube livestream notifications.',
+	runIn: ['GUILD_ANY'],
 	subcommands: [
 		{ name: 'subscribe', chatInputRun: 'handleSubscribe' },
 		{ name: 'unsubscribe', chatInputRun: 'handleUnsubscribe' },
@@ -33,23 +34,36 @@ export class Command extends AmanekoSubcommand {
 			builder
 				.setName('youtube')
 				.setDescription(this.description)
-				.setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 				.setDMPermission(false)
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('subscribe')
-						.setDescription('Add youtube livestream notifications to this channel.')
+						.setDescription('Add a YouTube livestream notification to a channel.')
 						.addStringOption((option) =>
-							option.setName('channel').setDescription('The name of the youtube channel.').setAutocomplete(true).setRequired(true)
+							option //
+								.setName('channel')
+								.setDescription('The name of the YouTube channel.')
+								.setAutocomplete(true)
+								.setRequired(true)
 						)
-						.addRoleOption((option) => option.setName('role').setDescription('The role to ping for notifications.').setRequired(false))
+						.addRoleOption((option) =>
+							option //
+								.setName('role')
+								.setDescription('The role to ping for notifications.')
+								.setRequired(false)
+						)
 				)
 				.addSubcommand((subcommand) =>
 					subcommand
 						.setName('unsubscribe')
-						.setDescription("Remove a youtube channel's livestream notifications from this channel.")
+						.setDescription("Remove a YouTube channel's livestream notification.")
 						.addStringOption((option) =>
-							option.setName('subscription').setDescription('The name of the youtube channel.').setAutocomplete(true).setRequired(true)
+							option //
+								.setName('subscription')
+								.setDescription('The name of the YouTube channel.')
+								.setAutocomplete(true)
+								.setRequired(true)
 						)
 				)
 				.addSubcommandGroup((group) =>
@@ -59,33 +73,50 @@ export class Command extends AmanekoSubcommand {
 						.addSubcommand((subcommand) =>
 							subcommand
 								.setName('subscribe')
-								.setDescription('Add youtube member livestream notifications to this channel.')
+								.setDescription('Add a YouTube member livestream notification to a channel.')
 								.addStringOption((option) =>
-									option.setName('channel').setDescription('The name of the youtube channel.').setAutocomplete(true).setRequired(true)
+									option //
+										.setName('channel')
+										.setDescription('The name of the YouTube channel.')
+										.setAutocomplete(true)
+										.setRequired(true)
 								)
-								.addRoleOption((option) => option.setName('role').setDescription('The role to ping for notifications.').setRequired(false))
+								.addRoleOption((option) =>
+									option //
+										.setName('role')
+										.setDescription('The role to ping for notifications.')
+										.setRequired(false)
+								)
 						)
 						.addSubcommand((subcommand) =>
 							subcommand
 								.setName('unsubscribe')
-								.setDescription("Remove a youtube channel's member livestream notifications from this channel.")
+								.setDescription("Remove a YouTube channel's member livestream notification.")
 								.addStringOption((option) =>
-									option.setName('subscriptionmember').setDescription('The name of the youtube channel.').setAutocomplete(true).setRequired(true)
+									option //
+										.setName('subscription')
+										.setDescription('The name of the YouTube channel.')
+										.setAutocomplete(true)
+										.setRequired(true)
 								)
 						)
 				)
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('clear')
-						.setDescription('Remove all youtube livestream notifications from this channel.')
+						.setDescription('Remove all YouTube livestream notifications from a channel. (Default: this channel)')
 						.addChannelOption((option) =>
 							option
 								.setName('channel')
-								.setDescription("Don't add a channel to clear all subscriptions in the server.")
+								.setDescription('The channel to clear YouTube livestream notifications from.')
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
 				)
-				.addSubcommand((subcommand) => subcommand.setName('list').setDescription('List all youtube livestream notifications in the server.'));
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('list')
+						.setDescription('List all YouTube livestream notifications in the server.')
+				);
 		});
 	}
 
@@ -101,12 +132,16 @@ export class Command extends AmanekoSubcommand {
 				name: englishName ?? name,
 				value: id
 			}));
-		} else if (focusedOption.name === 'subscription' || focusedOption.name === 'subscriptionmember') {
-			const discordChannelId = focusedOption.name === 'subscription' ? { not: null } : undefined;
-			const memberDiscordChannelId = focusedOption.name === 'subscriptionmember' ? { not: null } : undefined;
+		} else if (focusedOption.name === 'subscription') {
+			const subcommand = interaction.options.getSubcommandGroup();
+
+			const query: Prisma.SubscriptionWhereInput =
+				subcommand === 'member' //
+					? { memberDiscordChannelId: { not: null } }
+					: { discordChannelId: { not: null } };
 
 			const channels = await this.container.prisma.subscription.findMany({
-				where: { guildId: interaction.guildId, discordChannelId, memberDiscordChannelId },
+				where: { guildId: interaction.guildId, ...query },
 				select: { channel: true }
 			});
 
@@ -127,7 +162,6 @@ export class Command extends AmanekoSubcommand {
 		const role = interaction.options.getRole('role');
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
-
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
@@ -152,7 +186,6 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		const embed = this.youtubeEmbedBuilder(channel, role);
-
 		return interaction.editReply({
 			content: `Livestream notifications will now be sent to this channel.`,
 			embeds: [embed]
@@ -225,7 +258,7 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleMemberUnsubscribe(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const channelId = interaction.options.getString('subscriptionmember', true);
+		const channelId = interaction.options.getString('subscription', true);
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {

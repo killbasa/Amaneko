@@ -5,5 +5,5 @@
 		"checkJs": true,
 		"typeRoots": ["./src/lib/types/**/*", "./node_modules/@types"]
 	},
-	"include": ["src", "docs", "tests", ".eslintrc.cjs", ".prettierrc.cjs", "tsup.config.ts", "vitest.config.ts"]
+	"include": ["src", "docs", "tests", ".eslintrc.cjs", ".prettierrc.js", "tsup.config.ts", "vitest.config.ts"]
 }

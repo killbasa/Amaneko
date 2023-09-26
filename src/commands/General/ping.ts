@@ -7,17 +7,12 @@ import { PermissionFlagsBits } from 'discord.js';
 })
 export class Command extends AmanekoCommand {
 	public override registerApplicationCommands(registry: AmanekoCommand.Registry): void {
-		registry.registerChatInputCommand(
-			(builder) =>
-				builder
-					.setName('ping')
-					.setDescription(this.description)
-					.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-					.setDMPermission(true),
-			{
-				idHints: [],
-				guildIds: []
-			}
+		registry.registerChatInputCommand((builder) =>
+			builder //
+				.setName('ping')
+				.setDescription(this.description)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+				.setDMPermission(true)
 		);
 	}
 

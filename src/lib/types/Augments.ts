@@ -8,10 +8,13 @@ import type { HolodexClient } from '#lib/structures/HolodexClient';
 import type { TLDexClient } from '#lib/structures/TLDexClient';
 import type { Collection } from 'discord.js';
 import type { TLDex } from './TLDex';
+import type { Holodex } from './Holodex';
 
 declare module 'discord.js' {
 	interface ClientEvents {
 		[AmanekoEvents.CommunityPost]: [post: CommunityPostData];
+		[AmanekoEvents.StreamStart]: [video: Holodex.VideoWithChannel];
+		[AmanekoEvents.StreamEnd]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamComment]: [channelId: string, message: TLDex.CommentPayload];
 	}
 }

@@ -58,7 +58,7 @@ export class TLDexClient {
 		if (!this.socket.connected) return;
 
 		for (const roomId of this.roomIds) {
-			this.socket.removeAllListeners(`${roomId}/en`);
+			this.unsubscribe(roomId);
 		}
 
 		this.socket.disconnect();

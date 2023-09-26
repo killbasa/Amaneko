@@ -10,7 +10,8 @@ import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 import type { Blacklist } from '#lib/types/YouTube';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: 'Add or remove a channel from the blacklist.',
+	description: 'Manage the stream chat relay blacklist.',
+	runIn: ['GUILD_ANY'],
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
 		{ name: 'remove', chatInputRun: 'handleRemove' },
@@ -20,50 +21,45 @@ import type { Blacklist } from '#lib/types/YouTube';
 })
 export class Command extends AmanekoSubcommand {
 	public override registerApplicationCommands(registry: AmanekoSubcommand.Registry): void {
-		registry.registerChatInputCommand(
-			(builder) =>
-				builder
-					.setName('blacklist')
-					.setDescription(this.description)
-					.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-					.setDMPermission(false)
-					.addSubcommand((subcommand) =>
-						subcommand
-							.setName('add')
-							.setDescription('Add a channel to the blacklist.')
-							.addStringOption((option) =>
-								option //
-									.setName('id')
-									.setDescription("The youtube channel's Id")
-									.setRequired(true)
-							)
-					)
-					.addSubcommand((subcommand) =>
-						subcommand
-							.setName('remove')
-							.setDescription('Remove a channel from the blacklist.')
-							.addStringOption((option) =>
-								option //
-									.setName('id')
-									.setDescription("The youtube channel's Id")
-									.setRequired(true)
-									.setAutocomplete(true)
-							)
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('clear')
-							.setDescription('Clear the blacklist.')
-					)
-					.addSubcommand((subcommand) =>
-						subcommand //
-							.setName('list')
-							.setDescription('Show channel blacklist.')
-					),
-			{
-				idHints: [],
-				guildIds: []
-			}
+		registry.registerChatInputCommand((builder) =>
+			builder
+				.setName('blacklist')
+				.setDescription(this.description)
+				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+				.setDMPermission(false)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName('add')
+						.setDescription('Add a channel to the blacklist.')
+						.addStringOption((option) =>
+							option //
+								.setName('id')
+								.setDescription("The youtube channel's Id")
+								.setRequired(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand
+						.setName('remove')
+						.setDescription('Remove a channel from the blacklist.')
+						.addStringOption((option) =>
+							option //
+								.setName('id')
+								.setDescription("The youtube channel's Id")
+								.setRequired(true)
+								.setAutocomplete(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('clear')
+						.setDescription('Clear the blacklist.')
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('list')
+						.setDescription('Show channel blacklist.')
+				)
 		);
 	}
 

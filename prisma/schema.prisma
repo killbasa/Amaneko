@@ -13,8 +13,7 @@ model Guild {
   scheduleChannelId String?
   scheduleMessageId String?
 
-  adminRoles String[]
-  blacklist  Blacklist[]
+  blacklist Blacklist[]
 
   subscriptions Subscription[]
 }
