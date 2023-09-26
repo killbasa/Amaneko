@@ -26,11 +26,18 @@ export class Command extends AmanekoCommand {
 	}
 
 	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction): Promise<unknown> {
+		const currentTask = await this.container.tasks.get(AmanekoTasks.HolodexSync);
+
+		if (currentTask) {
+			return interaction.reply(`There is already an ongoing sync.`);
+		}
+
 		await this.container.tasks.create(
 			AmanekoTasks.HolodexSync, //
 			{ page: 0 },
 			{ repeated: false, delay: 0 }
 		);
+
 		return interaction.reply(`Holodex sync started.`);
 	}
 }

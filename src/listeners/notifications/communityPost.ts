@@ -15,7 +15,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.Communit
 			where: { channelId: post.channelId, communityPostChannelId: { not: null } },
 			select: { communityPostChannelId: true, communityPostRoleId: true }
 		});
-		if (subscriptions.length < 1) return;
+		if (subscriptions.length <= 0) return;
 
 		const embed = this.buildEmbed(post);
 

@@ -1,9 +1,12 @@
+## Base ##
+FROM node:20-alpine as base
+
+RUN apk update --no-cache
+
 ## Builder ##
-FROM node:20-alpine as builder
+FROM base as builder
 
 ENV NODE_ENV=production
-
-RUN apk update
 
 WORKDIR /temp
 
@@ -13,16 +16,16 @@ COPY src/ src/
 COPY prisma/ prisma/
 
 RUN yarn install --immutable && \
-	yarn build
+	yarn build && \
+	yarn workspaces focus --production
 
 ## App ##
-FROM node:20-alpine as app
+FROM base as app
 
 WORKDIR /app
 
 ## Canvas dependencies
-RUN apk update && \
-	yarn global add prisma && \
+RUN yarn global add prisma && \
 	addgroup --system --gid 1001 amaneko && \
 	adduser --system --uid 1001 amaneko
 

@@ -91,7 +91,7 @@ export class Command extends AmanekoSubcommand {
 				where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
 				select: { channel: true }
 			});
-			if (channels.length < 1) return interaction.respond([]);
+			if (channels.length <= 0) return interaction.respond([]);
 
 			options = channels.map(({ channel }) => ({
 				name: channel.name,

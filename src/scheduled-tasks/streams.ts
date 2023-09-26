@@ -36,7 +36,7 @@ export class Task extends ScheduledTask {
 				by: ['channelId']
 			})
 			.then((res) => res.map(({ channelId }) => channelId));
-		if (channelIds.length < 1) {
+		if (channelIds.length <= 0) {
 			tldex.unsubscribeAll();
 			return;
 		}
@@ -70,33 +70,34 @@ export class Task extends ScheduledTask {
 			const availableAt = new Date(stream.available_at).getTime();
 
 			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
-				if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
-					tldex.subscribe(stream);
-				}
-
 				const notificationSent = await redis.get<boolean>(YoutubeNotificationKey(stream.id));
 
-				if (!notificationSent && availableAt > Date.now() - Time.Minute * 1000) {
+				if (!notificationSent && availableAt > Date.now() - Time.Minute * 15) {
 					client.emit(AmanekoEvents.StreamStart, stream);
 					await redis.set(YoutubeNotificationKey(stream.id), true);
 				}
 			} else if (stream.status === 'upcoming' && availableAt > Date.now()) {
 				upcomingStreams.push(stream);
+
+				if (
+					availableAt - Time.Minute * 15 < Date.now() && //
+					(!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id))
+				) {
+					tldex.subscribe(stream);
+				}
 			}
 		}
 
-		if (upcomingStreams.length >= 0) {
-			const scheduledGuilds = await prisma.guild.findMany({
-				where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
-				select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
-			});
+		const scheduledGuilds = await prisma.guild.findMany({
+			where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
+			select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
+		});
 
-			if (scheduledGuilds.length > 0) {
-				if (upcomingStreams.length > 0) {
-					await this.handleScheduledStreams(upcomingStreams, scheduledGuilds);
-				} else {
-					await this.handleNoScheduledStreams(scheduledGuilds);
-				}
+		if (scheduledGuilds.length > 0) {
+			if (upcomingStreams.length > 0) {
+				await this.handleScheduledStreams(upcomingStreams, scheduledGuilds);
+			} else {
+				await this.handleNoScheduledStreams(scheduledGuilds);
 			}
 		}
 
