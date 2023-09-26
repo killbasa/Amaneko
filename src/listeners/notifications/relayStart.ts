@@ -19,7 +19,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamSt
 			where: { channelId: video.channel.id, relayChannelId: { not: null } },
 			select: { relayChannelId: true }
 		});
-		if (subscriptions.length <= 0) return;
+		if (subscriptions.length === 0) return;
 
 		const embed = this.buildEmbed(video);
 

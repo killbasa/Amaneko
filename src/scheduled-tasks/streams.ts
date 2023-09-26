@@ -36,7 +36,7 @@ export class Task extends ScheduledTask {
 				by: ['channelId']
 			})
 			.then((res) => res.map(({ channelId }) => channelId));
-		if (channelIds.length <= 0) {
+		if (channelIds.length === 0) {
 			tldex.unsubscribeAll();
 			return;
 		}

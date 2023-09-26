@@ -23,7 +23,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 			select: { relayChannelId: true }
 		});
 
-		if (relayChannelIds.length <= 0) return;
+		if (relayChannelIds.length === 0) return;
 
 		const fetchedChannels = await Promise.allSettled(
 			relayChannelIds.map(async ({ relayChannelId }) => {

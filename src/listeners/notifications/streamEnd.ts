@@ -11,7 +11,7 @@ import type { Holodex } from '#lib/types/Holodex';
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamEnd> {
 	public async run(video: Holodex.VideoWithChannel): Promise<void> {
 		const embeds = await this.container.redis.hGetAll<string>(YoutubeEmbedsKey(video.id));
-		if (embeds.size <= 0) return;
+		if (embeds.size === 0) return;
 
 		await Promise.allSettled(
 			Array.from(embeds).map(async ([messageId, channelId]) => {
