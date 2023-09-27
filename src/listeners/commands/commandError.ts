@@ -12,13 +12,17 @@ async function handleError(data: {
 	payload: ChatInputCommandErrorPayload | ChatInputSubcommandErrorPayload | ContextMenuCommandErrorPayload;
 }): Promise<void> {
 	const { error, message, payload } = data;
-	const { interaction } = payload;
+	const { command, interaction } = payload;
 
 	if (error instanceof AmanekoError) {
 		await errorReply(interaction, error.message);
 		return;
 	}
 
+	container.metrics.incrementCommand({
+		command: command.name,
+		success: false
+	});
 	container.logger.error(message, error);
 
 	await errorReply(interaction, 'Something went wrong when handling your request.');

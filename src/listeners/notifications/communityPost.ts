@@ -11,7 +11,9 @@ import type { CommunityPostData } from '#lib/types/YouTube';
 })
 export class NotificationListener extends Listener<typeof AmanekoEvents.CommunityPost> {
 	public async run(post: CommunityPostData): Promise<void> {
-		const subscriptions = await this.container.prisma.subscription.findMany({
+		const { prisma, redis, client, metrics } = this.container;
+
+		const subscriptions = await prisma.subscription.findMany({
 			where: { channelId: post.channelId, communityPostChannelId: { not: null } },
 			select: { communityPostChannelId: true, communityPostRoleId: true }
 		});
@@ -19,9 +21,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.Communit
 
 		const embed = this.buildEmbed(post);
 
-		await Promise.allSettled([
+		const result = await Promise.allSettled([
 			subscriptions.map(async ({ communityPostChannelId, communityPostRoleId }) => {
-				const channel = await this.container.client.channels.fetch(communityPostChannelId!);
+				const channel = await client.channels.fetch(communityPostChannelId!);
 				if (!channel?.isTextBased()) return;
 
 				const rolePing = communityPostRoleId ? roleMention(communityPostRoleId) : '';
@@ -33,7 +35,11 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.Communit
 			})
 		]);
 
-		await this.container.redis.hSet('communityposts', post.channelId, post.id);
+		await redis.hSet('communityposts', post.channelId, post.id);
+
+		for (const entry of result) {
+			metrics.incrementCommunityPost({ success: entry.status === 'fulfilled' });
+		}
 	}
 
 	private buildEmbed(post: CommunityPostData): EmbedBuilder {

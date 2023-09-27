@@ -1,6 +1,7 @@
 import { HolodexClient } from '#lib/structures/HolodexClient';
 import { MeiliClient } from '#lib/extensions/MeiliClient';
 import { TLDexClient } from '#lib/structures/TLDexClient';
+import { MetricsClient } from '#lib/structures/MetricsClient';
 import { RedisClient } from '@killbasa/redis-utils';
 import { PrismaClient } from '@prisma/client';
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
@@ -36,6 +37,7 @@ export class AmanekoClient extends SapphireClient {
 		});
 		container.redis = new RedisClient(config.redis);
 		container.meili = new MeiliClient(config.meili);
+		container.metrics = new MetricsClient();
 	}
 
 	public override async login(token: string): Promise<string> {
