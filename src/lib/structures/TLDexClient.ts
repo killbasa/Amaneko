@@ -49,6 +49,10 @@ export class TLDexClient {
 		});
 	}
 
+	public get size(): number {
+		return this.roomIds.size;
+	}
+
 	public connect(): void {
 		if (this.socket.connected) return;
 		this.socket.connect();

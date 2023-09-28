@@ -9,6 +9,7 @@ import type { TLDexClient } from '#lib/structures/TLDexClient';
 import type { Collection } from 'discord.js';
 import type { TLDex } from './TLDex';
 import type { Holodex } from './Holodex';
+import type { MetricsClient } from '#lib/structures/MetricsClient';
 
 declare module 'discord.js' {
 	interface ClientEvents {
@@ -27,6 +28,7 @@ declare module '@sapphire/pieces' {
 		prisma: PrismaClient;
 		redis: RedisClient;
 		meili: MeiliClient;
+		metrics: MetricsClient;
 
 		cache: {
 			holodexChannels: Collection<string, HolodexChannel>;

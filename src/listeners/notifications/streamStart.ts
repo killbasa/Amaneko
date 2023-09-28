@@ -13,8 +13,10 @@ import type { Holodex } from '#lib/types/Holodex';
 })
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamStart> {
 	public async run(video: Holodex.VideoWithChannel): Promise<void> {
+		const { prisma, client, metrics } = this.container;
+
 		const membersStream = video.topic_id ? HolodexMembersOnlyPatterns.includes(video.topic_id) : false;
-		const subscriptions = await this.container.prisma.subscription.findMany({
+		const subscriptions = await prisma.subscription.findMany({
 			where: {
 				channelId: video.channel.id,
 				OR: [{ discordChannelId: { not: null } }, { memberDiscordChannelId: { not: null } }]
@@ -51,13 +53,13 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamSt
 				const allowedRoles: string[] = [];
 
 				if (membersStream && memberDiscordChannelId) {
-					discordChannel = await this.container.client.channels.fetch(memberDiscordChannelId);
+					discordChannel = await client.channels.fetch(memberDiscordChannelId);
 					if (memberRoleId) {
 						role = `${roleMention(memberRoleId)} `;
 						allowedRoles.push(memberRoleId);
 					}
 				} else if (discordChannelId) {
-					discordChannel = await this.container.client.channels.fetch(discordChannelId);
+					discordChannel = await client.channels.fetch(discordChannelId);
 					if (roleId) {
 						role = `${roleMention(roleId)} `;
 						allowedRoles.push(roleId);
@@ -79,6 +81,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamSt
 		for (const message of sentMessages) {
 			if (message.status === 'fulfilled' && message.value) {
 				embedsHash.set(message.value.id, message.value.channelId);
+				metrics.incrementStream({ success: true });
+			} else {
+				metrics.incrementStream({ success: false });
 			}
 		}
 

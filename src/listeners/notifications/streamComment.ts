@@ -10,7 +10,9 @@ import type { TLDex } from '#lib/types/TLDex';
 })
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamComment> {
 	public async run(channelId: string, comment: TLDex.CommentPayload): Promise<void> {
-		const relayChannelIds = await this.container.prisma.subscription.findMany({
+		const { prisma, client, metrics } = this.container;
+
+		const relayChannelIds = await prisma.subscription.findMany({
 			where: {
 				channelId,
 				relayChannelId: { not: null },
@@ -27,7 +29,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 
 		const fetchedChannels = await Promise.allSettled(
 			relayChannelIds.map(async ({ relayChannelId }) => {
-				return this.container.client.channels.fetch(relayChannelId!);
+				return client.channels.fetch(relayChannelId!);
 			})
 		);
 
@@ -45,6 +47,8 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 				return channel.send({ content });
 			})
 		]);
+
+		metrics.incrementRelay({ success: true });
 	}
 
 	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
