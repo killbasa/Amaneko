@@ -13,7 +13,9 @@ model Guild {
   scheduleChannelId String?
   scheduleMessageId String?
 
-  blacklist Blacklist[]
+  relayMods         Boolean?
+  relayTranslations Boolean?
+  blacklist         Blacklist[]
 
   subscriptions Subscription[]
 }

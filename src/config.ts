@@ -15,6 +15,9 @@ export function loadConfig(): void {
 	const rawConfig: Unvalidated<ClientConfig> = {
 		isDev,
 		enableTasks: !isDev || process.env.ENABLE_TASKS === 'true',
+		api: {
+			port: parseInt(process.env.API_PORT!, 10)
+		},
 		discord: {
 			token: process.env.DISCORD_TOKEN,
 			id: process.env.DISCORD_ID,

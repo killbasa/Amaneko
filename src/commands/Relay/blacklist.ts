@@ -113,6 +113,8 @@ export class Command extends AmanekoSubcommand {
 			select: { channelName: true, channelId: true }
 		});
 
+		this.container.client.settings.blacklistAdd(interaction.guildId, data.channelId);
+
 		return successReply(interaction, `Added **${channelName === 'Username not found' ? data.channelId : data.channelName}** to the blacklist.`);
 	}
 
@@ -121,31 +123,27 @@ export class Command extends AmanekoSubcommand {
 
 		const idToUnblacklist = interaction.options.getString('id', true);
 
-		const { channelName } = await this.container.prisma.$transaction(
-			async (
-				prisma
-			): Promise<{
-				channelName: string;
-			}> => {
-				const result = await prisma.guild.findUnique({
-					where: { id: interaction.guildId },
-					select: { blacklist: true }
-				});
+		const { channelId, channelName } = await this.container.prisma.$transaction(async (prisma) => {
+			const result = await prisma.guild.findUnique({
+				where: { id: interaction.guildId },
+				select: { blacklist: true }
+			});
 
-				if (!result?.blacklist) {
-					throw new AmanekoError('There are no blacklisted channels.');
-				}
-
-				if (!result.blacklist.some((entry) => entry.channelId === idToUnblacklist)) {
-					throw new AmanekoError('This channel is not blacklisted');
-				}
-
-				return prisma.blacklist.delete({
-					where: { channelId_guildId: { channelId: idToUnblacklist, guildId: interaction.guildId } },
-					select: { channelName: true }
-				});
+			if (!result?.blacklist) {
+				throw new AmanekoError('There are no blacklisted channels.');
 			}
-		);
+
+			if (!result.blacklist.some((entry) => entry.channelId === idToUnblacklist)) {
+				throw new AmanekoError('This channel is not blacklisted');
+			}
+
+			return prisma.blacklist.delete({
+				where: { channelId_guildId: { channelId: idToUnblacklist, guildId: interaction.guildId } },
+				select: { channelId: true, channelName: true }
+			});
+		});
+
+		this.container.client.settings.blacklistRemove(interaction.guildId, channelId);
 
 		return successReply(interaction, `Removed **${channelName === 'Username not found' ? idToUnblacklist : channelName}** from the blacklist.`);
 	}

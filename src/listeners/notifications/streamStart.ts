@@ -79,11 +79,10 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamSt
 
 		const embedsHash = new Map<string, string>();
 		for (const message of sentMessages) {
+			metrics.incrementStream({ success: message.status === 'fulfilled' });
+
 			if (message.status === 'fulfilled' && message.value) {
 				embedsHash.set(message.value.id, message.value.channelId);
-				metrics.incrementStream({ success: true });
-			} else {
-				metrics.incrementStream({ success: false });
 			}
 		}
 

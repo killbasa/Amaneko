@@ -17,9 +17,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 				channelId,
 				relayChannelId: { not: null },
 				guild: {
-					blacklist: {
-						none: { channelId: comment.channel_id }
-					}
+					relayMods: { equals: comment.is_moderator },
+					relayTranslations: { equals: comment.is_tl },
+					blacklist: { none: { channelId: comment.channel_id } }
 				}
 			},
 			select: { relayChannelId: true }
@@ -42,13 +42,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 
 		const content = this.formatMessage(channelId, comment);
 
-		await Promise.allSettled([
-			channels.map(async (channel) => {
-				return channel.send({ content });
-			})
-		]);
+		await Promise.allSettled([channels.map(async (channel) => channel.send({ content }))]);
 
-		metrics.incrementRelay({ success: true });
+		metrics.incrementRelayComment();
 	}
 
 	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {

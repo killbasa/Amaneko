@@ -42,10 +42,14 @@ export namespace TLDex {
 		lang: string;
 	};
 
+	type UnsubscribePayload = {
+		id: string;
+	};
+
 	export type ServerToClientEvents = {
 		subscribeError: (payload: SubscribeErrorPayload) => void;
 		subscribeSuccess: (payload: SubscribeSuccessPayload) => void;
-		unsubscribeSuccess: (payload: SubscribePayload) => void;
+		unsubscribeSuccess: (payload: UnsubscribePayload) => void;
 		[key: VideoId]: (payload: Payload) => void;
 	};
 

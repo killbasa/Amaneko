@@ -10,6 +10,8 @@ import type { Collection } from 'discord.js';
 import type { TLDex } from './TLDex';
 import type { Holodex } from './Holodex';
 import type { MetricsClient } from '#lib/structures/MetricsClient';
+import type { GuildSettings } from './cache';
+import type { GuildSettingsCollection } from '#lib/collections/GuildSettingsCollection';
 
 declare module 'discord.js' {
 	interface ClientEvents {
@@ -17,6 +19,14 @@ declare module 'discord.js' {
 		[AmanekoEvents.StreamStart]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamEnd]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamComment]: [channelId: string, message: TLDex.CommentPayload];
+	}
+
+	interface Client {
+		settings: GuildSettingsCollection;
+	}
+
+	interface Guild {
+		get settings(): GuildSettings | undefined;
 	}
 }
 

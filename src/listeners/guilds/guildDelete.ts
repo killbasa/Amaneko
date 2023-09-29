@@ -7,8 +7,11 @@ import type { Guild } from 'discord.js';
 })
 export class GuildListener extends Listener<typeof Events.GuildDelete> {
 	public async run(guild: Guild): Promise<void> {
-		await this.container.prisma.guild.delete({
+		const { client, prisma } = this.container;
+
+		await prisma.guild.delete({
 			where: { id: guild.id }
 		});
+		client.settings.delete(guild.id);
 	}
 }
