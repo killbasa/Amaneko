@@ -70,6 +70,7 @@ export class Task extends ScheduledTask {
 			const availableAt = new Date(stream.available_at).getTime();
 
 			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
+				tldex.subscribe(stream);
 				const notificationSent = await redis.get<boolean>(YoutubeNotificationKey(stream.id));
 
 				if (!notificationSent && availableAt > Date.now() - Time.Minute * 15) {
