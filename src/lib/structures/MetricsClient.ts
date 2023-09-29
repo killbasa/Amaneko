@@ -54,17 +54,20 @@ export class MetricsClient {
 				stream: new Counter({
 					name: 'amaneko_notifications_stream_total',
 					help: 'Counter for total amount of stream notifications.',
-					registers: [register]
+					registers: [register],
+					labelNames: ['success'] as const
 				}),
 				community: new Counter({
 					name: 'amaneko_notifications_community_total',
 					help: 'Counter for total amount of community post notifications.',
-					registers: [register]
+					registers: [register],
+					labelNames: ['success'] as const
 				}),
 				relay: new Counter({
 					name: 'amaneko_notifications_relay_total',
 					help: 'Counter for total amount of relay notifications.',
-					registers: [register]
+					registers: [register],
+					labelNames: ['success'] as const
 				})
 			},
 			tldex: {
