@@ -24,7 +24,6 @@ FROM base as app
 
 WORKDIR /app
 
-## Canvas dependencies
 RUN yarn global add prisma && \
 	addgroup --system --gid 1001 amaneko && \
 	adduser --system --uid 1001 amaneko
@@ -37,4 +36,4 @@ COPY --from=builder --chown=amaneko:amaneko /temp/prisma/schema.prisma prisma/sc
 COPY --from=builder --chown=amaneko:amaneko /temp/dist dist/
 COPY --from=builder --chown=amaneko:amaneko /temp/package.json ./
 
-CMD yarn prisma migrate deploy && yarn run start
+CMD prisma migrate deploy && yarn run start
