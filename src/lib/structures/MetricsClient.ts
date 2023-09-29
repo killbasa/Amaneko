@@ -10,26 +10,26 @@ export class MetricsClient {
 		this.counters = this.setupCounters();
 	}
 
-	public incrementCommand(data: { command: string; success: boolean; value?: number }): void {
-		const { command, success, value = 1 } = data;
-		this.counters.commands.inc({ command, success: String(success) }, value);
+	public incrementCommand(data: { command: string; success: boolean }): void {
+		const { command, success } = data;
+		this.counters.commands.inc({ command, success: String(success) }, 1);
 	}
 
-	public incrementInteractions(data: { interaction: string; success: boolean; value?: number }): void {
-		const { interaction, success, value = 1 } = data;
-		this.counters.interactions.inc({ interaction, success: String(success) }, value);
+	public incrementInteractions(data: { interaction: string; success: boolean }): void {
+		const { interaction, success } = data;
+		this.counters.interactions.inc({ interaction, success: String(success) }, 1);
 	}
 
-	public incrementStream({ success, value = 1 }: { success: boolean; value?: number }): void {
-		this.counters.notifications.stream.inc({ success: String(success) }, value);
+	public incrementStream({ success }: { success: boolean }): void {
+		this.counters.notifications.stream.inc({ success: String(success) }, 1);
 	}
 
-	public incrementCommunityPost({ success, value = 1 }: { success: boolean; value?: number }): void {
-		this.counters.notifications.community.inc({ success: String(success) }, value);
+	public incrementCommunityPost({ success }: { success: boolean }): void {
+		this.counters.notifications.community.inc({ success: String(success) }, 1);
 	}
 
-	public incrementRelay({ success, value = 1 }: { success: boolean; value?: number }): void {
-		this.counters.notifications.relay.inc({ success: String(success) }, value);
+	public incrementRelay({ success }: { success: boolean }): void {
+		this.counters.notifications.relay.inc({ success: String(success) }, 1);
 	}
 
 	public incrementRelayComment(value = 1): void {
@@ -88,6 +88,17 @@ export class MetricsClient {
 			collect(): void {
 				if (container.client.isReady()) {
 					this.set(container.client.guilds.cache.size);
+				}
+			}
+		});
+
+		new Gauge({
+			name: 'amaneko_cached_settings_total',
+			help: 'Gauge for total amount of cached guild settings.',
+			registers: [register],
+			collect(): void {
+				if (container.client.isReady()) {
+					this.set(container.client.settings.size);
 				}
 			}
 		});

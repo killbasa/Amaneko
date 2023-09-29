@@ -1,12 +1,11 @@
-name: CD
+name: Publish
 
 on:
-  workflow_dispatch
-  #push:
-  #  branches:
-  #    - main
-  #  paths-ignore:
-  #    - "**/*.md"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
 
 permissions:
   contents: read

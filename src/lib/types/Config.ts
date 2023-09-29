@@ -10,6 +10,9 @@ export const ClientConfigSchema = z
 			devServer: z.string(),
 			ownerIds: z.array(z.string())
 		}),
+		api: z.object({
+			port: z.number()
+		}),
 		holodex: z.object({
 			apiKey: z.string()
 		}),

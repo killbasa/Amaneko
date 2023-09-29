@@ -35,8 +35,12 @@ export class TLDexClient {
 		});
 
 		this.socket.on('subscribeSuccess', (payload) => {
-			this.roomIds.add(`${payload.id}/en`);
-			container.logger.debug(`[TLDex] Joined room: ${payload.id}`);
+			if (payload.id === undefined) {
+				container.logger.error(`[TLDex] Received undefined for ID: ${payload.id} (${JSON.stringify(payload)})`);
+			} else {
+				this.roomIds.add(`${payload.id}/en`);
+				container.logger.debug(`[TLDex] Joined room: ${payload.id}`);
+			}
 		});
 
 		this.socket.on('subscribeError', (payload) => {
@@ -44,8 +48,7 @@ export class TLDexClient {
 		});
 
 		this.socket.on('unsubscribeSuccess', (payload) => {
-			this.roomIds.delete(`${payload.video_id}/en`);
-			container.logger.debug(`[TLDex] Left room: ${payload.video_id}`);
+			container.logger.debug(`[TLDex] Left room: ${payload.id}`);
 		});
 	}
 
@@ -61,10 +64,7 @@ export class TLDexClient {
 	public destroy(): void {
 		if (!this.socket.connected) return;
 
-		for (const roomId of this.roomIds) {
-			this.unsubscribe(roomId);
-		}
-
+		this.unsubscribeAll();
 		this.socket.disconnect();
 	}
 
@@ -76,8 +76,8 @@ export class TLDexClient {
 		if (!this.socket.connected) return;
 		if (this.isSubscribed(video.id)) return;
 
-		this.socket.emit('subscribe', { video_id: video.id, lang: 'en' });
 		this.socket.removeAllListeners(`${video.id}/en`);
+		this.socket.emit('subscribe', { video_id: video.id, lang: 'en' });
 
 		this.socket.on(`${video.id}/en`, (message) => {
 			if (this.filter(message)) return;
@@ -91,6 +91,8 @@ export class TLDexClient {
 
 		this.socket.emit('unsubscribe', { video_id: videoId, lang: 'en' });
 		this.socket.removeAllListeners(`${videoId}/en`);
+
+		this.roomIds.delete(`${videoId}/en`);
 	}
 
 	public unsubscribeAll(): void {

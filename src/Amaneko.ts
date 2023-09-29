@@ -1,3 +1,4 @@
+import '#lib/utils/Augments';
 import '@sapphire/plugin-logger/register';
 import '@sapphire/plugin-subcommands/register';
 import '@sapphire/plugin-scheduled-tasks/register';
