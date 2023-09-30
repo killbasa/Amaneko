@@ -68,7 +68,7 @@ export class Command extends AmanekoSubcommand {
 			})
 			.catch(() => null);
 		if (!message) {
-			return errorReply(interaction, `Something went wrong while setting up the schedule.`);
+			return errorReply(interaction, `Something went wrong while setting up the schedule. Please check if I have permissions in that channel.`);
 		}
 
 		await this.container.prisma.guild.upsert({
@@ -124,7 +124,10 @@ export class Command extends AmanekoSubcommand {
 			});
 		} catch (err) {
 			this.container.logger.warn(err);
-			return errorReply(interaction, `Something went wrong while changing the schedule's channel.`);
+			return errorReply(
+				interaction,
+				`Something went wrong while changing the schedule's channel. Please check if I have permissions in that channel.`
+			);
 		}
 
 		try {

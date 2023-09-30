@@ -1,7 +1,7 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
 import { BrandColors } from '#lib/utils/constants';
-import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { defaultReply, errorReply, permissionsCheck, successReply } from '#lib/utils/discord';
 import { channelLink } from '#lib/utils/youtube';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
@@ -121,6 +121,10 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
+		if (!(await permissionsCheck(interaction.channelId, interaction))) {
+			return errorReply(interaction, `Please check my permissions in that channel.`);
+		}
+
 		await this.container.prisma.subscription.upsert({
 			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
 			update: {
@@ -221,6 +225,10 @@ export class Command extends AmanekoSubcommand {
 				relayChannelId: true
 			}
 		});
+
+		if (!(await permissionsCheck(interaction.channelId, interaction))) {
+			return errorReply(interaction, `Please check my permissions in that channel.`);
+		}
 
 		if (data.length === 0) {
 			return defaultReply(interaction, 'There are no relays being sent to this server.');

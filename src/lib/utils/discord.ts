@@ -1,5 +1,6 @@
 import { BrandColors } from '#lib/utils/constants';
 import { EmbedBuilder } from 'discord.js';
+import { container } from '@sapphire/framework';
 import type { CommandInteraction, InteractionResponse, Message, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 
 type InteractionUnion = CommandInteraction | MessageComponentInteraction | ModalSubmitInteraction;
@@ -57,4 +58,25 @@ export async function errorReply(
 	options?: { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
 	return safeReply(interaction, BrandColors.Error, text, options?.tryEphemeral);
+}
+
+export async function permissionsCheck(channelId: string, interaction?: InteractionUnion): Promise<boolean | undefined> {
+	const discordChannel = interaction?.channel ?? (await container.client.channels.fetch(channelId));
+	if (!discordChannel?.isTextBased() || discordChannel.isDMBased()) {
+		return false;
+	}
+
+	if (interaction?.guild) {
+		return (
+			interaction.guild.members.me!.permissions.has(['EmbedLinks', 'SendMessages']) ||
+			!interaction.guild.members.me!.permissionsIn(discordChannel).has(['EmbedLinks', 'SendMessages'])
+		);
+	}
+
+	const { guild } = discordChannel;
+
+	return (
+		guild.members.me!.permissions.has(['EmbedLinks', 'SendMessages']) ||
+		guild.members.me!.permissionsIn(discordChannel).has(['EmbedLinks', 'SendMessages'])
+	);
 }

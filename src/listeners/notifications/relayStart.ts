@@ -1,5 +1,6 @@
 import { AmanekoEvents } from '#lib/utils/Events';
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
+import { permissionsCheck } from '#utils/discord';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder } from 'discord.js';
@@ -31,6 +32,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamSt
 
 				const discordChannel = await client.channels.fetch(relayChannelId!);
 				if (!discordChannel?.isTextBased()) return;
+				if (!(await permissionsCheck(discordChannel.id))) {
+					return;
+				}
 
 				return discordChannel.send({
 					embeds: [embed]

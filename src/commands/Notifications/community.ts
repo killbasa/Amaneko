@@ -2,7 +2,7 @@ import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { BrandColors } from '#lib/utils/constants';
 import { MeiliCategories } from '#lib/types/Meili';
 import { channelLink } from '#lib/utils/youtube';
-import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { defaultReply, errorReply, permissionsCheck, successReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
@@ -110,6 +110,10 @@ export class Command extends AmanekoSubcommand {
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!(await permissionsCheck(interaction.channelId, interaction))) {
+			return errorReply(interaction, `Please check my permissions in that channel.`);
 		}
 
 		await this.container.prisma.subscription.upsert({

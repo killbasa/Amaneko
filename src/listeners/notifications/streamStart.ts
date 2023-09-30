@@ -1,6 +1,7 @@
 import { AmanekoEvents } from '#lib/utils/Events';
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { YoutubeEmbedsKey } from '#lib/utils/cache';
+import { permissionsCheck } from '#lib/utils/discord';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, roleMention } from 'discord.js';
@@ -67,6 +68,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamSt
 				}
 
 				if (!discordChannel?.isTextBased()) return;
+				if (!(await permissionsCheck(discordChannel.id))) {
+					return;
+				}
 
 				return discordChannel.send({
 					content: `${role}${video.channel.name} is now live!`,

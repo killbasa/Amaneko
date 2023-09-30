@@ -1,5 +1,6 @@
 import { AmanekoEvents } from '#lib/utils/Events';
 import { BrandColors } from '#lib/utils/constants';
+import { permissionsCheck } from '#utils/discord';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, roleMention } from 'discord.js';
@@ -25,6 +26,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.Communit
 			subscriptions.map(async ({ communityPostChannelId, communityPostRoleId }) => {
 				const channel = await client.channels.fetch(communityPostChannelId!);
 				if (!channel?.isTextBased()) return;
+				if (!(await permissionsCheck(channel.id))) {
+					return;
+				}
 
 				const rolePing = communityPostRoleId ? roleMention(communityPostRoleId) : '';
 

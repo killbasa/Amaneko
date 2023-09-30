@@ -1,4 +1,5 @@
 import { AmanekoEvents } from '#lib/utils/Events';
+import { permissionsCheck } from '#utils/discord';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel } from 'discord.js';
@@ -52,7 +53,14 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 
 		const content = this.formatMessage(channelId, comment);
 
-		await Promise.allSettled([channels.map(async (channel) => channel.send({ content }))]);
+		await Promise.allSettled([
+			channels.map(async (channel) => {
+				if (!(await permissionsCheck(channel.id))) {
+					return;
+				}
+				return channel.send({ content });
+			})
+		]);
 
 		metrics.incrementRelayComment();
 	}

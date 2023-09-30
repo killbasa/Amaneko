@@ -1,7 +1,7 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
 import { BrandColors } from '#utils/constants';
-import { defaultReply, errorReply, successReply } from '#utils/discord';
+import { defaultReply, errorReply, permissionsCheck, successReply } from '#utils/discord';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
@@ -166,6 +166,10 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
+		if (!(await permissionsCheck(interaction.channelId, interaction))) {
+			return errorReply(interaction, `Please check my permissions in that channel.`);
+		}
+
 		await this.container.prisma.subscription.upsert({
 			where: { channelId_guildId: { channelId, guildId: interaction.guildId } },
 			update: {
@@ -227,6 +231,10 @@ export class Command extends AmanekoSubcommand {
 
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!(await permissionsCheck(interaction.channelId, interaction))) {
+			return errorReply(interaction, `Please check my permissions in that channel.`);
 		}
 
 		await this.container.prisma.subscription.upsert({
