@@ -12,13 +12,23 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 	public async run(channelId: string, comment: TLDex.CommentPayload): Promise<void> {
 		const { prisma, client, metrics } = this.container;
 
+		const ownerCheck = comment.is_owner
+			? []
+			: [
+					{
+						OR: [{ relayMods: { not: false } }, { relayTranslations: { not: false } }]
+					},
+					{
+						OR: [{ relayMods: { equals: comment.is_moderator } }, { relayTranslations: { equals: comment.is_tl } }]
+					}
+			  ];
+
 		const relayChannelIds = await prisma.subscription.findMany({
 			where: {
 				channelId,
 				relayChannelId: { not: null },
 				guild: {
-					relayMods: { equals: comment.is_moderator },
-					relayTranslations: { equals: comment.is_tl },
+					AND: ownerCheck,
 					blacklist: { none: { channelId: comment.channel_id } }
 				}
 			},

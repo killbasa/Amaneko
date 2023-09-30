@@ -13,6 +13,7 @@ import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
 		{ name: 'remove', chatInputRun: 'handleRemove' },
+		{ name: 'settings', chatInputRun: 'handleSettings' },
 		{ name: 'clear', chatInputRun: 'handleClear' },
 		{ name: 'list', chatInputRun: 'handleList' }
 	]
@@ -47,6 +48,21 @@ export class Command extends AmanekoSubcommand {
 								.setDescription('The name of the YouTube channel to remove.')
 								.setAutocomplete(true)
 								.setRequired(true)
+						)
+				)
+				.addSubcommand((subcommand) =>
+					subcommand //
+						.setName('settings')
+						.setDescription('Enable or disable translations and moderator messages. Leave empty to check current settings.')
+						.addBooleanOption((option) =>
+							option //
+								.setName('moderators')
+								.setDescription('Enable or disable moderator messages.')
+						)
+						.addBooleanOption((option) =>
+							option //
+								.setName('translations')
+								.setDescription('Enable or disable translations.')
 						)
 				)
 				.addSubcommand((subcommand) =>
@@ -147,6 +163,42 @@ export class Command extends AmanekoSubcommand {
 		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to this channel.`);
 	}
 
+	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
+		await interaction.deferReply();
+		const enableMods = interaction.options.getBoolean('moderators');
+		const enableTls = interaction.options.getBoolean('translations');
+
+		if (enableMods === null && enableTls === null) {
+			const embed = await this.formatSettings(interaction);
+			return interaction.editReply({
+				embeds: [embed]
+			});
+		}
+
+		const data = await this.container.prisma.guild.upsert({
+			where: { id: interaction.guildId },
+			update: {
+				relayMods: enableMods ?? undefined,
+				relayTranslations: enableTls ?? undefined
+			},
+			create: {
+				id: interaction.guildId,
+				relayMods: enableMods ?? undefined,
+				relayTranslations: enableTls ?? undefined
+			}
+		});
+
+		const blacklist = interaction.client.settings.get(interaction.guildId)?.blacklist;
+
+		interaction.client.settings.update(interaction.guildId, {
+			relayMods: enableMods ?? data.relayMods,
+			relayTranslations: enableTls ?? data.relayTranslations,
+			blacklist: blacklist ?? new Set<string>()
+		});
+
+		return successReply(interaction, `The new relay settings have been successfully applied.`);
+	}
+
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 		const discordChannel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
@@ -188,5 +240,20 @@ export class Command extends AmanekoSubcommand {
 		return interaction.editReply({
 			embeds: [embed]
 		});
+	}
+
+	private async formatSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<EmbedBuilder> {
+		const guild = await this.container.prisma.guild.findUnique({
+			where: { id: interaction.guildId }
+		});
+
+		return new EmbedBuilder()
+			.setTitle('Relay settings')
+			.addFields(
+				{ name: 'Moderator messages', value: `${guild?.relayMods === false ? '❌' : '✅'}` },
+				{ name: 'Translation messages', value: `${guild?.relayTranslations === false ? '❌' : '✅'}` }
+			)
+			.setColor(BrandColors.Default)
+			.setTimestamp();
 	}
 }
