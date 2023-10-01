@@ -43,7 +43,7 @@ export class Task extends ScheduledTask {
 
 		const liveStreams = await holodex.getLiveVideos({
 			channels: channelIds,
-			maxUpcoming: Time.Day * 3
+			maxUpcoming: Time.Day * 5
 		});
 
 		const upcomingStreams: Holodex.VideoWithChannel[] = [];
@@ -65,21 +65,30 @@ export class Task extends ScheduledTask {
 			const availableAt = new Date(stream.available_at).getTime();
 
 			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
-				tldex.subscribe(stream);
-				const notified = await redis.get<boolean>(YoutubeNotifKey(stream.id));
+				// Only relay non-member streams
+				if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
+					tldex.subscribe(stream);
+				}
 
-				if (!notified && availableAt > Date.now() - Time.Minute * 15) {
-					client.emit(AmanekoEvents.StreamStart, stream);
-					await redis.set(YoutubeNotifKey(stream.id), true);
+				if (availableAt >= Date.now() - Time.Minute * 15) {
+					const notified = await redis.get<boolean>(YoutubeNotifKey(stream.id));
+
+					if (!notified) {
+						client.emit(AmanekoEvents.StreamStart, stream);
+						await redis.set(YoutubeNotifKey(stream.id), true);
+					}
 				}
 			} else if (stream.status === 'upcoming' && availableAt > Date.now()) {
 				upcomingStreams.push(stream);
 
 				// Only relay non-member streams
-				if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
+				if (
+					availableAt <= Date.now() + Time.Minute * 15 && //
+					(!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id))
+				) {
 					const prechatNotified = await redis.get<boolean>(YoutubePrechatNotifKey(stream.id));
 
-					if (!prechatNotified && availableAt - Time.Minute * 15 < Date.now()) {
+					if (!prechatNotified) {
 						client.emit(AmanekoEvents.StreamPrechat, stream);
 						await redis.set(YoutubePrechatNotifKey(stream.id), true);
 					}
