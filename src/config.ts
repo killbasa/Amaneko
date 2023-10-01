@@ -13,8 +13,8 @@ export function loadConfig(): void {
 
 	const env = process.env.NODE_ENV;
 	const isDev =
-		process.env.NODE_ENV !== NodeEnv.Production && //
-		process.env.NODE_ENV !== NodeEnv.Staging;
+		env !== NodeEnv.Production && //
+		env !== NodeEnv.Staging;
 
 	const rawConfig: Unvalidated<ClientConfig> = {
 		env,
