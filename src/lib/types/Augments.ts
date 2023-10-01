@@ -10,15 +10,15 @@ import type { Collection } from 'discord.js';
 import type { TLDex } from './TLDex';
 import type { Holodex } from './Holodex';
 import type { MetricsClient } from '#lib/structures/MetricsClient';
-import type { GuildSettings } from './cache';
 import type { GuildSettingsCollection } from '#lib/collections/GuildSettingsCollection';
 
 declare module 'discord.js' {
 	interface ClientEvents {
 		[AmanekoEvents.CommunityPost]: [post: CommunityPostData];
+		[AmanekoEvents.StreamPrechat]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamStart]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamEnd]: [video: Holodex.VideoWithChannel];
-		[AmanekoEvents.StreamComment]: [channelId: string, message: TLDex.CommentPayload];
+		[AmanekoEvents.StreamComment]: [message: TLDex.CommentPayload, video: Holodex.VideoWithChannel];
 	}
 
 	interface Client {
@@ -26,7 +26,7 @@ declare module 'discord.js' {
 	}
 
 	interface Guild {
-		get settings(): GuildSettings | undefined;
+		get settings(): void;
 	}
 }
 

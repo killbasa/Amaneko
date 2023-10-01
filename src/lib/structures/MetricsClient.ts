@@ -32,6 +32,10 @@ export class MetricsClient {
 		this.counters.notifications.relay.inc({ success: String(success) }, 1);
 	}
 
+	public incrementRelayHistory({ success }: { success: boolean }): void {
+		this.counters.notifications.relay.inc({ success: String(success) }, 1);
+	}
+
 	public incrementRelayComment(value = 1): void {
 		this.counters.tldex.relay.inc(value);
 	}
@@ -68,12 +72,18 @@ export class MetricsClient {
 					help: 'Counter for total amount of relay notifications.',
 					registers: [register],
 					labelNames: ['success'] as const
+				}),
+				history: new Counter({
+					name: 'amaneko_notifications_history_total',
+					help: 'Counter for total amount of relay history notifications.',
+					registers: [register],
+					labelNames: ['success'] as const
 				})
 			},
 			tldex: {
 				relay: new Counter({
 					name: 'amaneko_tldex_relay_total',
-					help: 'Counter for total amount of processes tldex comments.',
+					help: 'Counter for total amount of processed tldex comments.',
 					registers: [register]
 				})
 			}
@@ -88,17 +98,6 @@ export class MetricsClient {
 			collect(): void {
 				if (container.client.isReady()) {
 					this.set(container.client.guilds.cache.size);
-				}
-			}
-		});
-
-		new Gauge({
-			name: 'amaneko_cached_settings_total',
-			help: 'Gauge for total amount of cached guild settings.',
-			registers: [register],
-			collect(): void {
-				if (container.client.isReady()) {
-					this.set(container.client.settings.size);
 				}
 			}
 		});
@@ -143,6 +142,17 @@ export class MetricsClient {
 			collect(): void {
 				if (container.client.isReady()) {
 					this.set(container.tldex.size);
+				}
+			}
+		});
+
+		new Gauge({
+			name: 'amaneko_comments_total',
+			help: 'Gauge for total amount of saved comments.',
+			registers: [register],
+			async collect(): Promise<void> {
+				if (container.client.isReady()) {
+					this.set(await container.prisma.streamComment.count());
 				}
 			}
 		});

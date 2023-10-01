@@ -5,7 +5,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<Listener.Options>({
-	name: 'StreamEndNotification',
+	name: 'StreamEndCleanup',
 	event: AmanekoEvents.StreamEnd
 })
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamEnd> {

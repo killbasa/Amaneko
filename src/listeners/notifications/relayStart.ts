@@ -6,16 +6,18 @@ import { EmbedBuilder } from 'discord.js';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<Listener.Options>({
-	name: 'RelayStartNotification',
-	event: AmanekoEvents.StreamStart
+	name: AmanekoEvents.StreamPrechat,
+	event: AmanekoEvents.StreamPrechat
 })
-export class NotificationListener extends Listener<typeof AmanekoEvents.StreamStart> {
+export class NotificationListener extends Listener<typeof AmanekoEvents.StreamPrechat> {
 	public async run(video: Holodex.VideoWithChannel): Promise<void> {
-		const { prisma, client, metrics } = this.container;
+		const { prisma, client, metrics, tldex } = this.container;
 
 		if (video.topic_id && HolodexMembersOnlyPatterns.includes(video.topic_id)) {
 			return;
 		}
+
+		tldex.subscribe(video);
 
 		const subscriptions = await prisma.subscription.findMany({
 			where: { channelId: video.channel.id, relayChannelId: { not: null } },

@@ -8,7 +8,7 @@ import type { Channel } from 'discord.js';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<Listener.Options>({
-	name: 'StreamStartNotification',
+	name: AmanekoEvents.StreamStart,
 	event: AmanekoEvents.StreamStart
 })
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamStart> {

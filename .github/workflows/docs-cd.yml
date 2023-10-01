@@ -1,13 +1,12 @@
 name: CD (Docs)
 
 on:
-  workflow_dispatch
-  #push:
-  #  branches:
-  #    - main
-  #  paths:
-  #    - "docs/**"
-  #    - "!**/README.md"
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - "!**/README.md"
 
 permissions:
   contents: write

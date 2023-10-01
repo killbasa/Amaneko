@@ -7,15 +7,10 @@ import type { Guild } from 'discord.js';
 })
 export class GuildListener extends Listener<typeof Events.GuildCreate> {
 	public async run(guild: Guild): Promise<void> {
-		const { client, prisma } = this.container;
+		const { prisma } = this.container;
 
-		const settings = await prisma.guild.create({
+		await prisma.guild.create({
 			data: { id: guild.id }
-		});
-		client.settings.set(guild.id, {
-			relayMods: settings.relayMods,
-			relayTranslations: settings.relayTranslations,
-			blacklist: new Set()
 		});
 	}
 }

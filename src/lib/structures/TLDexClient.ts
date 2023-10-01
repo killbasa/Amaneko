@@ -81,7 +81,7 @@ export class TLDexClient {
 
 		this.socket.on(`${video.id}/en`, (message) => {
 			if (this.filter(message)) return;
-			container.client.emit(AmanekoEvents.StreamComment, video.channel.id, message);
+			container.client.emit(AmanekoEvents.StreamComment, message, video);
 		});
 	}
 

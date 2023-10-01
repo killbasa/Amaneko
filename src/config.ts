@@ -1,5 +1,6 @@
-import { ClientConfigSchema, NodeEnv } from '#lib/types/Config';
+import { ClientConfigSchema } from '#lib/types/Config';
 import { mainFolder } from '#lib/utils/constants';
+import { NodeEnv } from '#lib/utils/enums';
 import { container } from '@sapphire/framework';
 import { config } from 'dotenv';
 import { resolve } from 'path';
@@ -7,12 +8,16 @@ import type { ClientConfig } from '#lib/types/Config';
 import type { Unvalidated } from '#lib/types/Generic';
 
 export function loadConfig(): void {
-	process.env.NODE_ENV ??= NodeEnv.enum.dev;
+	process.env.NODE_ENV ??= NodeEnv.Dev;
 	config({ path: resolve(mainFolder, '../.env') });
 
-	const isDev = process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'staging';
+	const env = process.env.NODE_ENV;
+	const isDev =
+		env !== NodeEnv.Production && //
+		env !== NodeEnv.Staging;
 
 	const rawConfig: Unvalidated<ClientConfig> = {
+		env,
 		isDev,
 		enableTasks: !isDev || process.env.ENABLE_TASKS === 'true',
 		api: {

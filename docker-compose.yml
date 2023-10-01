@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   postgres:
-    image: postgres:15.3-alpine
+    image: postgres:16.0-alpine
     container_name: postgres-amaneko
     environment:
       POSTGRES_DB: amaneko
@@ -12,14 +12,14 @@ services:
       - "127.0.0.1:5430:5432"
 
   redis:
-    image: redis:7.2.0-alpine
+    image: redis:7.2.1-alpine
     container_name: redis-amaneko
     command: ["redis-server", "--requirepass password"]
     ports:
       - "127.0.0.1:6380:6379"
 
   meili:
-    image: getmeili/meilisearch:v1.3.2
+    image: getmeili/meilisearch:v1.3.4
     container_name: meili-amaneko
     ports:
       - "127.0.0.1:7710:7700"

@@ -7,6 +7,7 @@ export type AmanekoCounters = {
 		stream: Counter;
 		community: Counter;
 		relay: Counter;
+		history: Counter;
 	};
 	tldex: {
 		relay: Counter;

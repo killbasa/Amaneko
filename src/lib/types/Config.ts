@@ -1,7 +1,9 @@
+import { NodeEnv } from '#lib/utils/enums';
 import { z } from 'zod';
 
 export const ClientConfigSchema = z
 	.object({
+		env: z.nativeEnum(NodeEnv),
 		isDev: z.boolean(),
 		enableTasks: z.boolean(),
 		discord: z.object({
@@ -33,7 +35,5 @@ export const ClientConfigSchema = z
 		})
 	})
 	.strict();
-
-export const NodeEnv = z.enum(['dev', 'production', 'staging', 'test']);
 
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;

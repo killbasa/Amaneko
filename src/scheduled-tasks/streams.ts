@@ -1,7 +1,7 @@
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { arrayIsEqual } from '#lib/utils/functions';
 import { AmanekoEvents } from '#lib/utils/Events';
-import { YoutubeEmbedsKey, YoutubeNotificationKey, YoutubeScheduleKey } from '#lib/utils/cache';
+import { YoutubeEmbedsKey, YoutubeNotifKey, YoutubePrechatNotifKey, YoutubeScheduleKey } from '#lib/utils/cache';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
@@ -41,15 +41,10 @@ export class Task extends ScheduledTask {
 			return;
 		}
 
-		const liveStreams = await holodex
-			.getLiveVideos({
-				channels: channelIds
-			})
-			.then((streams) =>
-				streams.filter(({ available_at }) => {
-					return new Date(available_at).getTime() < Date.now() + Time.Day * 3;
-				})
-			);
+		const liveStreams = await holodex.getLiveVideos({
+			channels: channelIds,
+			maxUpcoming: Time.Day * 3
+		});
 
 		const upcomingStreams: Holodex.VideoWithChannel[] = [];
 		const cachedStreams = await redis.hGetValues<Holodex.VideoWithChannel>(this.streamsKey);
@@ -71,20 +66,23 @@ export class Task extends ScheduledTask {
 
 			if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
 				tldex.subscribe(stream);
-				const notificationSent = await redis.get<boolean>(YoutubeNotificationKey(stream.id));
+				const notified = await redis.get<boolean>(YoutubeNotifKey(stream.id));
 
-				if (!notificationSent && availableAt > Date.now() - Time.Minute * 15) {
+				if (!notified && availableAt > Date.now() - Time.Minute * 15) {
 					client.emit(AmanekoEvents.StreamStart, stream);
-					await redis.set(YoutubeNotificationKey(stream.id), true);
+					await redis.set(YoutubeNotifKey(stream.id), true);
 				}
 			} else if (stream.status === 'upcoming' && availableAt > Date.now()) {
 				upcomingStreams.push(stream);
 
-				if (
-					availableAt - Time.Minute * 15 < Date.now() && //
-					(!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id))
-				) {
-					tldex.subscribe(stream);
+				// Only relay non-member streams
+				if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
+					const prechatNotified = await redis.get<boolean>(YoutubePrechatNotifKey(stream.id));
+
+					if (!prechatNotified && availableAt - Time.Minute * 15 < Date.now()) {
+						client.emit(AmanekoEvents.StreamPrechat, stream);
+						await redis.set(YoutubePrechatNotifKey(stream.id), true);
+					}
 				}
 			}
 		}
@@ -103,20 +101,26 @@ export class Task extends ScheduledTask {
 		}
 
 		const keysToDelete = [this.streamsKey];
+		const danglingStreamIds = danglingStreams.map(({ id }) => id);
 
 		for (const stream of pastStreams) {
 			tldex.unsubscribe(stream.id);
-			keysToDelete.push(YoutubeNotificationKey(stream.id), YoutubeEmbedsKey(stream.id));
+			keysToDelete.push(YoutubeNotifKey(stream.id), YoutubeEmbedsKey(stream.id));
 
 			client.emit(AmanekoEvents.StreamEnd, stream);
 		}
 
-		for (const stream of danglingStreams) {
-			tldex.unsubscribe(stream.id);
-			keysToDelete.push(YoutubeNotificationKey(stream.id));
+		for (const streamId of danglingStreamIds) {
+			tldex.unsubscribe(streamId);
+			keysToDelete.push(YoutubeNotifKey(streamId));
 		}
 
-		await redis.deleteMany(keysToDelete);
+		await Promise.all([
+			prisma.streamComment.deleteMany({
+				where: { videoId: { in: danglingStreamIds } }
+			}),
+			redis.deleteMany(keysToDelete)
+		]);
 
 		if (liveStreams.length > 0) {
 			await redis.hmSet(

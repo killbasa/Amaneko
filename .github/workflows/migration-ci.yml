@@ -1,0 +1,38 @@
+name: CI (Migrations)
+
+on:
+  pull_request:
+    paths:
+      - "prisma/**"
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16.0-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: amaneko
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Run Prisma diff
+        run: |
+          yarn dlx prisma migrate diff \
+          --from-migrations "prisma/migrations" \
+          --to-schema-datamodel "prisma/schema.prisma" \
+          --shadow-database-url "postgresql://user:password@127.0.0.1:5432/amaneko" \
+          --exit-code 1

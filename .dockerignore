@@ -1,12 +1,12 @@
 .git/
 .github/
 .husky/
+.idea/
 .vscode/
 dist/
+docs/
 node_modules/
 tests/
-docker-compose.yml
-Dockerfile
 .dockerignore
 .editorconfig
 .env*
@@ -16,6 +16,9 @@ Dockerfile
 .gitignore
 .prettierignore
 .prettierrc.cjs
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile
 LICENSE
 README.md
 tsconfig.eslint.json

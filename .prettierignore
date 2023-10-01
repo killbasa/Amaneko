@@ -4,7 +4,8 @@
 coverage/
 dist/
 docs/.vitepress/cache/
-prisma/migrations/
+docs/.vitepress/dist/
+prisma/
 node_modules/
 LICENSE
 yarn.lock
