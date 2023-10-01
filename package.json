@@ -27,6 +27,7 @@
 		"format:fix": "prettier --write --log-level=warn .",
 		"db:generate": "prisma generate",
 		"db:push": "prisma db push",
+		"db:migrate": "prisma migrate reset && prisma migrate dev",
 		"test": "vitest --coverage run",
 		"test:watch": "vitest -w",
 		"docs:dev": "vitepress dev docs",
