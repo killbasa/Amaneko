@@ -38,12 +38,13 @@ export class AmanekoClient extends SapphireClient {
 
 		container.holodex = new HolodexClient(config.holodex);
 		container.tldex = new TLDexClient();
+		container.metrics = new MetricsClient();
+
 		container.prisma = new PrismaClient({
 			datasources: { database: { url: config.database.url } }
 		});
 		container.redis = new RedisClient(config.redis);
 		container.meili = new MeiliClient(config.meili);
-		container.metrics = new MetricsClient();
 	}
 
 	public override async login(token: string): Promise<string> {

@@ -1,5 +1,5 @@
 import { Collection } from 'discord.js';
-import type { GuildSettings } from '#lib/types/cache';
+import type { GuildSettings } from '#lib/types/Cache';
 
 export class GuildSettingsCollection extends Collection<string, GuildSettings> {
 	public update(guildId: string, data: GuildSettings): GuildSettings {

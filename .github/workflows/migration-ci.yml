@@ -1,0 +1,44 @@
+name: CI (Migrations)
+
+on:
+  pull_request:
+    paths:
+      - "prisma/**"
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16.0-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: amaneko
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install Prisma
+        run: yarn global add prisma
+
+      - name: Run build
+        run: |
+          prisma migrate diff \
+          --from-migrations "prisma/migrations" \
+          --to-schema-datamodel "prisma/schema.prisma" \
+          --shadow-database-url "postgresql://user:password@postgres:5432/amaneko" \
+          --exit-code 1

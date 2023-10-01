@@ -175,7 +175,7 @@ export class Command extends AmanekoSubcommand {
 			});
 		}
 
-		const data = await this.container.prisma.guild.upsert({
+		await this.container.prisma.guild.upsert({
 			where: { id: interaction.guildId },
 			update: {
 				relayMods: enableMods ?? undefined,
@@ -186,14 +186,6 @@ export class Command extends AmanekoSubcommand {
 				relayMods: enableMods ?? undefined,
 				relayTranslations: enableTls ?? undefined
 			}
-		});
-
-		const blacklist = interaction.client.settings.get(interaction.guildId)?.blacklist;
-
-		interaction.client.settings.update(interaction.guildId, {
-			relayMods: enableMods ?? data.relayMods,
-			relayTranslations: enableTls ?? data.relayTranslations,
-			blacklist: blacklist ?? new Set<string>()
 		});
 
 		return successReply(interaction, `The new relay settings have been successfully applied.`);

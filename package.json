@@ -20,6 +20,7 @@
 		"typecheck": "tsc -b src",
 		"dev": "tsup --watch --onSuccess \"yarn start\"",
 		"start": "node --preserve-symlinks --enable-source-maps ./dist/Amaneko.js",
+		"check": "tsc --noEmit -p src",
 		"lint": "eslint '{src,tests,docs}/*.ts'",
 		"lint:fix": "eslint --fix '{src,tests,docs}/*.ts'",
 		"format": "prettier --check .",

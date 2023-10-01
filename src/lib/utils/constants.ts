@@ -7,6 +7,8 @@ export const HOLODEX_WEBSOCKET_URL = 'wss://holodex.net';
 
 export const HOLODEX_HEADER = 'X-APIKEY';
 
+export const HolodexMembersOnlyPatterns = ['membersonly', 'members only', "member's only", 'member', 'メン限', 'メンバー限定'];
+
 export const enum BrandColors {
 	Default = '#9966CC',
 	Success = '#33B54E',
@@ -15,6 +17,13 @@ export const enum BrandColors {
 
 export const AmanekoEmojis = {};
 
-export const VTuberOrgs = {};
-
-export const HolodexMembersOnlyPatterns = ['membersonly', 'members only', "member's only", 'member', 'メン限', 'メンバー限定'];
+export const VTuberOrgEmojis = new Map<string, string>([
+	['Hololive', 'Hololive'], //
+	['PhaseConnect', 'PhaseConnect'],
+	['PrismProject', 'PrismProject'],
+	['Nijisanji', 'Nijisanji'],
+	['NijisanjiEN', 'NijisanjiEN'],
+	['IdolCorp', 'IdolCorp'],
+	['VShojo', 'VShojo'],
+	['VReverie', 'VReverie']
+]);

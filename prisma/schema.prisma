@@ -18,6 +18,7 @@ model Guild {
   blacklist         Blacklist[]
 
   subscriptions Subscription[]
+  comments      StreamComment[]
 }
 
 model Blacklist {
@@ -40,15 +41,17 @@ model HolodexChannel {
   org         String?
   subOrg      String?
 
-  videos        Video[]
   subscriptions Subscription[]
 }
 
-model Video {
-  id String @id
+model StreamComment {
+  id      BigInt @default(autoincrement())
+  videoId String @id
 
-  channelId String
-  channel   HolodexChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  content String
+
+  guildId String?
+  guild   Guild?  @relation(fields: [guildId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {

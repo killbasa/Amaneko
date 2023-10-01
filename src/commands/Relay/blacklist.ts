@@ -1,7 +1,7 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { AmanekoError } from '#lib/structures/AmanekoError';
 import { BrandColors } from '#utils/constants';
-import { getUsername } from '#utils/YoutubeData';
+import { getUsername } from '#utils/youtube';
 import { successReply } from '#lib/utils/discord';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
@@ -113,8 +113,6 @@ export class Command extends AmanekoSubcommand {
 			select: { channelName: true, channelId: true }
 		});
 
-		this.container.client.settings.blacklistAdd(interaction.guildId, data.channelId);
-
 		return successReply(interaction, `Added **${channelName === 'Username not found' ? data.channelId : data.channelName}** to the blacklist.`);
 	}
 
@@ -123,7 +121,7 @@ export class Command extends AmanekoSubcommand {
 
 		const idToUnblacklist = interaction.options.getString('id', true);
 
-		const { channelId, channelName } = await this.container.prisma.$transaction(async (prisma) => {
+		const { channelName } = await this.container.prisma.$transaction(async (prisma) => {
 			const result = await prisma.guild.findUnique({
 				where: { id: interaction.guildId },
 				select: { blacklist: true }
@@ -139,11 +137,9 @@ export class Command extends AmanekoSubcommand {
 
 			return prisma.blacklist.delete({
 				where: { channelId_guildId: { channelId: idToUnblacklist, guildId: interaction.guildId } },
-				select: { channelId: true, channelName: true }
+				select: { channelName: true }
 			});
 		});
-
-		this.container.client.settings.blacklistRemove(interaction.guildId, channelId);
 
 		return successReply(interaction, `Removed **${channelName === 'Username not found' ? idToUnblacklist : channelName}** from the blacklist.`);
 	}
