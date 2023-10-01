@@ -68,6 +68,10 @@ export class TLDexClient {
 		this.socket.disconnect();
 	}
 
+	public getRoomList(): string[] {
+		return Array.from(this.roomIds);
+	}
+
 	public isSubscribed(videoId: string): boolean {
 		return this.roomIds.has(`${videoId}/en`);
 	}
