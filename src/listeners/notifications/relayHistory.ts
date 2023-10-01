@@ -35,7 +35,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamEn
 				if (comments.length === 0) continue;
 
 				await channel.send({
-					content: `Here is this stream's TL log. https://youtu.be/${video.id}`,
+					content: `Here is this stream's TL log. <https://youtu.be/${video.id}>`,
 					files: [
 						{
 							name: `${video.id}.txt`,
