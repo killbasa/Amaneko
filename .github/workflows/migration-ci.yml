@@ -29,10 +29,10 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Run build
+      - name: Run Prisma diff
         run: |
           yarn dlx prisma migrate diff \
           --from-migrations "prisma/migrations" \
           --to-schema-datamodel "prisma/schema.prisma" \
-          --shadow-database-url "postgresql://user:password@postgres:5432/amaneko" \
+          --shadow-database-url "postgresql://user:password@127.0.0.1:5432/amaneko" \
           --exit-code 1
