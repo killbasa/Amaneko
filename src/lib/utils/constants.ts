@@ -18,12 +18,12 @@ export const enum BrandColors {
 export const AmanekoEmojis = {};
 
 export const VTuberOrgEmojis = new Map<string, string>([
-	['Hololive', 'Hololive'], //
-	['PhaseConnect', 'PhaseConnect'],
-	['PrismProject', 'PrismProject'],
-	['Nijisanji', 'Nijisanji'],
-	['NijisanjiEN', 'NijisanjiEN'],
-	['IdolCorp', 'IdolCorp'],
-	['VShojo', 'VShojo'],
-	['VReverie', 'VReverie']
+	['Hololive', '<:Hololive:1158110352190476298>'], //
+	['PhaseConnect', '<:PhaseConnect:1158110355642404875>'],
+	['PrismProject', '<:PrismProject:1158110356825190421>'],
+	['Nijisanji', '<:Nijisanji:1158111882222248057> '],
+	['NijisanjiEN', '<:Nijisanji:1158111882222248057> '],
+	['IdolCorp', '<:IdolCorp:1158110353025142804> '],
+	['VShojo', '<:VShojo:1158110359136260226>'],
+	['VReverie', '<:VReverie:1158112269293596672>']
 ]);
