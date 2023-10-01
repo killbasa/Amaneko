@@ -45,8 +45,8 @@ model HolodexChannel {
 }
 
 model StreamComment {
-  id      BigInt @default(autoincrement())
-  videoId String @id
+  id      BigInt @id @default(autoincrement())
+  videoId String
 
   content String
 
