@@ -27,17 +27,9 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Set up NodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Install Prisma
-        run: yarn global add prisma
-
       - name: Run build
         run: |
-          prisma migrate diff \
+          yarn dlx prisma migrate diff \
           --from-migrations "prisma/migrations" \
           --to-schema-datamodel "prisma/schema.prisma" \
           --shadow-database-url "postgresql://user:password@postgres:5432/amaneko" \
