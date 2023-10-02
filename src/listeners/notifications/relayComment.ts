@@ -116,7 +116,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 
 		const startTime = new Date(Date.parse(start)).valueOf();
 		const loggedTime = new Date(now).valueOf();
-		const timestamp = new Date(loggedTime - startTime).toISOString().substring(11, 8);
+		const timestamp = new Date(loggedTime - startTime).toISOString().substring(11, 19);
 
 		return `${timestamp} (${comment.name}) ${comment.message}`;
 	}
