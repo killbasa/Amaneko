@@ -8,7 +8,7 @@ import type { Holodex } from '#lib/types/Holodex';
 export class TLDexClient {
 	private readonly socket: TLDex.TypedSocket;
 
-	private readonly roomIds = new Set<TLDex.VideoId>();
+	private readonly videoIds = new Set<string>();
 
 	public constructor() {
 		this.socket = io(HOLODEX_WEBSOCKET_URL, {
@@ -24,6 +24,10 @@ export class TLDexClient {
 
 		this.socket.on('connect', () => {
 			container.logger.info('[TLDex] Connected');
+
+			for (const videoId of this.videoIds) {
+				this.socket.emit('subscribe', { video_id: videoId, lang: 'en' });
+			}
 		});
 
 		this.socket.on('connect_error', (err) => {
@@ -38,7 +42,7 @@ export class TLDexClient {
 			if (payload.id === undefined) {
 				container.logger.error(`[TLDex] Received undefined for ID: ${payload.id} (${JSON.stringify(payload)})`);
 			} else {
-				this.roomIds.add(`${payload.id}/en`);
+				this.videoIds.add(payload.id);
 				container.logger.debug(`[TLDex] Joined room: ${payload.id}`);
 			}
 		});
@@ -53,7 +57,7 @@ export class TLDexClient {
 	}
 
 	public get size(): number {
-		return this.roomIds.size;
+		return this.videoIds.size;
 	}
 
 	public connect(): void {
@@ -69,11 +73,11 @@ export class TLDexClient {
 	}
 
 	public getRoomList(): string[] {
-		return Array.from(this.roomIds);
+		return Array.from(this.videoIds);
 	}
 
 	public isSubscribed(videoId: string): boolean {
-		return this.roomIds.has(`${videoId}/en`);
+		return this.videoIds.has(videoId);
 	}
 
 	public async subscribe(video: Holodex.VideoWithChannel): Promise<void> {
@@ -96,11 +100,11 @@ export class TLDexClient {
 		this.socket.emit('unsubscribe', { video_id: videoId, lang: 'en' });
 		this.socket.removeAllListeners(`${videoId}/en`);
 
-		this.roomIds.delete(`${videoId}/en`);
+		this.videoIds.delete(videoId);
 	}
 
 	public unsubscribeAll(): void {
-		for (const videoId of this.roomIds) {
+		for (const videoId of this.videoIds) {
 			this.unsubscribe(videoId);
 		}
 	}
