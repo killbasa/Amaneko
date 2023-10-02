@@ -11,6 +11,7 @@ import type { TLDex } from './TLDex';
 import type { Holodex } from './Holodex';
 import type { MetricsClient } from '#lib/structures/MetricsClient';
 import type { GuildSettingsCollection } from '#lib/collections/GuildSettingsCollection';
+import type { youtube_v3 } from 'googleapis';
 
 declare module 'discord.js' {
 	interface ClientEvents {
@@ -33,6 +34,7 @@ declare module 'discord.js' {
 declare module '@sapphire/pieces' {
 	interface Container {
 		config: ClientConfig;
+		youtube: youtube_v3.Youtube;
 		holodex: HolodexClient;
 		tldex: TLDexClient;
 		prisma: PrismaClient;

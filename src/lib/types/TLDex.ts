@@ -12,6 +12,7 @@ export namespace TLDex {
 		type?: string;
 		message: string;
 		name: string;
+		timestamp: number;
 		channel_id?: string;
 		is_tl?: boolean;
 		is_owner?: boolean;

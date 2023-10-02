@@ -7,6 +7,7 @@ import { RedisClient } from '@killbasa/redis-utils';
 import { PrismaClient } from '@prisma/client';
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
 import { Collection, IntentsBitField } from 'discord.js';
+import { google } from 'googleapis';
 
 export class AmanekoClient extends SapphireClient {
 	public constructor() {
@@ -36,6 +37,7 @@ export class AmanekoClient extends SapphireClient {
 			}
 		});
 
+		container.youtube = google.youtube({ version: 'v3', auth: container.config.youtube.apikey });
 		container.holodex = new HolodexClient(config.holodex);
 		container.tldex = new TLDexClient();
 		container.metrics = new MetricsClient();

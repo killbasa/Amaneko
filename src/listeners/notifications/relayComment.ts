@@ -1,5 +1,6 @@
 import { AmanekoEvents } from '#lib/utils/Events';
-import { VTuberOrgEmojis } from '#lib/utils/constants';
+import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
+import { cleanEmojis } from '#lib/utils/youtube';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
@@ -52,9 +53,8 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 			})
 			.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased());
 
-		const now = Date.now();
 		const content = this.formatMessage(video.channel.id, comment);
-		const historyContent = this.formatHistoryMessage(comment, video, now);
+		const historyContent = this.formatHistoryMessage(comment, video);
 
 		const messages = await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
 
@@ -77,45 +77,46 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 	}
 
 	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
-		const message = comment.message.replaceAll('`', "'");
+		const message = cleanEmojis(comment.message).replaceAll('`', "'");
 
 		if (comment.is_vtuber) {
 			const channel = this.container.cache.holodexChannels.get(channelId)!;
 
-			// TODO: handle no-org cases better
-			// TODO: add generic default emoji
 			let prefix: string;
 			if (channel.org) {
 				const emoji = VTuberOrgEmojis.get(channel.org);
-				if (!emoji) this.container.logger.warn(`[Relay] No emoji for ${channel.org}`);
-
-				prefix = emoji ?? channel.org;
+				if (emoji) {
+					prefix = emoji;
+				} else {
+					this.container.logger.warn(`[Relay] No emoji for ${channel.org}`);
+					prefix = AmanekoEmojis.Speaker;
+				}
 			} else {
-				prefix = `[?]`;
+				prefix = AmanekoEmojis.Speaker;
 			}
 
 			return `${prefix} **${comment.name}:** \`${message}\``;
 		}
 
 		if (comment.is_tl) {
-			return `:speech_balloon: ||${comment.name}:|| \`${message}\``;
+			return `${AmanekoEmojis.Speech} ||${comment.name}:|| \`${message}\``;
 		}
 
 		if (comment.is_moderator) {
-			return `:tools: **${comment.name}:** \`${message}\``;
+			return `${AmanekoEmojis.Tools} **${comment.name}:** \`${message}\``;
 		}
 
 		return `${comment.name}: \`${message}\``;
 	}
 
-	private formatHistoryMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel, now: number): string {
+	private formatHistoryMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
 		const start = video.start_actual ?? video.start_scheduled;
 		if (!start) {
-			throw Error(`Received comments from stream that never started. (${video.id})`);
+			throw Error(`Received comment from stream that never started. (${video.id})`);
 		}
 
 		const startTime = new Date(Date.parse(start)).valueOf();
-		const loggedTime = new Date(now).valueOf();
+		const loggedTime = new Date(comment.timestamp).valueOf();
 		const timestamp = new Date(loggedTime - startTime).toISOString().substring(11, 19);
 
 		return `${timestamp} (${comment.name}) ${comment.message}`;

@@ -2,13 +2,17 @@ import { AmanekoEvents } from '#lib/utils/Events';
 import { HOLODEX_WEBSOCKET_URL } from '#lib/utils/constants';
 import { container } from '@sapphire/pieces';
 import { io } from 'socket.io-client';
+import { Time } from '@sapphire/duration';
 import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
 
 export class TLDexClient {
 	private readonly socket: TLDex.TypedSocket;
 
-	private readonly videoIds = new Set<string>();
+	private readonly videos = new Map<string, Holodex.VideoWithChannel>();
+	private readonly retries = new Map<string, number>();
+	private readonly queue = new Map<string, () => void>();
+	private flushed = true;
 
 	public constructor() {
 		this.socket = io(HOLODEX_WEBSOCKET_URL, {
@@ -25,9 +29,15 @@ export class TLDexClient {
 		this.socket.on('connect', () => {
 			container.logger.info('[TLDex] Connected');
 
-			for (const videoId of this.videoIds) {
-				this.socket.emit('subscribe', { video_id: videoId, lang: 'en' });
-			}
+			const interval = setInterval(() => {
+				if (this.flushed) {
+					for (const subscribe of this.queue.values()) {
+						subscribe();
+					}
+
+					clearInterval(interval);
+				}
+			}, Time.Second);
 		});
 
 		this.socket.on('connect_error', (err) => {
@@ -35,20 +45,48 @@ export class TLDexClient {
 		});
 
 		this.socket.on('disconnect', (reason) => {
-			container.logger.error('[TLDex] Connection error.', reason);
+			container.logger.error('[TLDex] Disconnected.', reason);
+			this.flushed = false;
+
+			for (const [videoId, video] of this.videos) {
+				this.queue.set(videoId, this.createSubCallback(video));
+			}
+
+			this.retries.clear();
+
+			this.flushed = true;
 		});
 
 		this.socket.on('subscribeSuccess', (payload) => {
 			if (payload.id === undefined) {
 				container.logger.error(`[TLDex] Received undefined for ID: ${payload.id} (${JSON.stringify(payload)})`);
 			} else {
-				this.videoIds.add(payload.id);
 				container.logger.debug(`[TLDex] Joined room: ${payload.id}`);
+				this.queue.delete(payload.id);
+				this.retries.delete(payload.id);
 			}
 		});
 
 		this.socket.on('subscribeError', (payload) => {
-			container.logger.error('[TLDex] Subscription error.', payload);
+			container.logger.debug('[TLDex] Subscription error.', payload);
+
+			const count = (this.retries.get(payload.id) ?? 0) + 1;
+			this.retries.set(payload.id, count);
+
+			if (count < 5) {
+				const subscribe = this.queue.get(payload.id);
+
+				if (subscribe) {
+					setTimeout(() => {
+						subscribe();
+					}, Time.Second * 30);
+				} else {
+					this.retries.delete(payload.id);
+				}
+			} else {
+				container.logger.error(`[TLDex] Hit max retry on subscription attempts. (${payload.id})`);
+				this.retries.delete(payload.id);
+			}
 		});
 
 		this.socket.on('unsubscribeSuccess', (payload) => {
@@ -57,7 +95,7 @@ export class TLDexClient {
 	}
 
 	public get size(): number {
-		return this.videoIds.size;
+		return this.videos.size;
 	}
 
 	public connect(): void {
@@ -66,47 +104,61 @@ export class TLDexClient {
 	}
 
 	public destroy(): void {
-		if (!this.socket.connected) return;
-
 		this.unsubscribeAll();
-		this.socket.disconnect();
+
+		if (this.socket.connected) {
+			this.socket.disconnect();
+		}
 	}
 
 	public getRoomList(): string[] {
-		return Array.from(this.videoIds);
-	}
-
-	public isSubscribed(videoId: string): boolean {
-		return this.videoIds.has(videoId);
+		return Array.from(this.videos).map(([videoId]) => videoId);
 	}
 
 	public async subscribe(video: Holodex.VideoWithChannel): Promise<void> {
-		if (!this.socket.connected) return;
-		if (this.isSubscribed(video.id)) return;
+		if (this.videos.has(video.id)) {
+			this.videos.set(video.id, video);
+			return;
+		}
 
-		this.socket.removeAllListeners(`${video.id}/en`);
-		this.socket.emit('subscribe', { video_id: video.id, lang: 'en' });
+		const callback = this.createSubCallback(video);
 
-		this.socket.on(`${video.id}/en`, (message) => {
-			if (this.filter(message)) return;
-			container.client.emit(AmanekoEvents.StreamComment, message, video);
-		});
+		if (this.socket.connected) {
+			callback();
+		} else {
+			this.queue.set(video.id, callback);
+		}
 	}
 
 	public unsubscribe(videoId: string): void {
-		if (!this.socket.connected) return;
-		if (!this.isSubscribed(videoId)) return;
+		if (!this.videos.has(videoId)) return;
 
-		this.socket.emit('unsubscribe', { video_id: videoId, lang: 'en' });
+		if (this.socket.connected) {
+			this.socket.emit('unsubscribe', { video_id: videoId, lang: 'en' });
+		}
+
 		this.socket.removeAllListeners(`${videoId}/en`);
-
-		this.videoIds.delete(videoId);
+		this.videos.delete(videoId);
 	}
 
 	public unsubscribeAll(): void {
-		for (const videoId of this.videoIds) {
+		for (const [videoId] of this.videos) {
 			this.unsubscribe(videoId);
 		}
+	}
+
+	private createSubCallback(video: Holodex.VideoWithChannel): () => void {
+		return (): void => {
+			this.videos.set(video.id, video);
+
+			this.socket.removeAllListeners(`${video.id}/en`);
+			this.socket.emit('subscribe', { video_id: video.id, lang: 'en' });
+
+			this.socket.on(`${video.id}/en`, (message) => {
+				if (this.filter(message)) return;
+				container.client.emit(AmanekoEvents.StreamComment, message, video);
+			});
+		};
 	}
 
 	private filter(message: TLDex.Payload): message is TLDex.VideoUpdatePayload {
