@@ -29,6 +29,7 @@ export class TLDexClient {
 		this.socket.on('connect', () => {
 			container.logger.info('[TLDex] Connected');
 
+			// For disconnects, retry until the queue is full again
 			const interval = setInterval(() => {
 				if (this.flushed) {
 					for (const subscribe of this.queue.values()) {
@@ -46,6 +47,7 @@ export class TLDexClient {
 
 		this.socket.on('disconnect', (reason) => {
 			container.logger.error('[TLDex] Disconnected.', reason);
+			// Add a lock until all of the videos are queued
 			this.flushed = false;
 
 			for (const [videoId, video] of this.videos) {
@@ -86,6 +88,7 @@ export class TLDexClient {
 			} else {
 				container.logger.error(`[TLDex] Hit max retry on subscription attempts. (${payload.id})`);
 				this.retries.delete(payload.id);
+				this.socket.removeAllListeners(`${payload.id}/en`);
 			}
 		});
 
@@ -104,11 +107,13 @@ export class TLDexClient {
 	}
 
 	public destroy(): void {
-		this.unsubscribeAll();
+		this.socket.removeListener('disconnect');
 
 		if (this.socket.connected) {
 			this.socket.disconnect();
 		}
+
+		this.unsubscribeAll();
 	}
 
 	public getRoomList(): string[] {
