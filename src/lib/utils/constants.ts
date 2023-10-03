@@ -25,11 +25,13 @@ export const AmanekoEmojis = {
 
 export const VTuberOrgEmojis = new Map<string, string>([
 	['Hololive', '<:Hololive:1158110352190476298>'], //
-	['Phase Connect', '<:PhaseConnect:1158110355642404875>'],
-	['PRISM Project', '<:PrismProject:1158110356825190421>'],
+	['Idol', '<:IdolCorp:1158110353025142804> '],
 	['Nijisanji', '<:Nijisanji:1158111882222248057> '],
 	['Nijisanji EN', '<:Nijisanji:1158111882222248057> '],
-	['Idol', '<:IdolCorp:1158110353025142804> '],
+	['Nori Pro', '<:NoriPro:1158867476071845968>'],
+	['Phase Connect', '<:PhaseConnect:1158110355642404875>'],
+	['PRISM Project', '<:PrismProject:1158110356825190421>'],
+	['VReverie', '<:VReverie:1158112269293596672>'],
 	['VShojo', '<:VShojo:1158110359136260226>'],
-	['VReverie', '<:VReverie:1158112269293596672>']
+	['VSpo', '<:VSpo:1158867477112029264>']
 ]);
