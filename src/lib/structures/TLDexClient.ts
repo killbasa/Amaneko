@@ -63,7 +63,7 @@ export class TLDexClient {
 			if (payload.id === undefined) {
 				container.logger.error(`[TLDex] Received undefined for ID: ${payload.id} (${JSON.stringify(payload)})`);
 			} else {
-				container.logger.debug(`[TLDex] Joined room: ${payload.id}`);
+				container.logger.info(`[TLDex] Joined room: ${payload.id}`);
 				this.queue.delete(payload.id);
 				this.retries.delete(payload.id);
 			}
@@ -93,7 +93,7 @@ export class TLDexClient {
 		});
 
 		this.socket.on('unsubscribeSuccess', (payload) => {
-			container.logger.debug(`[TLDex] Left room: ${payload.id}`);
+			container.logger.info(`[TLDex] Left room: ${payload.id}`);
 		});
 	}
 
