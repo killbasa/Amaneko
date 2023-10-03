@@ -11,6 +11,12 @@ module.exports = {
 			rules: {
 				'@typescript-eslint/consistent-type-definitions': 'off'
 			}
+		},
+		{
+			files: ['tests/**'],
+			rules: {
+				'import/no-unresolved': 'off'
+			}
 		}
 	]
 };

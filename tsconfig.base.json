@@ -6,6 +6,7 @@
 		"target": "ES2022",
 		"incremental": false,
 		"noEmit": true,
-		"importHelpers": false
+		"importHelpers": false,
+		"types": ["vitest/globals"]
 	}
 }
