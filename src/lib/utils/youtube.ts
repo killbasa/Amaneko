@@ -1,4 +1,4 @@
-import { YoutubeEmojiRegex } from './constants';
+import { YoutubeEmojiRegex } from '#lib/utils/constants';
 import { YoutubeDataSchema } from '#lib/schemas/YoutubeDataSchema';
 import { container } from '@sapphire/pieces';
 import type { YoutubeData } from '#lib/schemas/YoutubeDataSchema';
