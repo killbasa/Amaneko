@@ -10,8 +10,8 @@ export class TLDexClient {
 	private readonly socket: TLDex.TypedSocket;
 
 	private readonly videos = new Map<string, Holodex.VideoWithChannel>();
-	private readonly retries = new Map<string, number>();
 	private readonly queue = new Map<string, () => void>();
+	private readonly retries = new Map<string, number>();
 	private flushed = true;
 
 	public constructor() {
@@ -27,7 +27,7 @@ export class TLDexClient {
 		});
 
 		this.socket.on('connect', () => {
-			container.logger.info('[TLDex] Connected');
+			container.logger.info('[TLDex] Connected.');
 
 			// For disconnects, retry until the queue is full again
 			const interval = setInterval(() => {
@@ -51,9 +51,10 @@ export class TLDexClient {
 			this.flushed = false;
 
 			for (const [videoId, video] of this.videos) {
-				this.queue.set(videoId, this.createSubCallback(video));
+				this.queue.set(videoId, this.createSubCallback(video, true));
 			}
 
+			this.videos.clear();
 			this.retries.clear();
 
 			this.flushed = true;
@@ -64,6 +65,7 @@ export class TLDexClient {
 				container.logger.error(`[TLDex] Received undefined for ID: ${payload.id} (${JSON.stringify(payload)})`);
 			} else {
 				container.logger.info(`[TLDex] Joined room: ${payload.id}`);
+
 				this.queue.delete(payload.id);
 				this.retries.delete(payload.id);
 			}
@@ -87,7 +89,9 @@ export class TLDexClient {
 				}
 			} else {
 				container.logger.error(`[TLDex] Hit max retry on subscription attempts. (${payload.id})`);
+
 				this.retries.delete(payload.id);
+				this.queue.delete(payload.id);
 				this.socket.removeAllListeners(`${payload.id}/en`);
 			}
 		});
@@ -108,7 +112,6 @@ export class TLDexClient {
 
 	public destroy(): void {
 		this.socket.removeListener('disconnect');
-
 		if (this.socket.connected) {
 			this.socket.disconnect();
 		}
@@ -136,6 +139,7 @@ export class TLDexClient {
 	}
 
 	public unsubscribe(videoId: string): void {
+		this.queue.delete(videoId);
 		if (!this.videos.has(videoId)) return;
 
 		if (this.socket.connected) {
@@ -144,6 +148,7 @@ export class TLDexClient {
 
 		this.socket.removeAllListeners(`${videoId}/en`);
 		this.videos.delete(videoId);
+		this.retries.delete(videoId);
 	}
 
 	public unsubscribeAll(): void {
@@ -152,7 +157,14 @@ export class TLDexClient {
 		}
 	}
 
-	private createSubCallback(video: Holodex.VideoWithChannel): () => void {
+	private createSubCallback(video: Holodex.VideoWithChannel, resubscribe = false): () => void {
+		if (resubscribe) {
+			return (): void => {
+				this.videos.set(video.id, video);
+				this.socket.emit('subscribe', { video_id: video.id, lang: 'en' });
+			};
+		}
+
 		return (): void => {
 			this.videos.set(video.id, video);
 
@@ -161,7 +173,12 @@ export class TLDexClient {
 
 			this.socket.on(`${video.id}/en`, (message) => {
 				if (this.filter(message)) return;
-				container.client.emit(AmanekoEvents.StreamComment, message, video);
+				const data = this.videos.get(video.id);
+				if (!data) {
+					throw new Error(`Expected video, received undefined (${video.id})`);
+				}
+
+				container.client.emit(AmanekoEvents.StreamComment, message, data);
 			});
 		};
 	}
