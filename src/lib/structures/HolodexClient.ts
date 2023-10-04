@@ -28,8 +28,8 @@ export class HolodexClient {
 
 		const result = await this.fetch<Holodex.VideoWithChannel[]>(url, this.apiKey);
 		if (maxUpcoming) {
-			return result.filter(({ available_at }) => {
-				return new Date(available_at).getTime() <= Date.now() + maxUpcoming;
+			return result.filter(({ channel, available_at }) => {
+				return new Date(available_at).getTime() <= Date.now() + maxUpcoming && channels.includes(channel.id);
 			});
 		}
 
