@@ -33,7 +33,7 @@ export class MetricsClient {
 	}
 
 	public incrementRelayHistory({ success }: { success: boolean }): void {
-		this.counters.notifications.relay.inc({ success: String(success) }, 1);
+		this.counters.notifications.history.inc({ success: String(success) }, 1);
 	}
 
 	public incrementRelayComment(value = 1): void {

@@ -53,6 +53,8 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 			})
 			.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased());
 
+		comment.message = cleanEmojis(comment.message);
+
 		const content = this.formatMessage(video.channel.id, comment);
 		const historyContent = this.formatHistoryMessage(comment, video);
 
@@ -77,7 +79,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 	}
 
 	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
-		const message = cleanEmojis(comment.message).replaceAll('`', "'");
+		const message = comment.message.replaceAll('`', "'");
 
 		if (comment.is_vtuber) {
 			const channel = this.container.cache.holodexChannels.get(channelId)!;
