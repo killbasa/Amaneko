@@ -25,7 +25,7 @@ export class Command extends AmanekoSubcommand {
 				.setName('relay')
 				.setDescription(this.description)
 				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-				.setDMPermission(true)
+				.setDMPermission(false)
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('add')
