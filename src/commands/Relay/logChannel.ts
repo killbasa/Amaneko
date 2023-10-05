@@ -4,7 +4,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, PermissionFlagsBits, channelMention } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: "Start or stop relaying a streamer's translations.",
+	description: 'Send relay logs to a specific channel.',
 	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
 	subcommands: [
 		{ name: 'set', chatInputRun: 'handleSet' },
