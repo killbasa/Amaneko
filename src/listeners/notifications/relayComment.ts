@@ -8,7 +8,7 @@ import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<Listener.Options>({
-	name: AmanekoEvents.StreamComment,
+	name: 'RelayComment',
 	event: AmanekoEvents.StreamComment
 })
 export class NotificationListener extends Listener<typeof AmanekoEvents.StreamComment> {

@@ -17,18 +17,23 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamEn
 				relayChannelId: { not: null }
 			},
 			select: {
-				guildId: true,
-				relayChannelId: true
+				relayChannelId: true,
+				guild: {
+					select: {
+						id: true,
+						relayHistoryChannelId: true
+					}
+				}
 			}
 		});
 
-		for (const subscription of subscriptions) {
-			const channel = await client.channels.fetch(subscription.relayChannelId!);
+		for (const { guild, relayChannelId } of subscriptions) {
+			const channel = await client.channels.fetch(guild.relayHistoryChannelId ?? relayChannelId!);
 			if (!channel?.isTextBased()) continue;
 
 			try {
 				const comments = await prisma.streamComment.findMany({
-					where: { guildId: subscription.guildId, videoId: video.id },
+					where: { guildId: guild.id, videoId: video.id },
 					select: { content: true },
 					orderBy: { id: 'asc' }
 				});
@@ -48,7 +53,7 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamEn
 				metrics.incrementRelayHistory({ success: false });
 			} finally {
 				await prisma.streamComment.deleteMany({
-					where: { guildId: subscription.guildId, videoId: video.id }
+					where: { guildId: guild.id, videoId: video.id }
 				});
 			}
 		}
