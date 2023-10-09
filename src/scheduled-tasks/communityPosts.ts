@@ -1,6 +1,7 @@
 import { ScrapeSchema } from '#lib/schemas/ScrapeSchema';
-import { AmanekoEvents } from '#lib/utils/Events';
+import { AmanekoEvents } from '#lib/utils/enums';
 import { sleep } from '#lib/utils/functions';
+import { AmanekoTask } from '#lib/extensions/AmanekoTask';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
@@ -12,32 +13,43 @@ import type { CommunityPostData } from '#lib/types/YouTube';
 	pattern: '0 */5 * * * *', // Every 5 minutes
 	enabled: container.config.enableTasks
 })
-export class Task extends ScheduledTask {
+export class Task extends AmanekoTask {
 	public override async run(): Promise<void> {
-		const { client, logger, prisma, redis } = this.container;
+		const { tracer, container } = this;
+		const { client, logger, prisma, redis } = container;
 
-		const channelIds = await prisma.subscription
-			.groupBy({
-				where: { NOT: { communityPostChannelId: null } },
-				by: ['channelId']
-			})
-			.then((res) => res.map(({ channelId }) => channelId));
-		if (channelIds.length === 0) return;
+		await tracer.createSpan(`community_posts`, async () => {
+			const channelIds = await tracer.createSpan('find_channels', async () => {
+				return prisma.subscription
+					.groupBy({
+						where: { NOT: { communityPostChannelId: null } },
+						by: ['channelId']
+					})
+					.then((res) => res.map(({ channelId }) => channelId));
+			});
+			if (channelIds.length === 0) return;
 
-		logger.debug(`[CommunityPosts] Checking community posts for ${channelIds.length} channels`);
+			logger.debug(`[CommunityPosts] Checking community posts for ${channelIds.length} channels`);
 
-		for (const channelId of channelIds) {
-			await sleep(2000);
-			logger.debug(`[CommunityPosts] Checking posts for ${channelId}`);
+			await tracer.createSpan('process_channels', async () => {
+				for (const channelId of channelIds) {
+					await tracer.createSpan(`process_channel:${channelId}`, async () => {
+						await sleep(2000);
+						logger.debug(`[CommunityPosts] Checking posts for ${channelId}`);
 
-			const post = await this.getLatestPost(channelId);
-			if (!post?.isToday) continue;
+						const post = await tracer.createSpan(`process_channel:${channelId}:scrape`, async () => {
+							return this.getLatestPost(channelId);
+						});
+						if (!post?.isToday) return;
 
-			const savedPostId = await redis.hGet<string>('communityposts', channelId);
-			if (savedPostId === post.id) continue;
+						const savedPostId = await redis.hGet<string>('communityposts', channelId);
+						if (savedPostId === post.id) return;
 
-			client.emit(AmanekoEvents.CommunityPost, post);
-		}
+						client.emit(AmanekoEvents.CommunityPost, post);
+					});
+				}
+			});
+		});
 	}
 
 	private async getLatestPost(channelId: string): Promise<CommunityPostData | undefined> {

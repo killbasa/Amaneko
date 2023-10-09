@@ -19,11 +19,13 @@ async function handleError(data: {
 		return;
 	}
 
-	container.metrics.incrementCommand({
+	container.metrics.counters.incCommand({
 		command: command.name,
 		success: false
 	});
-	container.logger.error(message, error);
+	container.logger.error(message, error, {
+		command
+	});
 
 	await errorReply(interaction, 'Something went wrong when handling your request.');
 }

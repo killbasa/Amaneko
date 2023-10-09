@@ -1,4 +1,4 @@
-import { AmanekoEvents } from '#lib/utils/Events';
+import { AmanekoEvents } from '#lib/utils/enums';
 import { HOLODEX_WEBSOCKET_URL } from '#lib/utils/constants';
 import { container } from '@sapphire/pieces';
 import { io } from 'socket.io-client';

@@ -7,7 +7,7 @@ import type { ContextMenuCommandSuccessPayload } from '@sapphire/framework';
 })
 export class CommandListener extends Listener<typeof Events.ContextMenuCommandSuccess> {
 	public async run({ command }: ContextMenuCommandSuccessPayload): Promise<void> {
-		this.container.metrics.incrementCommand({
+		this.container.metrics.counters.incCommand({
 			command: command.name,
 			success: true
 		});

@@ -1,5 +1,5 @@
 import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
-import { AmanekoTasks } from '#lib/utils/tasks';
+import { AmanekoTasks } from '#lib/utils/enums';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
 import { PermissionFlagsBits } from 'discord.js';

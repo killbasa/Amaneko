@@ -11,3 +11,4 @@ services:
       - REDIS_PORT=6379
       - MEILI_HOST=meili-amaneko
       - MEILI_PORT=7700
+      - OTEL_ENDPOINT=agent:4317

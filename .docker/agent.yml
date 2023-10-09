@@ -1,0 +1,46 @@
+server:
+  log_level: info
+
+metrics:
+  wal_directory: /tmp/agent
+  global:
+    scrape_interval: 30s
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+  configs:
+    - name: default
+      scrape_configs:
+        - job_name: amaneko
+          static_configs:
+            - targets: ["amaneko:8621"]
+
+logs:
+  configs:
+    - name: default
+      positions:
+        filename: /tmp/positions.yaml
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+      scrape_configs:
+        - job_name: log-scrape
+          docker_sd_configs:
+            - host: unix:///var/run/docker.sock
+              refresh_interval: 5s
+          relabel_configs:
+            - source_labels: ["__meta_docker_container_name"]
+              regex: "/(.*)"
+              target_label: "container"
+
+traces:
+  configs:
+    - name: default
+      remote_write:
+        - endpoint: tempo:4317
+          insecure: true
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+      batch:
+        timeout: 10s
+        send_batch_size: 1024

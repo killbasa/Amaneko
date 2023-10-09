@@ -5,6 +5,7 @@ import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from '
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
+	name: 'schedule',
 	description: 'Sets up and manages a schedule for upcoming streams from currently subscribed channels.',
 	runIn: ['GUILD_ANY'],
 	subcommands: [
@@ -123,7 +124,9 @@ export class Command extends AmanekoSubcommand {
 				}
 			});
 		} catch (err) {
-			this.container.logger.warn(err);
+			this.container.logger.warn(err, {
+				command: this.name
+			});
 			return errorReply(interaction, `Something went wrong while changing the schedule's channel.`);
 		}
 
@@ -134,7 +137,9 @@ export class Command extends AmanekoSubcommand {
 				message.delete();
 			}
 		} catch (err) {
-			this.container.logger.warn(err);
+			this.container.logger.warn(err, {
+				command: this.name
+			});
 			return defaultReply(interaction, `Could not delete the schedule's old message but the settings have been applied.`);
 		}
 
@@ -173,7 +178,9 @@ export class Command extends AmanekoSubcommand {
 		} catch (err) {
 			// This will only give an error if it cannot fetch a message, which would only happen if either it's been
 			// deleted, or we lost access to the channel. Either way it's not our problem, so we'll just ignore it
-			this.container.logger.warn(err);
+			this.container.logger.warn(err, {
+				command: this.name
+			});
 			// On second thought I do want to give some explanation to the users as well
 			return errorReply(interaction, "Could not delete the schedule's old message.");
 		}

@@ -1,4 +1,5 @@
-import { AmanekoEvents } from '#lib/utils/Events';
+import { AmanekoEvents } from '#lib/utils/enums';
+import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 
@@ -7,6 +8,6 @@ import { ApplyOptions } from '@sapphire/decorators';
 	event: AmanekoEvents.StreamComment,
 	enabled: false
 })
-export class NotificationListener extends Listener<typeof AmanekoEvents.StreamComment> {
+export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.StreamComment> {
 	public async run(): Promise<void> {}
 }

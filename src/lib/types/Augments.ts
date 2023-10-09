@@ -1,17 +1,17 @@
 import type { ClientConfig } from '#lib/types/Config';
-import type { AmanekoEvents } from '#lib/utils/Events';
-import type { RedisClient } from '@killbasa/redis-utils';
+import type { AmanekoEvents } from '#lib/utils/enums';
+import type { Primitive, RedisClient } from '@killbasa/redis-utils';
 import type { HolodexChannel, PrismaClient } from '@prisma/client';
 import type { CommunityPostData } from '#lib/types/YouTube';
 import type { MeiliClient } from '#lib/extensions/MeiliClient';
 import type { HolodexClient } from '#lib/structures/HolodexClient';
 import type { TLDexClient } from '#lib/structures/TLDexClient';
 import type { Collection } from 'discord.js';
-import type { TLDex } from './TLDex';
-import type { Holodex } from './Holodex';
+import type { TLDex } from '#lib/types/TLDex';
+import type { Holodex } from '#lib/types/Holodex';
 import type { MetricsClient } from '#lib/structures/MetricsClient';
-import type { GuildSettingsCollection } from '#lib/collections/GuildSettingsCollection';
 import type { youtube_v3 } from 'googleapis';
+import type { OpenTelemetryClient } from '#lib/structures/OpenTelemetryClient';
 
 declare module 'discord.js' {
 	interface ClientEvents {
@@ -20,14 +20,6 @@ declare module 'discord.js' {
 		[AmanekoEvents.StreamStart]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamEnd]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamComment]: [message: TLDex.CommentPayload, video: Holodex.VideoWithChannel];
-	}
-
-	interface Client {
-		settings: GuildSettingsCollection;
-	}
-
-	interface Guild {
-		get settings(): void;
 	}
 }
 
@@ -41,9 +33,17 @@ declare module '@sapphire/pieces' {
 		redis: RedisClient;
 		meili: MeiliClient;
 		metrics: MetricsClient;
+		otel: OpenTelemetryClient;
 
 		cache: {
 			holodexChannels: Collection<string, HolodexChannel>;
 		};
+	}
+}
+
+declare module '@sapphire/plugin-logger' {
+	interface LoggerOptions {
+		json?: boolean;
+		labels?: Record<string, Primitive>;
 	}
 }

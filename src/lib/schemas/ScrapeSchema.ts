@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const PostSchema = z.object({
+const PostSchema = z.object({
 	backstagePostRenderer: z.object({
 		postId: z.string(),
 		authorText: z.object({
