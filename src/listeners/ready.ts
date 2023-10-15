@@ -9,7 +9,9 @@ export class ClientListener extends Listener<typeof Events.ClientReady> {
 	public async run(client: Client<true>): Promise<void> {
 		const { logger, config } = this.container;
 
-		logger.info(`\nLogged in as: ${client.user.username}`);
-		logger.info(`Environment: ${config.env}\n`);
+		logger.info('');
+		logger.info(`Logged in as: ${client.user.username}`);
+		logger.info(`Environment: ${config.env}`);
+		logger.info('');
 	}
 }

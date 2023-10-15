@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  grafana:
+    image: grafana/grafana-oss:10.1.1
+    container_name: grafana
+    volumes:
+      - ./.docker/grafana.ini:/etc/grafana/grafana.ini
+      - ./.docker/grafana.yml:/etc/grafana/provisioning/datasources/datasources.yaml
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - 3000:3000
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: prometheus
+    volumes:
+      - ./.docker/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --web.console.templates=/etc/prometheus/consoles
+      - --web.enable-lifecycle
+      - --web.enable-remote-write-receiver
+
+  loki:
+    image: grafana/loki:2.9.1
+    container_name: loki
+    volumes:
+      - ./.docker/loki.yml:/etc/loki/loki-config.yml
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki-config.yml
+
+  tempo:
+    image: grafana/tempo:2.2.3
+    container_name: tempo
+    volumes:
+      - ./.docker/tempo.yml:/etc/tempo/tempo.yml
+    command:
+      - --config.file=/etc/tempo/tempo.yml
+
+  agent:
+    image: grafana/agent:v0.36.1
+    container_name: agent
+    volumes:
+      - ./.docker/agent.yml:/etc/agent/agent-config.yml
+      - /tmp/agent:/etc/agent
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    command: -config.file=/etc/agent/agent-config.yml
+    ports:
+      - 4317:4317

@@ -20,9 +20,6 @@ export function loadConfig(): void {
 		env,
 		isDev,
 		enableTasks: !isDev || process.env.ENABLE_TASKS === 'true',
-		api: {
-			port: parseInt(process.env.API_PORT!, 10)
-		},
 		discord: {
 			token: process.env.DISCORD_TOKEN,
 			id: process.env.DISCORD_ID,
@@ -46,6 +43,14 @@ export function loadConfig(): void {
 		meili: {
 			host: process.env.MEILI_HOST,
 			port: Number(process.env.MEILI_PORT)
+		},
+		o11y: {
+			otel: {
+				endpoint: process.env.OTEL_ENDPOINT
+			},
+			metrics: {
+				port: Number(process.env.METRICS_PORT)
+			}
 		}
 	};
 

@@ -12,9 +12,6 @@ export const ClientConfigSchema = z
 			devServer: z.string(),
 			ownerIds: z.array(z.string())
 		}),
-		api: z.object({
-			port: z.number()
-		}),
 		holodex: z.object({
 			apiKey: z.string()
 		}),
@@ -32,6 +29,14 @@ export const ClientConfigSchema = z
 		meili: z.object({
 			host: z.string(),
 			port: z.number()
+		}),
+		o11y: z.object({
+			otel: z.object({
+				endpoint: z.string()
+			}),
+			metrics: z.object({
+				port: z.number()
+			})
 		})
 	})
 	.strict();

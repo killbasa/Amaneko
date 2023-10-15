@@ -12,6 +12,6 @@ export class ErrorListener extends Listener<typeof ScheduledTaskEvents.Scheduled
 		let message = `Encountered error on scheduled task "${task}"`;
 		if (taskPiece) message += ` at path "${taskPiece.location.full}"`;
 
-		this.container.logger.error(message, error, { payload });
+		this.container.logger.error(message, `Payload: ${payload}`, error, { task });
 	}
 }

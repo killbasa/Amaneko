@@ -1,5 +1,6 @@
 import { MeiliCategories } from '#lib/types/Meili';
-import { AmanekoTasks } from '#lib/utils/tasks';
+import { AmanekoTasks } from '#lib/utils/enums';
+import { AmanekoTask } from '#lib/extensions/AmanekoTask';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
@@ -11,7 +12,7 @@ import type { HolodexChannel } from '@prisma/client';
 	pattern: '0 0 0 * * 6', // Every saturday
 	enabled: container.config.enableTasks
 })
-export class Task extends ScheduledTask {
+export class Task extends AmanekoTask {
 	public override async run(data: { page: number } | undefined): Promise<void> {
 		const { prisma, holodex, meili, logger } = this.container;
 
@@ -55,7 +56,9 @@ export class Task extends ScheduledTask {
 		if (channels.length === 100) {
 			await this.scheduleNextPage(page + 1);
 		} else {
-			logger.info(`[HolodexSync] Sync complete. (channels: ${page * 100 + channels.length}, pages: ${page + 1})`);
+			logger.info(`[HolodexSync] Sync complete. (channels: ${page * 100 + channels.length}, pages: ${page + 1})`, {
+				task: this.name
+			});
 		}
 	}
 

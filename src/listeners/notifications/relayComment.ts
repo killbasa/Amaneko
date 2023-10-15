@@ -1,6 +1,7 @@
-import { AmanekoEvents } from '#lib/utils/Events';
+import { AmanekoEvents } from '#lib/utils/enums';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
 import { cleanEmojis } from '#lib/utils/youtube';
+import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
@@ -11,71 +12,86 @@ import type { Holodex } from '#lib/types/Holodex';
 	name: 'RelayComment',
 	event: AmanekoEvents.StreamComment
 })
-export class NotificationListener extends Listener<typeof AmanekoEvents.StreamComment> {
+export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.StreamComment> {
 	public async run(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Promise<void> {
-		const { prisma, client, metrics } = this.container;
+		const { tracer, container } = this;
+		const { prisma, client, metrics } = container;
 
-		const ownerCheck = comment.is_owner
-			? []
-			: [
-					{
-						OR: [{ relayMods: { not: false } }, { relayTranslations: { not: false } }]
-					},
-					{
-						OR: [{ relayMods: { equals: comment.is_moderator } }, { relayTranslations: { equals: comment.is_tl } }]
-					}
-			  ];
+		await tracer.createSpan('relay_comment', async () => {
+			const timer = metrics.histograms.observeRelay();
 
-		const relayChannelIds = await prisma.subscription.findMany({
-			where: {
-				channelId: video.channel.id,
-				relayChannelId: { not: null },
-				guild: {
-					AND: ownerCheck,
-					blacklist: { none: { channelId: comment.channel_id } }
-				}
-			},
-			select: { relayChannelId: true }
-		});
-
-		if (relayChannelIds.length === 0) return;
-
-		const fetchedChannels = await Promise.allSettled(
-			relayChannelIds.map(async ({ relayChannelId }) => {
-				return client.channels.fetch(relayChannelId!);
-			})
-		);
-
-		const channels = fetchedChannels
-			.map((entry) => {
-				if (entry.status === 'rejected') return null;
-				return entry.value;
-			})
-			.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased());
-
-		comment.message = cleanEmojis(comment.message);
-
-		const content = this.formatMessage(video.channel.id, comment);
-		const historyContent = this.formatHistoryMessage(comment, video);
-
-		const messages = await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
-
-		await prisma.$transaction(
-			messages
-				.filter((entry): entry is PromiseFulfilledResult<Message<true>> => entry.status === 'fulfilled')
-				// eslint-disable-next-line @typescript-eslint/promise-function-async
-				.map((message) => {
-					return prisma.streamComment.create({
-						data: {
-							videoId: video.id,
-							content: historyContent,
-							guild: { connect: { id: message.value.guildId } }
+			const ownerCheck = comment.is_owner
+				? []
+				: [
+						{
+							OR: [{ relayMods: { not: false } }, { relayTranslations: { not: false } }]
+						},
+						{
+							OR: [{ relayMods: { equals: comment.is_moderator } }, { relayTranslations: { equals: comment.is_tl } }]
 						}
-					});
-				})
-		);
+				  ];
 
-		metrics.incrementRelayComment();
+			const relayChannelIds = await tracer.createSpan('find_subscriptions', async () => {
+				return prisma.subscription.findMany({
+					where: {
+						channelId: video.channel.id,
+						relayChannelId: { not: null },
+						guild: {
+							AND: ownerCheck,
+							blacklist: { none: { channelId: comment.channel_id } }
+						}
+					},
+					select: { guildId: true, relayChannelId: true }
+				});
+			});
+			if (relayChannelIds.length === 0) return;
+
+			const channels = await tracer.createSpan('fetch_channels', async () => {
+				const fetchedChannels = await Promise.allSettled(
+					relayChannelIds.map(async ({ relayChannelId }) => {
+						return client.channels.fetch(relayChannelId!);
+					})
+				);
+
+				return fetchedChannels
+					.map((entry) => {
+						if (entry.status === 'rejected') return null;
+						return entry.value;
+					})
+					.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased());
+			});
+			if (channels.length === 0) return;
+
+			await tracer.createSpan('process_messages', async () => {
+				comment.message = cleanEmojis(comment.message);
+
+				const content = this.formatMessage(video.channel.id, comment);
+				const historyContent = this.formatHistoryMessage(comment, video);
+
+				const messages = await tracer.createSpan('send_messages', async () => {
+					return Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
+				});
+
+				await prisma.$transaction(
+					messages
+						.filter((entry): entry is PromiseFulfilledResult<Message<true>> => entry.status === 'fulfilled')
+						// eslint-disable-next-line @typescript-eslint/promise-function-async
+						.map((message) => {
+							return prisma.streamComment.create({
+								data: {
+									videoId: video.id,
+									content: historyContent,
+									guild: { connect: { id: message.value.guildId } }
+								}
+							});
+						})
+				);
+
+				metrics.counters.incRelayComment();
+			});
+
+			timer.end({ subscriptions: relayChannelIds.length });
+		});
 	}
 
 	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
@@ -90,7 +106,9 @@ export class NotificationListener extends Listener<typeof AmanekoEvents.StreamCo
 				if (emoji) {
 					prefix = emoji;
 				} else {
-					this.container.logger.warn(`[Relay] No emoji for ${channel.org}`);
+					this.container.logger.warn(`[Relay] No emoji for ${channel.org}`, {
+						listener: this.name
+					});
 					prefix = AmanekoEmojis.Speaker;
 				}
 			} else {
