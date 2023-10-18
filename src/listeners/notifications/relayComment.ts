@@ -1,7 +1,7 @@
 import { AmanekoEvents } from '#lib/utils/enums';
-import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
 import { cleanEmojis } from '#lib/utils/youtube';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
+import { TLDexClient } from '#lib/structures/TLDexClient';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
@@ -65,12 +65,10 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			await tracer.createSpan('process_messages', async () => {
 				comment.message = cleanEmojis(comment.message);
 
-				const content = this.formatMessage(video.channel.id, comment);
+				const content = TLDexClient.formatMessage(video.channel.id, comment);
 				const historyContent = this.formatHistoryMessage(comment, video);
 
-				const messages = await tracer.createSpan('send_messages', async () => {
-					return Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
-				});
+				const messages = await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
 
 				await prisma.$transaction(
 					messages
@@ -92,41 +90,6 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 
 			timer.end({ subscriptions: relayChannelIds.length });
 		});
-	}
-
-	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
-		const message = comment.message.replaceAll('`', "'");
-
-		if (comment.is_vtuber) {
-			const channel = this.container.cache.holodexChannels.get(channelId)!;
-
-			let prefix: string;
-			if (channel.org) {
-				const emoji = VTuberOrgEmojis.get(channel.org);
-				if (emoji) {
-					prefix = emoji;
-				} else {
-					this.container.logger.warn(`[Relay] No emoji for ${channel.org}`, {
-						listener: this.name
-					});
-					prefix = AmanekoEmojis.Speaker;
-				}
-			} else {
-				prefix = AmanekoEmojis.Speaker;
-			}
-
-			return `${prefix} **${comment.name}:** \`${message}\``;
-		}
-
-		if (comment.is_tl) {
-			return `${AmanekoEmojis.Speech} ||${comment.name}:|| \`${message}\``;
-		}
-
-		if (comment.is_moderator) {
-			return `${AmanekoEmojis.Tools} **${comment.name}:** \`${message}\``;
-		}
-
-		return `${comment.name}: \`${message}\``;
 	}
 
 	private formatHistoryMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {

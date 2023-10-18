@@ -8,12 +8,11 @@ import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from '
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: "Start or stop relaying a streamer's translations.",
+	description: "Start or stop sending a streamer's cameos.",
 	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
 		{ name: 'remove', chatInputRun: 'handleRemove' },
-		{ name: 'settings', chatInputRun: 'handleSettings' },
 		{ name: 'clear', chatInputRun: 'handleClear' },
 		{ name: 'list', chatInputRun: 'handleList' }
 	]
@@ -22,14 +21,14 @@ export class Command extends AmanekoSubcommand {
 	public override registerApplicationCommands(registry: AmanekoSubcommand.Registry): void {
 		registry.registerChatInputCommand((builder) =>
 			builder
-				.setName('relay')
+				.setName('cameo')
 				.setDescription(this.description)
 				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 				.setDMPermission(false)
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('add')
-						.setDescription('Add a relay subscription to this channel.')
+						.setDescription('Add a cameo subscription to this channel.')
 						.addStringOption((option) =>
 							option //
 								.setName('channel')
@@ -41,7 +40,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('remove')
-						.setDescription('Remove a relay subscription from this channel.')
+						.setDescription('Remove a cameo subscription from this channel.')
 						.addStringOption((option) =>
 							option //
 								.setName('subscription')
@@ -52,23 +51,8 @@ export class Command extends AmanekoSubcommand {
 				)
 				.addSubcommand((subcommand) =>
 					subcommand //
-						.setName('settings')
-						.setDescription('Enable or disable translations and moderator messages. Leave empty to check current settings.')
-						.addBooleanOption((option) =>
-							option //
-								.setName('moderators')
-								.setDescription('Enable or disable moderator messages.')
-						)
-						.addBooleanOption((option) =>
-							option //
-								.setName('translations')
-								.setDescription('Enable or disable translations.')
-						)
-				)
-				.addSubcommand((subcommand) =>
-					subcommand //
 						.setName('clear')
-						.setDescription('Clear all relay subscriptions in this channel.')
+						.setDescription('Clear all cameo subscriptions in this channel.')
 						.addChannelOption((option) =>
 							option //
 								.setName('discord_channel')
@@ -79,7 +63,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('list')
-						.setDescription('List all of the relay subscriptions in the server.')
+						.setDescription('List all of the cameo subscriptions in the server.')
 				)
 		);
 	}
@@ -98,7 +82,7 @@ export class Command extends AmanekoSubcommand {
 			}));
 		} else if (focusedOption.name === 'subscription') {
 			const channels = await this.container.prisma.subscription.findMany({
-				where: { guildId: interaction.guildId, relayChannelId: { not: null } },
+				where: { guildId: interaction.guildId, cameoChannelId: { not: null } },
 				select: { channel: true }
 			});
 			if (channels.length === 0) return interaction.respond([]);
@@ -124,10 +108,10 @@ export class Command extends AmanekoSubcommand {
 		await this.container.prisma.subscription.upsert({
 			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
 			update: {
-				relayChannelId: interaction.channelId
+				cameoChannelId: interaction.channelId
 			},
 			create: {
-				relayChannelId: interaction.channelId,
+				cameoChannelId: interaction.channelId,
 				channel: { connect: { id: channel.id } },
 				guild: {
 					connectOrCreate: {
@@ -138,7 +122,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		return successReply(interaction, `Relays from ${channel.name} will now be sent to this channel.`);
+		return successReply(interaction, `Cameos from ${channel.name} will now be sent to this channel.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -153,42 +137,14 @@ export class Command extends AmanekoSubcommand {
 		const data = await this.container.prisma.subscription
 			.update({
 				where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-				data: { relayChannelId: null }
+				data: { cameoChannelId: null }
 			})
 			.catch(() => null);
 		if (!data) {
-			return errorReply(interaction, `Relays for ${channel.name} were not being sent to this channel.`);
+			return errorReply(interaction, `Cameos for ${channel.name} were not being sent to this channel.`);
 		}
 
-		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to this channel.`);
-	}
-
-	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
-		await interaction.deferReply();
-		const enableMods = interaction.options.getBoolean('moderators');
-		const enableTls = interaction.options.getBoolean('translations');
-
-		if (enableMods === null && enableTls === null) {
-			const embed = await this.formatSettings(interaction);
-			return interaction.editReply({
-				embeds: [embed]
-			});
-		}
-
-		await this.container.prisma.guild.upsert({
-			where: { id: interaction.guildId },
-			update: {
-				relayMods: enableMods ?? undefined,
-				relayTranslations: enableTls ?? undefined
-			},
-			create: {
-				id: interaction.guildId,
-				relayMods: enableMods ?? undefined,
-				relayTranslations: enableTls ?? undefined
-			}
-		});
-
-		return successReply(interaction, `The new relay settings have been successfully applied.`);
+		return successReply(interaction, `Cameos for ${channel.name} will no longer be sent to this channel.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -197,35 +153,35 @@ export class Command extends AmanekoSubcommand {
 
 		const channelId = discordChannel?.id ?? interaction.channelId;
 		await this.container.prisma.subscription.updateMany({
-			where: { guildId: interaction.guildId, relayChannelId: channelId },
-			data: { relayChannelId: null }
+			where: { guildId: interaction.guildId, cameoChannelId: channelId },
+			data: { cameoChannelId: null }
 		});
 
-		return successReply(interaction, `Relays will no longer be sent in ${channelMention(channelId)}`);
+		return successReply(interaction, `Cameos will no longer be sent in ${channelMention(channelId)}`);
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
 		const data = await this.container.prisma.subscription.findMany({
-			where: { guildId: interaction.guildId, relayChannelId: { not: null } },
+			where: { guildId: interaction.guildId, cameoChannelId: { not: null } },
 			select: {
 				channel: { select: { id: true, name: true } },
-				relayChannelId: true
+				cameoChannelId: true
 			}
 		});
 
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no relays being sent to this server.');
+			return defaultReply(interaction, 'There are no cameos being sent to this server.');
 		}
 
 		const embed = new EmbedBuilder() //
 			.setColor(BrandColors.Default)
-			.setTitle('Relay settings')
+			.setTitle('Cameo settings')
 			.setDescription(
 				data
-					.map(({ channel, relayChannelId }) => {
-						return `${channelLink(channel.name, channel.id)} in ${channelMention(relayChannelId!)}`;
+					.map(({ channel, cameoChannelId }) => {
+						return `${channelLink(channel.name, channel.id)} in ${channelMention(cameoChannelId!)}`;
 					})
 					.join('\n')
 			);
@@ -233,20 +189,5 @@ export class Command extends AmanekoSubcommand {
 		return interaction.editReply({
 			embeds: [embed]
 		});
-	}
-
-	private async formatSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<EmbedBuilder> {
-		const guild = await this.container.prisma.guild.findUnique({
-			where: { id: interaction.guildId }
-		});
-
-		return new EmbedBuilder()
-			.setTitle('Relay settings')
-			.addFields(
-				{ name: 'Moderator messages', value: `${guild?.relayMods === false ? '❌' : '✅'}` },
-				{ name: 'Translation messages', value: `${guild?.relayTranslations === false ? '❌' : '✅'}` }
-			)
-			.setColor(BrandColors.Default)
-			.setTimestamp();
 	}
 }

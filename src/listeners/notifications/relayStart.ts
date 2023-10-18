@@ -13,13 +13,11 @@ import type { Holodex } from '#lib/types/Holodex';
 export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.StreamPrechat> {
 	public async run(video: Holodex.VideoWithChannel): Promise<void> {
 		const { tracer, container } = this;
-		const { prisma, client, metrics, tldex } = container;
+		const { prisma, client, metrics } = container;
 
 		if (video.topic_id && HolodexMembersOnlyPatterns.includes(video.topic_id)) {
 			return;
 		}
-
-		tldex.subscribe(video);
 
 		await tracer.createSpan('relay_start', async () => {
 			const subscriptions = await tracer.createSpan('find_subscriptions', async () => {

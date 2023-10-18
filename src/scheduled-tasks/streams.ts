@@ -1,16 +1,12 @@
-import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
-import { arrayIsEqual } from '#lib/utils/functions';
+import { HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { AmanekoEvents } from '#lib/utils/enums';
-import { YoutubeEmbedsKey, YoutubeNotifKey, YoutubePrechatNotifKey, YoutubeScheduleKey } from '#lib/utils/cache';
+import { YoutubeNotifKey, YoutubePrechatNotifKey } from '#lib/utils/cache';
 import { AmanekoTask } from '#lib/extensions/AmanekoTask';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
 import { container } from '@sapphire/framework';
-import { EmbedBuilder } from 'discord.js';
-import type { APIEmbedField } from 'discord.js';
 import type { Holodex } from '#lib/types/Holodex';
-import type { GuildWithSubscriptions } from '#lib/types/Discord';
 
 @ApplyOptions<ScheduledTask.Options>({
 	name: 'StreamTask',
@@ -19,265 +15,142 @@ import type { GuildWithSubscriptions } from '#lib/types/Discord';
 })
 export class Task extends AmanekoTask {
 	private readonly streamsKey = 'youtube:streams:list';
+	private readonly subscribedStreamsKey = 'youtube:subscribed-streams:list';
 
 	public override async run(): Promise<void> {
 		const { tracer, container } = this;
 		const { prisma, holodex, tldex, logger, redis, client, metrics } = container;
 
-		await tracer.createSpan('process_stream', async () => {
+		await tracer.createSpan('process_streams', async () => {
 			logger.debug('[StreamTask] Checking subscriptions');
 
 			const timer = metrics.histograms.observeStream();
 
-			const channelIds = await tracer.createSpan('find_channelids', async () => {
-				return prisma.subscription
-					.groupBy({
-						where: {
-							OR: [
-								{ relayChannelId: { not: null } }, //
-								{ discordChannelId: { not: null } },
-								{ memberDiscordChannelId: { not: null } }
-							]
-						},
-						by: ['channelId']
-					})
-					.then((res) => res.map(({ channelId }) => channelId));
-			});
-			if (channelIds.length === 0) {
-				tldex.unsubscribeAll();
-				return;
-			}
-
 			const liveStreams = await tracer.createSpan('fetch_livestreams', async () => {
 				return holodex.getLiveVideos({
-					channels: channelIds,
-					maxUpcoming: Time.Day * 5
+					maxUpcoming: Time.Minute * 15
 				});
 			});
 
-			const upcomingStreams: Holodex.VideoWithChannel[] = [];
-			const { danglingStreams, pastStreams } = await tracer.createSpan(
-				'sort_livestreams',
-				async (): Promise<{
-					danglingStreams: Holodex.VideoWithChannel[];
-					pastStreams: Holodex.VideoWithChannel[];
-				}> => {
-					const cachedStreams = await redis.hGetValues<Holodex.VideoWithChannel>(this.streamsKey);
+			const channelIds = await tracer.createSpan('find_channelids', async () => {
+				const ids = await prisma.subscription.groupBy({
+					where: {
+						OR: [
+							{ relayChannelId: { not: null } }, //
+							{ discordChannelId: { not: null } },
+							{ memberDiscordChannelId: { not: null } }
+						]
+					},
+					by: ['channelId']
+				});
 
-					// Streams that have no subscribers
-					const danglingStreams = cachedStreams.filter(({ channel }) => {
-						return !channelIds.includes(channel.id);
-					});
+				return new Set<string>(ids.map(({ channelId }) => channelId));
+			});
 
-					return {
-						danglingStreams,
-						// Streams that were cached but not in the Holodex fetch
-						pastStreams: cachedStreams.filter(({ id }) => {
-							return !danglingStreams.some((stream) => stream.id === id) && !liveStreams.some((stream) => stream.id === id);
-						})
-					};
-				}
-			);
+			const subscribedStreams: Holodex.VideoWithChannel[] = [];
 
-			logger.debug(`[StreamTask] ${liveStreams.length} live/upcoming, ${danglingStreams.length} dangling, ${pastStreams.length} past`);
+			await tracer.createSpan('iterate_streams', async () => {
+				for (const stream of liveStreams) {
+					// Only relay non-member streams
+					if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
+						tldex.subscribe(stream);
+					}
 
-			await tracer.createSpan('process_livestreams', async () => {
-				await tracer.createSpan('process_livestreams:iterate', async () => {
-					for (const stream of liveStreams) {
+					if (channelIds.has(stream.channel.id)) {
 						const availableAt = new Date(stream.available_at).getTime();
+						subscribedStreams.push(stream);
 
 						if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
-							await tracer.createSpan(`process_livestreams:${stream.id}:live`, async () => {
-								// Only relay non-member streams
-								if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
-									tldex.subscribe(stream);
-								}
+							if (availableAt >= Date.now() - Time.Minute * 15) {
+								const notified = await redis.get<boolean>(YoutubeNotifKey(stream.id));
 
-								if (availableAt >= Date.now() - Time.Minute * 15) {
-									const notified = await redis.get<boolean>(YoutubeNotifKey(stream.id));
-
-									if (!notified) {
-										client.emit(AmanekoEvents.StreamStart, stream);
-										await redis.set(YoutubeNotifKey(stream.id), true);
-									}
+								if (!notified) {
+									client.emit(AmanekoEvents.StreamStart, stream);
+									await redis.set(YoutubeNotifKey(stream.id), true);
 								}
-							});
+							}
 						} else if (stream.status === 'upcoming' && availableAt > Date.now()) {
-							await tracer.createSpan(`process_livestreams:${stream.id}:upcoming`, async () => {
-								upcomingStreams.push(stream);
+							// Only relay non-member streams
+							if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
+								const notified = await redis.get<boolean>(YoutubePrechatNotifKey(stream.id));
 
-								// Only relay non-member streams
-								if (
-									availableAt <= Date.now() + Time.Minute * 15 && //
-									(!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id))
-								) {
-									const prechatNotified = await redis.get<boolean>(YoutubePrechatNotifKey(stream.id));
-
-									if (!prechatNotified) {
-										client.emit(AmanekoEvents.StreamPrechat, stream);
-										await redis.set(YoutubePrechatNotifKey(stream.id), true);
-									}
+								if (!notified) {
+									client.emit(AmanekoEvents.StreamPrechat, stream);
+									await redis.set(YoutubePrechatNotifKey(stream.id), true);
 								}
-							});
+							}
 						}
-					}
-				});
-			});
-
-			await tracer.createSpan('scheduled_livestreams', async () => {
-				const scheduledGuilds = await prisma.guild.findMany({
-					where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
-					select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
-				});
-
-				if (scheduledGuilds.length > 0) {
-					if (upcomingStreams.length > 0) {
-						await tracer.createSpan('scheduled_livestreams:some', async () => {
-							await this.handleScheduledStreams(upcomingStreams, scheduledGuilds);
-						});
-					} else {
-						await tracer.createSpan('scheduled_livestreams:none', async () => {
-							await this.handleNoScheduledStreams(scheduledGuilds);
-						});
 					}
 				}
 			});
 
 			timer.end({ streams: liveStreams.length });
 
-			await tracer.createSpan('cleanup_livestreams', async () => {
-				const keysToDelete = [this.streamsKey];
-				const danglingStreamIds = danglingStreams.map(({ id }) => id);
-
-				for (const stream of pastStreams) {
-					tldex.unsubscribe(stream.id);
-					keysToDelete.push(YoutubeNotifKey(stream.id), YoutubeEmbedsKey(stream.id));
-
-					client.emit(AmanekoEvents.StreamEnd, stream);
-				}
-
-				for (const streamId of danglingStreamIds) {
-					tldex.unsubscribe(streamId);
-					keysToDelete.push(YoutubeNotifKey(streamId));
-				}
-
-				await Promise.all([
-					prisma.streamComment.deleteMany({
-						where: { videoId: { in: danglingStreamIds } }
-					}),
-					redis.deleteMany(keysToDelete)
-				]);
-
-				if (liveStreams.length > 0) {
-					await redis.hmSet(
-						this.streamsKey,
-						new Map<string, Holodex.VideoWithChannel>(
-							liveStreams.map((stream) => [stream.id, stream]) //
-						)
-					);
-				}
-			});
+			await this.cleanupAll(liveStreams);
+			await this.cleanupSubscribed(channelIds, subscribedStreams);
 		});
 	}
 
-	private async handleScheduledStreams(upcomingStreams: Holodex.VideoWithChannel[], guilds: GuildWithSubscriptions[]): Promise<void> {
-		const embed = new EmbedBuilder() //
-			.setColor(BrandColors.Default)
-			.setTitle('Upcoming Streams')
-			.setFooter({ text: 'Powered by Holodex' })
-			.setTimestamp();
+	private async cleanupAll(liveStreams: Holodex.VideoWithChannel[]): Promise<void> {
+		const { tldex, redis } = this.container;
 
-		await Promise.allSettled(
-			guilds.map(async (guild) => {
-				await this.tracer.createSpan(`scheduled_livestreams:some:${guild.id}`, async () => {
-					const guildUpcomingStreams = upcomingStreams //
-						.filter((stream) => guild.subscriptions.some((subscription) => subscription.channelId === stream.channel.id))
-						.sort((streamOne, streamTwo) => {
-							return new Date(streamOne.available_at).getTime() - new Date(streamTwo.available_at).getTime();
-						});
+		const cachedStreams = await redis.hGetValues<Holodex.VideoWithChannel>(this.streamsKey);
 
-					const redisParse = (await this.container.redis.get<string[]>(YoutubeScheduleKey(guild.id))) ?? [];
-					const didUpdate = arrayIsEqual(
-						redisParse,
-						guildUpcomingStreams.map((stream) => stream.id)
-					);
-					if (didUpdate) return;
+		const pastStreams = cachedStreams.filter(({ id }) => {
+			return !liveStreams.some((stream) => stream.id === id);
+		});
 
-					const streamFields: APIEmbedField[] = guildUpcomingStreams.map((stream) => ({
-						name: `**${stream.channel.name}**`,
-						value: `[${stream.title}](https://youtu.be/${stream.id}) <t:${new Date(stream.available_at).getTime() / 1000}:R>`
-					}));
+		const keysToDelete = [this.streamsKey];
 
-					const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
-					if (!scheduleChannel?.isTextBased()) return;
+		for (const stream of pastStreams) {
+			tldex.unsubscribe(stream.id);
+			keysToDelete.push(YoutubeNotifKey(stream.id));
+		}
 
-					const guildEmbed = EmbedBuilder.from(embed).setFields(streamFields);
-					const scheduleMessage = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
+		await redis.deleteMany(keysToDelete);
 
-					if (scheduleMessage) {
-						await scheduleMessage.edit({
-							embeds: [guildEmbed]
-						});
-					} else {
-						const message = await scheduleChannel.send({
-							embeds: [guildEmbed]
-						});
-						await this.container.prisma.guild.update({
-							where: { id: guild.id },
-							data: {
-								scheduleMessageId: message.id
-							}
-						});
-					}
-
-					return this.container.redis.set<string[]>(
-						YoutubeScheduleKey(guild.id),
-						guildUpcomingStreams.map((stream) => stream.id)
-					);
-				});
-			})
-		);
+		if (liveStreams.length > 0) {
+			await redis.hmSet(
+				this.streamsKey,
+				new Map<string, Holodex.VideoWithChannel>(
+					liveStreams.map((stream) => [stream.id, stream]) //
+				)
+			);
+		}
 	}
 
-	private async handleNoScheduledStreams(guilds: GuildWithSubscriptions[]): Promise<void> {
-		const embed = new EmbedBuilder() //
-			.setColor(BrandColors.Default)
-			.setTitle('Upcoming Streams')
-			.setFooter({ text: 'Powered by Holodex' })
-			.setTimestamp();
+	private async cleanupSubscribed(channelIds: Set<string>, subscribedStreams: Holodex.VideoWithChannel[]): Promise<void> {
+		const { prisma, redis, client } = this.container;
 
-		await Promise.allSettled(
-			guilds.map(async (guild) => {
-				await this.tracer.createSpan(`scheduled_livestreams:none:${guild.id}`, async () => {
-					const guildScheduledVideosCache = await this.container.redis.get<string[]>(YoutubeScheduleKey(guild.id));
-					if (guildScheduledVideosCache === null || guildScheduledVideosCache.length === 0) {
-						return;
-					}
+		const cachedStreams = await redis.hGetValues<Holodex.VideoWithChannel>(this.subscribedStreamsKey);
 
-					const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
-					if (!scheduleChannel?.isTextBased()) return;
+		const danglingStreamIds = cachedStreams //
+			.filter(({ channel }) => !channelIds.has(channel.id))
+			.map(({ id }) => id);
 
-					const message = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
-					if (message) {
-						await message.edit({
-							embeds: [embed]
-						});
-					} else {
-						const message = await scheduleChannel.send({
-							embeds: [embed]
-						});
+		const pastStreams = cachedStreams.filter(({ id }) => {
+			return !danglingStreamIds.some((streamId) => streamId === id) && !subscribedStreams.some((stream) => stream.id === id);
+		});
 
-						await this.container.prisma.guild.update({
-							where: { id: guild.id },
-							data: {
-								scheduleMessageId: message.id
-							}
-						});
-					}
+		for (const stream of pastStreams) {
+			client.emit(AmanekoEvents.StreamEnd, stream);
+		}
 
-					return this.container.redis.delete(YoutubeScheduleKey(guild.id));
-				});
-			})
-		);
+		if (danglingStreamIds.length > 0) {
+			prisma.streamComment.deleteMany({
+				where: { videoId: { in: danglingStreamIds } }
+			});
+		}
+
+		await redis.delete(this.subscribedStreamsKey);
+
+		if (subscribedStreams.length > 0) {
+			await redis.hmSet(
+				this.subscribedStreamsKey,
+				new Map<string, Holodex.VideoWithChannel>(
+					subscribedStreams.map((stream) => [stream.id, stream]) //
+				)
+			);
+		}
 	}
 }

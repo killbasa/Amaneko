@@ -1,21 +1,51 @@
 import { Counters } from '#lib/structures/otel/Counters';
 import { Histograms } from '#lib/structures/otel/Histograms';
-import { metrics } from '@opentelemetry/api';
 import { container } from '@sapphire/framework';
+import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
+import { metrics } from '@opentelemetry/sdk-node';
+import type { Meter } from '@opentelemetry/api';
 
 export class MetricsClient {
 	public readonly counters: Counters;
 	public readonly histograms: Histograms;
 
-	public constructor() {
-		this.setupGauges();
+	private readonly client: PrometheusExporter;
+	private readonly provider: metrics.MeterProvider;
 
-		this.counters = new Counters();
-		this.histograms = new Histograms();
+	public constructor(options: { port: number; enpoint: string }) {
+		this.client = new PrometheusExporter(
+			{
+				port: options.port,
+				endpoint: options.enpoint,
+				preventServerStart: true
+			},
+			() => {
+				container.logger.info(`[Metrics] Metrics server listening on ${options.port}.`);
+			}
+		);
+
+		this.provider = new metrics.MeterProvider();
+		this.provider.addMetricReader(this.client);
+
+		this.setupGauges();
+		this.counters = new Counters(this.getMeter());
+		this.histograms = new Histograms(this.getMeter());
+	}
+
+	public async start(): Promise<void> {
+		await this.client.startServer();
+	}
+
+	public async destroy(): Promise<void> {
+		await this.client.stopServer();
+	}
+
+	public getMeter(): Meter {
+		return this.provider.getMeter('metrics');
 	}
 
 	private setupGauges(): void {
-		const meter = metrics.getMeter('gauges');
+		const meter = this.getMeter();
 
 		meter
 			.createObservableGauge('amaneko_guilds_total', {

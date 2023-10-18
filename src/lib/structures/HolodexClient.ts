@@ -20,16 +20,19 @@ export class HolodexClient {
 		return this.fetch<Holodex.Channel[]>(url, this.apiKey);
 	}
 
-	public async getLiveVideos(query: { channels: string[]; maxUpcoming?: number }): Promise<Holodex.VideoWithChannel[]> {
+	public async getLiveVideos(query: { channels?: string[]; maxUpcoming?: number; onlyUpcoming?: boolean }): Promise<Holodex.VideoWithChannel[]> {
 		const { channels, maxUpcoming } = query;
 
 		const url = new URL(`${HOLODEX_BASE_URL}/users/live`);
-		url.searchParams.append('channels', channels.toString());
+		if (channels) url.searchParams.append('channels', channels.toString());
 
 		const result = await this.fetch<Holodex.VideoWithChannel[]>(url, this.apiKey);
 		if (maxUpcoming) {
 			return result.filter(({ channel, available_at }) => {
-				return new Date(available_at).getTime() <= Date.now() + maxUpcoming && channels.includes(channel.id);
+				if (channels) {
+					return new Date(available_at).getTime() <= Date.now() + maxUpcoming && channels.includes(channel.id);
+				}
+				return new Date(available_at).getTime() <= Date.now() + maxUpcoming;
 			});
 		}
 

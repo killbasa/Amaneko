@@ -154,7 +154,7 @@ export class Command extends AmanekoSubcommand {
 			})
 			.catch(() => null);
 		if (!data) {
-			return errorReply(interaction, `Community posts for ${channel.name} weren't being sent to this guild.`);
+			return errorReply(interaction, `Community posts for ${channel.name} were not being sent to this guild.`);
 		}
 
 		return successReply(interaction, `Community posts for ${channel.name} will no longer be sent to this guild.`);
