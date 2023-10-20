@@ -18,7 +18,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const { tracer, container } = this;
 		const { prisma, client, metrics } = container;
 
-		if (!comment.is_vtuber) return;
+		if (comment.is_owner || !comment.is_vtuber) return;
 
 		await tracer.createSpan('relay_cameo', async () => {
 			const cameoChannelIds = await tracer.createSpan('find_subscriptions', async () => {
