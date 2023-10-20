@@ -34,10 +34,15 @@ export class Task extends AmanekoTask {
 		await prisma.$transaction(
 			// eslint-disable-next-line @typescript-eslint/promise-function-async
 			channels.map((channel) => {
+				const enName =
+					channel.english_name && channel.english_name.length > 0 //
+						? channel.english_name
+						: null;
+
 				const data: HolodexChannel = {
 					id: channel.id,
 					name: channel.name,
-					englishName: channel.english_name,
+					englishName: enName,
 					image: channel.photo,
 					org: channel.org,
 					subOrg: channel.suborg
