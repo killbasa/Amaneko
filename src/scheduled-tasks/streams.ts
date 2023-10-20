@@ -51,7 +51,7 @@ export class Task extends AmanekoTask {
 					tldex.unsubscribe(stream.id);
 				}
 
-				await redis.deleteMany(this.streamsKey);
+				await redis.delete(this.streamsKey);
 
 				if (liveStreams.length > 0) {
 					await redis.hmSet(

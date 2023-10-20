@@ -14,7 +14,7 @@ import type { APIEmbedField } from 'discord.js';
 
 @ApplyOptions<ScheduledTask.Options>({
 	name: 'SubscribedStreamTask',
-	pattern: '0 */5 * * * *', // Every 5 minutes
+	pattern: '0 */1 * * * *', // Every minute
 	enabled: container.config.enableTasks
 })
 export class Task extends AmanekoTask {
@@ -44,56 +44,62 @@ export class Task extends AmanekoTask {
 			if (channelIds.size === 0) return;
 
 			const upcomingStreams: Holodex.VideoWithChannel[] = [];
-			const liveStreams = await holodex.getLiveVideos({
-				channels: channelIds,
-				maxUpcoming: Time.Day * 5
+			const liveStreams = await tracer.createSpan('fetch_streams', async () => {
+				return holodex.getLiveVideos({
+					channels: channelIds,
+					maxUpcoming: Time.Day * 5
+				});
 			});
 
-			for (const stream of liveStreams) {
-				const availableAt = new Date(stream.available_at).getTime();
+			await tracer.createSpan('iterate_streams', async () => {
+				for (const stream of liveStreams) {
+					const availableAt = new Date(stream.available_at).getTime();
 
-				if (stream.status === 'upcoming' && availableAt > Date.now()) {
-					upcomingStreams.push(stream);
+					if (stream.status === 'upcoming' && availableAt > Date.now()) {
+						upcomingStreams.push(stream);
 
-					// Only relay non-member streams
-					if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
-						const notified = await redis.get<boolean>(YoutubePrechatNotifKey(stream.id));
+						// Only relay non-member streams
+						if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
+							const notified = await redis.get<boolean>(YoutubePrechatNotifKey(stream.id));
 
-						if (!notified) {
-							client.emit(AmanekoEvents.StreamPrechat, stream);
-							await redis.set(YoutubePrechatNotifKey(stream.id), true);
+							if (!notified) {
+								client.emit(AmanekoEvents.StreamPrechat, stream);
+								await redis.set(YoutubePrechatNotifKey(stream.id), true);
+							}
 						}
-					}
-				} else if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
-					if (availableAt >= Date.now() - Time.Minute * 15) {
-						const notified = await redis.get<boolean>(YoutubeNotifKey(stream.id));
+					} else if (stream.status === 'live' || (stream.status === 'upcoming' && availableAt <= Date.now())) {
+						if (availableAt >= Date.now() - Time.Minute * 15) {
+							const notified = await redis.get<boolean>(YoutubeNotifKey(stream.id));
 
-						if (!notified) {
-							client.emit(AmanekoEvents.StreamStart, stream);
-							await redis.set(YoutubeNotifKey(stream.id), true);
+							if (!notified) {
+								client.emit(AmanekoEvents.StreamStart, stream);
+								await redis.set(YoutubeNotifKey(stream.id), true);
+							}
 						}
 					}
 				}
-			}
-
-			const scheduledGuilds = await prisma.guild.findMany({
-				where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
-				select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
 			});
 
-			if (scheduledGuilds.length > 0) {
-				if (upcomingStreams.length > 0) {
-					await tracer.createSpan('scheduled_livestreams:some', async () => {
-						await this.handleScheduledStreams(upcomingStreams, scheduledGuilds);
-					});
-				} else {
-					await tracer.createSpan('scheduled_livestreams:none', async () => {
-						await this.handleNoScheduledStreams(scheduledGuilds);
-					});
-				}
-			}
+			await tracer.createSpan('scheduled_livestreams', async () => {
+				const scheduledGuilds = await prisma.guild.findMany({
+					where: { scheduleMessageId: { not: null }, scheduleChannelId: { not: null } },
+					select: { id: true, scheduleChannelId: true, scheduleMessageId: true, subscriptions: true }
+				});
 
-			await this.cleanupSubscribed(channelIds, liveStreams);
+				if (scheduledGuilds.length > 0) {
+					if (upcomingStreams.length > 0) {
+						await tracer.createSpan('scheduled_livestreams:some', async () => {
+							await this.handleScheduledStreams(upcomingStreams, scheduledGuilds);
+						});
+					} else {
+						await tracer.createSpan('scheduled_livestreams:none', async () => {
+							await this.handleNoScheduledStreams(scheduledGuilds);
+						});
+					}
+				}
+			});
+
+			await this.cleanup(channelIds, liveStreams);
 		});
 	}
 
@@ -198,7 +204,7 @@ export class Task extends AmanekoTask {
 		);
 	}
 
-	private async cleanupSubscribed(channelIds: Set<string>, subscribedStreams: Holodex.VideoWithChannel[]): Promise<void> {
+	private async cleanup(channelIds: Set<string>, subscribedStreams: Holodex.VideoWithChannel[]): Promise<void> {
 		const { prisma, redis, client } = this.container;
 
 		await this.tracer.createSpan('cleanup_streams', async () => {
