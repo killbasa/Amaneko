@@ -52,11 +52,11 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('clear')
-						.setDescription('Clear all cameo subscriptions in this channel.')
+						.setDescription('Remove all cameo subscriptions from a channel. (Default: this channel)')
 						.addChannelOption((option) =>
 							option //
 								.setName('discord_channel')
-								.setDescription('The channel to clear community post subscriptions from.')
+								.setDescription('The channel to clear cameo subscriptions from.')
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
 				)

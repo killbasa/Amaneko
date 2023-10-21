@@ -41,7 +41,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('remove')
-						.setDescription('Remove a relay subscription from this channel.')
+						.setDescription('Remove a relay subscription.')
 						.addStringOption((option) =>
 							option //
 								.setName('subscription')
@@ -68,11 +68,11 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('clear')
-						.setDescription('Clear all relay subscriptions in this channel.')
+						.setDescription('Remove all relay subscriptions from a channel. (Default: this channel)')
 						.addChannelOption((option) =>
 							option //
 								.setName('discord_channel')
-								.setDescription('The channel to clear community post subscriptions from.')
+								.setDescription('The channel to clear relay subscriptions from.')
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
 				)

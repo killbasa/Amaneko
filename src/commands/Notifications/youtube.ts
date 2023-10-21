@@ -12,7 +12,7 @@ import type { LivestreamSubscription } from '#lib/types/YouTube';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Manage YouTube livestream notifications.',
-	runIn: ['GUILD_ANY'],
+	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
 	subcommands: [
 		{ name: 'subscribe', chatInputRun: 'handleSubscribe' },
 		{ name: 'unsubscribe', chatInputRun: 'handleUnsubscribe' },
@@ -39,7 +39,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('subscribe')
-						.setDescription('Add a YouTube livestream notification to a channel.')
+						.setDescription('Add a YouTube livestream notification to this channel.')
 						.addStringOption((option) =>
 							option //
 								.setName('channel')
@@ -73,7 +73,7 @@ export class Command extends AmanekoSubcommand {
 						.addSubcommand((subcommand) =>
 							subcommand
 								.setName('subscribe')
-								.setDescription('Add a YouTube member livestream notification to a channel.')
+								.setDescription('Add a YouTube member livestream notification to this channel.')
 								.addStringOption((option) =>
 									option //
 										.setName('channel')
@@ -107,7 +107,7 @@ export class Command extends AmanekoSubcommand {
 						.setDescription('Remove all YouTube livestream notifications from a channel. (Default: this channel)')
 						.addChannelOption((option) =>
 							option
-								.setName('channel')
+								.setName('discord_channel')
 								.setDescription('The channel to clear YouTube livestream notifications from.')
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
@@ -284,7 +284,7 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const channel = interaction.options.getChannel('channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const channel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
 		if (channel) {
 			await this.container.prisma.subscription.updateMany({

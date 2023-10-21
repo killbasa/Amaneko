@@ -4,8 +4,8 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, PermissionFlagsBits, channelMention } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: 'Send relay logs to a specific channel.',
-	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
+	description: 'Have relay logs sent to a specific channel.',
+	runIn: ['GUILD_ANY'],
 	subcommands: [
 		{ name: 'set', chatInputRun: 'handleSet' },
 		{ name: 'clear', chatInputRun: 'handleClear' },
@@ -26,7 +26,7 @@ export class Command extends AmanekoSubcommand {
 						.setDescription('Set a channel to send the relay logs to.')
 						.addChannelOption((option) =>
 							option //
-								.setName('channel')
+								.setName('discord_channel')
 								.setDescription('The channel to send relay logs to.')
 								.setRequired(true)
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
@@ -40,14 +40,14 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('show')
-						.setDescription('Clear the current relay log channel.')
+						.setDescription('Show the current relay log channel.')
 				)
 		);
 	}
 
 	public async handleSet(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const channel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
 		await this.container.prisma.guild.upsert({
 			where: { id: interaction.guildId },
