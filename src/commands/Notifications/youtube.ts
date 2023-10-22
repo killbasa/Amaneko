@@ -164,7 +164,8 @@ export class Command extends AmanekoSubcommand {
 		const count = await this.container.prisma.subscription.count({
 			where: {
 				guildId: interaction.guildId,
-				discordChannelId: { not: null }
+				discordChannelId: { not: null },
+				memberDiscordChannelId: { not: null }
 			}
 		});
 		if (count >= 25) {
@@ -233,8 +234,18 @@ export class Command extends AmanekoSubcommand {
 		const channelId = interaction.options.getString('channel', true);
 		const role = interaction.options.getRole('role');
 
-		const channel = this.container.cache.holodexChannels.get(channelId);
+		const count = await this.container.prisma.subscription.count({
+			where: {
+				guildId: interaction.guildId,
+				discordChannelId: { not: null },
+				memberDiscordChannelId: { not: null }
+			}
+		});
+		if (count >= 25) {
+			return errorReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
+		}
 
+		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
