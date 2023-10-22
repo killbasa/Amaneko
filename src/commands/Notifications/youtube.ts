@@ -69,7 +69,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommandGroup((group) =>
 					group
 						.setName('member')
-						.setDescription('Manage member streams notifications.')
+						.setDescription('Manage YouTube member livestream notifications.')
 						.addSubcommand((subcommand) =>
 							subcommand
 								.setName('subscribe')
@@ -348,7 +348,10 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (subscriptions.length === 0) {
-			return defaultReply(interaction, `This server is not subscribed to any channel.`);
+			return defaultReply(
+				interaction,
+				'This server is not subscribed to any channels. You can add one with `/youtube subscribe` or `/youtube member subscribe`.'
+			);
 		}
 
 		const subscriptionsPaginatedMessage = new PaginatedMessage()

@@ -182,7 +182,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no cameos being sent to this server.');
+			return defaultReply(interaction, 'There are no cameos being sent to this server. You can add one with `/cameo add`.');
 		}
 
 		const embed = new EmbedBuilder() //

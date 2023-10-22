@@ -195,7 +195,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no community posts being sent to this server.');
+			return defaultReply(interaction, 'There are no community posts being sent to this server. You can add one with `/community add`.');
 		}
 
 		const embed = new EmbedBuilder() //
