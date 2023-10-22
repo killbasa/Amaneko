@@ -162,7 +162,10 @@ export class Command extends AmanekoSubcommand {
 		const role = interaction.options.getRole('role');
 
 		const count = await this.container.prisma.subscription.count({
-			where: { discordChannelId: { not: null } }
+			where: {
+				guildId: interaction.guildId,
+				discordChannelId: { not: null }
+			}
 		});
 		if (count >= 25) {
 			return errorReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');

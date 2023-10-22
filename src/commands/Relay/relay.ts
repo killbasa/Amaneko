@@ -117,7 +117,10 @@ export class Command extends AmanekoSubcommand {
 		const channelId = interaction.options.getString('channel', true);
 
 		const count = await this.container.prisma.subscription.count({
-			where: { relayChannelId: { not: null } }
+			where: {
+				guildId: interaction.guildId,
+				relayChannelId: { not: null }
+			}
 		});
 		if (count >= 25) {
 			return errorReply(interaction, 'You can only have a maximum of 25 relay subscriptions.');
