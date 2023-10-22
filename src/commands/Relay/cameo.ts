@@ -100,6 +100,13 @@ export class Command extends AmanekoSubcommand {
 		await interaction.deferReply();
 		const channelId = interaction.options.getString('channel', true);
 
+		const count = await this.container.prisma.subscription.count({
+			where: { cameoChannelId: { not: null } }
+		});
+		if (count >= 25) {
+			return errorReply(interaction, 'You can only have a maximum of 25 cameo subscriptions.');
+		}
+
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');

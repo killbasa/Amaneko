@@ -107,6 +107,13 @@ export class Command extends AmanekoSubcommand {
 		const channelId = interaction.options.getString('channel', true);
 		const role = interaction.options.getRole('role');
 
+		const count = await this.container.prisma.subscription.count({
+			where: { communityPostChannelId: { not: null } }
+		});
+		if (count >= 25) {
+			return errorReply(interaction, 'You can only have a maximum of 25 community post subscriptions.');
+		}
+
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
