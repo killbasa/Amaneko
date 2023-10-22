@@ -1,5 +1,6 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { defaultReply, errorReply, successReply } from '#utils/discord';
+import { canSendGuildEmbeds } from '#lib/utils/permissions';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
@@ -7,7 +8,6 @@ import type { ApplicationCommandRegistry } from '@sapphire/framework';
 @ApplyOptions<AmanekoSubcommand.Options>({
 	name: 'schedule',
 	description: 'Sets up and manages a schedule for upcoming streams from currently subscribed channels.',
-	runIn: ['GUILD_ANY'],
 	subcommands: [
 		{ name: 'set', chatInputRun: 'handleSet' },
 		{ name: 'settings', chatInputRun: 'handleSettings' },
@@ -58,6 +58,12 @@ export class Command extends AmanekoSubcommand {
 		await interaction.deferReply();
 
 		const discordChannel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const channelId = discordChannel.id;
+
+		if (!canSendGuildEmbeds(discordChannel)) {
+			return errorReply(interaction, `I am not able to send embeds in ${channelMention(channelId)}`);
+		}
+
 		const embed = new EmbedBuilder() //
 			.setTitle('Upcoming Streams')
 			.setFooter({ text: `Powered by Holodex` })
@@ -92,6 +98,12 @@ export class Command extends AmanekoSubcommand {
 		await interaction.deferReply();
 
 		const discordChannel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+
+		const channelId = discordChannel.id;
+		if (!canSendGuildEmbeds(discordChannel)) {
+			return errorReply(interaction, `I am not able to send embeds in ${channelMention(channelId)}`);
+		}
+
 		const embed = new EmbedBuilder() //
 			.setTitle('Upcoming Streams')
 			.setFooter({ text: 'Powered by Holodex' })
@@ -105,7 +117,7 @@ export class Command extends AmanekoSubcommand {
 		if (!previousGuild?.scheduleMessageId || !previousGuild?.scheduleChannelId) {
 			return errorReply(
 				interaction,
-				`Something went wrong while trying to change the schedule's channel. Please run /schedule set before attempting any changes.`
+				"Something went wrong while trying to change the schedule's channel. Please run `/schedule set` before attempting any changes."
 			);
 		} else if (previousGuild.scheduleChannelId === discordChannel.id) {
 			return defaultReply(interaction, `Schedule is already set up in that channel.`);

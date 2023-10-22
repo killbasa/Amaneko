@@ -20,7 +20,7 @@ export class Command extends AmanekoCommand {
 				.setName('help')
 				.setDescription(this.description)
 				.setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
-				.setDMPermission(false)
+				.setDMPermission(true)
 				.addStringOption((option) =>
 					option //
 						.setName('category')

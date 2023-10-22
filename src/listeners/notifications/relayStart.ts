@@ -1,6 +1,7 @@
 import { AmanekoEvents } from '#lib/utils/enums';
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder } from 'discord.js';
@@ -37,7 +38,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 							if (!relayChannelId) return;
 
 							const discordChannel = await client.channels.fetch(relayChannelId!);
-							if (!discordChannel?.isTextBased()) return;
+							if (!canSendGuildMessages(discordChannel)) return;
 
 							return discordChannel.send({
 								embeds: [embed]

@@ -1,11 +1,11 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { successReply } from '#lib/utils/discord';
+import { errorReply, successReply } from '#lib/utils/discord';
+import { canSendGuildAttachments } from '#lib/utils/permissions';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, PermissionFlagsBits, channelMention } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Have relay logs sent to a specific channel.',
-	runIn: ['GUILD_ANY'],
 	subcommands: [
 		{ name: 'set', chatInputRun: 'handleSet' },
 		{ name: 'clear', chatInputRun: 'handleClear' },
@@ -48,6 +48,11 @@ export class Command extends AmanekoSubcommand {
 	public async handleSet(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 		const channel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const channelId = channel.id;
+
+		if (!canSendGuildAttachments(channel)) {
+			return errorReply(interaction, `I am not able to send files in ${channelMention(channelId)}`);
+		}
 
 		await this.container.prisma.guild.upsert({
 			where: { id: interaction.guildId },

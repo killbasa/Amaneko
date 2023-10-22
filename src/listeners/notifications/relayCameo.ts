@@ -2,6 +2,7 @@ import { AmanekoEvents } from '#lib/utils/enums';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { cleanEmojis } from '#lib/utils/youtube';
 import { TLDexClient } from '#lib/structures/TLDexClient';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { TLDex } from '#lib/types/TLDex';
@@ -44,7 +45,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 						if (entry.status === 'rejected') return null;
 						return entry.value;
 					})
-					.filter((entry): entry is GuildTextBasedChannel => entry !== null && entry.isTextBased());
+					.filter((entry): entry is GuildTextBasedChannel => canSendGuildMessages(entry));
 			});
 			if (channels.length === 0) return;
 

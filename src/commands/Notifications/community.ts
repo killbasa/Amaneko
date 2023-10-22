@@ -3,6 +3,7 @@ import { BrandColors } from '#lib/utils/constants';
 import { MeiliCategories } from '#lib/types/Meili';
 import { channelLink } from '#lib/utils/youtube';
 import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { canSendGuildEmbeds } from '#lib/utils/permissions';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
@@ -120,6 +121,10 @@ export class Command extends AmanekoSubcommand {
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!canSendGuildEmbeds(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({

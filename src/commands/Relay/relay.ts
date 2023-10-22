@@ -2,6 +2,7 @@ import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
 import { BrandColors } from '#lib/utils/constants';
 import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { channelLink } from '#lib/utils/youtube';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
@@ -129,6 +130,10 @@ export class Command extends AmanekoSubcommand {
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!canSendGuildMessages(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send messages in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({

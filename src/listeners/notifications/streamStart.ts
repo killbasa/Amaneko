@@ -2,6 +2,7 @@ import { AmanekoEvents } from '#lib/utils/enums';
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { YoutubeEmbedsKey } from '#lib/utils/cache';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, roleMention } from 'discord.js';
@@ -75,7 +76,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 								}
 							}
 
-							if (!discordChannel?.isTextBased()) return;
+							if (!canSendGuildMessages(discordChannel)) return;
 
 							return discordChannel.send({
 								content: `${role}${video.channel.name} is now live!`,

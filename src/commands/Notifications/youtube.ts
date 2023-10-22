@@ -2,6 +2,7 @@ import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
 import { BrandColors } from '#utils/constants';
 import { defaultReply, errorReply, successReply } from '#utils/discord';
+import { canSendGuildEmbeds } from '#lib/utils/permissions';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
@@ -177,6 +178,10 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
+		if (!canSendGuildEmbeds(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
+		}
+
 		await this.container.prisma.subscription.upsert({
 			where: { channelId_guildId: { channelId, guildId: interaction.guildId } },
 			update: {
@@ -248,6 +253,10 @@ export class Command extends AmanekoSubcommand {
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!canSendGuildEmbeds(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({

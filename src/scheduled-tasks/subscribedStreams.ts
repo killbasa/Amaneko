@@ -3,6 +3,7 @@ import { YoutubeNotifKey, YoutubePrechatNotifKey, YoutubeScheduleKey } from '#li
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { arrayIsEqual } from '#lib/utils/functions';
 import { AmanekoEvents } from '#lib/utils/enums';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
@@ -132,7 +133,7 @@ export class Task extends AmanekoTask {
 					}));
 
 					const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
-					if (!scheduleChannel?.isTextBased()) return;
+					if (!canSendGuildMessages(scheduleChannel)) return;
 
 					const guildEmbed = EmbedBuilder.from(embed).setFields(streamFields);
 					const scheduleMessage = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
@@ -178,7 +179,7 @@ export class Task extends AmanekoTask {
 					}
 
 					const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);
-					if (!scheduleChannel?.isTextBased()) return;
+					if (!canSendGuildMessages(scheduleChannel)) return;
 
 					const message = await scheduleChannel.messages.fetch(guild.scheduleMessageId!).catch(() => null);
 					if (message) {

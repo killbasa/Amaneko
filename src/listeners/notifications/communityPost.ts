@@ -1,6 +1,7 @@
 import { AmanekoEvents } from '#lib/utils/enums';
 import { BrandColors } from '#lib/utils/constants';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, roleMention } from 'discord.js';
@@ -31,7 +32,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.C
 					subscriptions.map(async ({ guildId, communityPostChannelId, communityPostRoleId }) => {
 						return tracer.createSpan(`process_subscription:${guildId}`, async () => {
 							const channel = await client.channels.fetch(communityPostChannelId!);
-							if (!channel?.isTextBased()) return;
+							if (!canSendGuildMessages(channel)) return;
 
 							const rolePing = communityPostRoleId ? roleMention(communityPostRoleId) : '';
 
