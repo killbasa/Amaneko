@@ -170,7 +170,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return errorReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
+			return defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
@@ -228,7 +228,7 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Livestream notifications for **${channel.name}** were not being sent to this server.`);
+			return errorReply(interaction, `Livestream notifications for **${channel.name}** are not being sent to this server.`);
 		}
 
 		return successReply(interaction, `Livestream notifications for **${channel.name}** will no longer be sent to this server.`);
@@ -247,7 +247,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return errorReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
+			return defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
@@ -306,7 +306,7 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Member livestream notifications for **${channel.name}** were not being sent to this server.`);
+			return errorReply(interaction, `Member livestream notifications for **${channel.name}** are not being sent to this server.`);
 		}
 
 		return successReply(interaction, `Member livestream notifications for **${channel.name}** will no longer be sent to this server.`);
@@ -409,6 +409,6 @@ export class Command extends AmanekoSubcommand {
 			.setColor(BrandColors.Default)
 			.setThumbnail(channel.image)
 			.setTitle(`Youtube notifications for: ${channel.englishName ?? channel.name}`)
-			.setDescription(`Youtube channel ID: ${channel.id}\nRole: ${role?.id ? roleMention(role.id) : 'No role set.'}`);
+			.setDescription(`Role: ${role?.id ? roleMention(role.id) : 'No role set.'}`);
 	}
 }

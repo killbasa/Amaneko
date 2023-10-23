@@ -27,7 +27,7 @@ export class Command extends AmanekoCommand {
 						.setDescription('Select a category to get help for.')
 						.setRequired(false)
 						.setChoices(
-							{ name: Categories.general, value: Categories.general }, //
+							{ name: Categories.general, value: Categories.general },
 							{ name: Categories.notifications, value: Categories.notifications },
 							{ name: Categories.relay, value: Categories.relay }
 						)

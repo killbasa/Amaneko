@@ -108,7 +108,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return errorReply(interaction, 'You can only have a maximum of 25 cameo subscriptions.');
+			return defaultReply(interaction, 'You can only have a maximum of 25 cameo subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
@@ -149,17 +149,20 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
-		const data = await this.container.prisma.subscription
-			.update({
-				where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-				data: { cameoChannelId: null }
-			})
-			.catch(() => null);
-		if (!data) {
-			return errorReply(interaction, `Cameos for ${channel.name} were not being sent to this channel.`);
+		const oldSettings = await this.container.prisma.subscription.findUnique({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			select: { cameoChannelId: true }
+		});
+		if (!oldSettings?.cameoChannelId) {
+			return defaultReply(interaction, `Cameos for ${channel.name} are not being sent to this server.`);
 		}
 
-		return successReply(interaction, `Cameos for ${channel.name} will no longer be sent to this channel.`);
+		await this.container.prisma.subscription.update({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			data: { cameoChannelId: null }
+		});
+
+		return successReply(interaction, `Cameos for ${channel.name} will no longer be sent to ${channelMention(oldSettings.cameoChannelId)}`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -185,7 +188,6 @@ export class Command extends AmanekoSubcommand {
 				cameoChannelId: true
 			}
 		});
-
 		if (data.length === 0) {
 			return defaultReply(interaction, 'There are no cameos being sent to this server. You can add one with `/cameo add`.');
 		}

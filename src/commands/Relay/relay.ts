@@ -124,7 +124,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return errorReply(interaction, 'You can only have a maximum of 25 relay subscriptions.');
+			return defaultReply(interaction, 'You can only have a maximum of 25 relay subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
@@ -165,17 +165,20 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
-		const data = await this.container.prisma.subscription
-			.update({
-				where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-				data: { relayChannelId: null }
-			})
-			.catch(() => null);
-		if (!data) {
-			return errorReply(interaction, `Relays for ${channel.name} were not being sent to this channel.`);
+		const oldSettings = await this.container.prisma.subscription.findUnique({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			select: { relayChannelId: true }
+		});
+		if (!oldSettings?.relayChannelId) {
+			return defaultReply(interaction, `Relays for ${channel.name} are not being sent to this server.`);
 		}
 
-		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to this channel.`);
+		await this.container.prisma.subscription.update({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			data: { relayChannelId: null }
+		});
+
+		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to ${channelMention(oldSettings.relayChannelId)}`);
 	}
 
 	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -256,12 +259,11 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		return new EmbedBuilder()
+			.setColor(BrandColors.Default)
 			.setTitle('Relay settings')
 			.addFields(
 				{ name: 'Moderator messages', value: `${guild?.relayMods === false ? '❌' : '✅'}` },
 				{ name: 'Translation messages', value: `${guild?.relayTranslations === false ? '❌' : '✅'}` }
-			)
-			.setColor(BrandColors.Default)
-			.setTimestamp();
+			);
 	}
 }

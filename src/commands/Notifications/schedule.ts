@@ -69,14 +69,9 @@ export class Command extends AmanekoSubcommand {
 			.setFooter({ text: `Powered by Holodex` })
 			.setTimestamp();
 
-		const message = await discordChannel
-			.send({
-				embeds: [embed]
-			})
-			.catch(() => null);
-		if (!message) {
-			return errorReply(interaction, `Something went wrong while setting up the schedule.`);
-		}
+		const message = await discordChannel.send({
+			embeds: [embed]
+		});
 
 		await this.container.prisma.guild.upsert({
 			where: { id: interaction.guildId },

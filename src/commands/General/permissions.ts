@@ -33,7 +33,7 @@ export class Command extends AmanekoCommand {
 						.setDescription('Select a feature to check.')
 						.setRequired(true)
 						.setChoices(
-							{ name: Features.youtube, value: Features.youtube }, //
+							{ name: Features.youtube, value: Features.youtube },
 							{ name: Features.youtubeMember, value: Features.youtubeMember },
 							{ name: Features.relay, value: Features.relay },
 							{ name: Features.cameo, value: Features.cameo },

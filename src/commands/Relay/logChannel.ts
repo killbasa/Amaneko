@@ -1,5 +1,5 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { errorReply, successReply } from '#lib/utils/discord';
+import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
 import { canSendGuildAttachments } from '#lib/utils/permissions';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, PermissionFlagsBits, channelMention } from 'discord.js';
@@ -66,13 +66,21 @@ export class Command extends AmanekoSubcommand {
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
+		const oldSettings = await this.container.prisma.guild.findUnique({
+			where: { id: interaction.guildId },
+			select: { relayHistoryChannelId: true }
+		});
+		if (!oldSettings?.relayHistoryChannelId) {
+			return defaultReply(interaction, 'Relay logs are not being sent to a specific channel.');
+		}
+
 		await this.container.prisma.guild.upsert({
 			where: { id: interaction.guildId },
 			update: { relayHistoryChannelId: null },
 			create: { id: interaction.guildId, relayHistoryChannelId: null }
 		});
 
-		return successReply(interaction, 'Relay logs will no longer be sent to a specific channel.');
+		return successReply(interaction, `Relay logs will no longer be sent to ${channelMention(oldSettings.relayHistoryChannelId)}`);
 	}
 
 	public async handleShow(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -83,9 +91,9 @@ export class Command extends AmanekoSubcommand {
 			select: { relayHistoryChannelId: true }
 		});
 		if (!result?.relayHistoryChannelId) {
-			return successReply(interaction, 'Relay logs are not being sent to a specific channel.');
+			return defaultReply(interaction, 'Relay logs are not being sent to a specific channel.');
 		}
 
-		return successReply(interaction, `Relays logs are being sent to: ${channelMention(result.relayHistoryChannelId)}`);
+		return defaultReply(interaction, `Relays logs are being sent to ${channelMention(result.relayHistoryChannelId)}`);
 	}
 }

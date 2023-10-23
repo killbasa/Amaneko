@@ -115,7 +115,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return errorReply(interaction, 'You can only have a maximum of 25 community post subscriptions.');
+			return defaultReply(interaction, 'You can only have a maximum of 25 community post subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
@@ -162,29 +162,36 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
-		const data = await this.container.prisma.subscription
-			.update({
-				where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-				data: { communityPostChannelId: null, communityPostRoleId: null }
-			})
-			.catch(() => null);
-		if (!data) {
-			return errorReply(interaction, `Community posts for ${channel.name} were not being sent to this guild.`);
+		const oldSettings = await this.container.prisma.subscription.findUnique({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			select: { communityPostChannelId: true }
+		});
+		if (!oldSettings?.communityPostChannelId) {
+			return defaultReply(interaction, `Community posts for ${channel.name} are not being sent to this server.`);
 		}
 
-		return successReply(interaction, `Community posts for ${channel.name} will no longer be sent to this guild.`);
+		await this.container.prisma.subscription.update({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			data: { communityPostChannelId: null, communityPostRoleId: null }
+		});
+
+		return successReply(
+			interaction,
+			`Community posts for ${channel.name} will no longer be sent to ${channelMention(oldSettings.communityPostChannelId)}`
+		);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 		const discordChannel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
+		const channelId = discordChannel?.id ?? interaction.channelId;
 		await this.container.prisma.subscription.updateMany({
-			where: { guildId: interaction.guildId, communityPostChannelId: discordChannel?.id ?? interaction.channelId },
+			where: { guildId: interaction.guildId, communityPostChannelId: channelId },
 			data: { communityPostChannelId: null, communityPostRoleId: null }
 		});
 
-		return successReply(interaction, 'Community posts will no longer be sent in this channel.');
+		return successReply(interaction, `Community posts will no longer be sent in ${channelMention(channelId)}`);
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -223,16 +230,10 @@ export class Command extends AmanekoSubcommand {
 	}
 
 	private communityPostEmbed(channel: HolodexChannel, roleId?: string | null): EmbedBuilder {
-		return new EmbedBuilder() //
+		return new EmbedBuilder()
 			.setColor(BrandColors.Default)
 			.setThumbnail(channel.image)
 			.setTitle(`Community posts for: ${channel.name}`)
-			.setDescription(
-				`YouTube channel ID: ${channel.id}\nRole: ${
-					roleId //
-						? roleMention(roleId)
-						: 'No role set.'
-				}`
-			);
+			.setDescription(`Role: ${roleId ? roleMention(roleId) : 'No role set.'}`);
 	}
 }
