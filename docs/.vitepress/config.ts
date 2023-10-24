@@ -19,6 +19,7 @@ export default defineConfig({
 		},
 		nav: [],
 		sidebar: [
+			{ text: 'Setup', link: '/setup' },
 			{
 				text: 'Commands',
 				items: [
