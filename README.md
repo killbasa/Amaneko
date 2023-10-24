@@ -4,9 +4,22 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+### Discord bot for VTuber livestream relays, cameos, and notifications.
+
 </div>
 
-## Setup
+## Features ⚙️
+
+- Stream notifications for your favourite VTubers.
+- Relay livestream comments and cameos directly to a Discord channel.
+- Get notified whenever a new community post is created.
+- Display a list of upcoming streams based on your subscriptions.
+
+## Links 🔗
+
+TODO
+
+## Setup 🔧
 
 ### 1. Fork and clone the repository
 
