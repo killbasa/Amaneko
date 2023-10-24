@@ -60,7 +60,10 @@ export class Task extends AmanekoTask {
 						upcomingStreams.push(stream);
 
 						// Only relay non-member streams
-						if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
+						if (
+							availableAt <= Date.now() + Time.Minute * 15 && //
+							(!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id))
+						) {
 							const notified = await redis.get<boolean>(YoutubePrechatNotifKey(stream.id));
 
 							if (!notified) {
