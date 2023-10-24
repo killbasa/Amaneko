@@ -64,6 +64,7 @@ model Subscription {
   memberDiscordChannelId String?
 
   relayChannelId String?
+  cameoChannelId String?
 
   communityPostRoleId    String?
   communityPostChannelId String?

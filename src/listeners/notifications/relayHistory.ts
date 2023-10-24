@@ -1,5 +1,6 @@
 import { AmanekoEvents } from '#lib/utils/enums';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { Holodex } from '#lib/types/Holodex';
@@ -38,7 +39,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 					subscriptions.map(({ guild, relayChannelId }) => {
 						return tracer.createSpan(`process_subscription:${guild.id}`, async () => {
 							const channel = await client.channels.fetch(guild.relayHistoryChannelId ?? relayChannelId!);
-							if (!channel?.isTextBased()) return;
+							if (!canSendGuildMessages(channel)) return;
 
 							const comments = await prisma.streamComment.findMany({
 								where: { guildId: guild.id, videoId: video.id },

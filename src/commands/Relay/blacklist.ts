@@ -34,7 +34,7 @@ export class Command extends AmanekoSubcommand {
 						.addStringOption((option) =>
 							option //
 								.setName('id')
-								.setDescription("The youtube channel's Id")
+								.setDescription("The youtube channel's ID")
 								.setRequired(true)
 						)
 				)
@@ -45,7 +45,7 @@ export class Command extends AmanekoSubcommand {
 						.addStringOption((option) =>
 							option //
 								.setName('id')
-								.setDescription("The youtube channel's Id")
+								.setDescription("The youtube channel's ID")
 								.setRequired(true)
 								.setAutocomplete(true)
 						)

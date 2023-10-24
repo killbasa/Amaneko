@@ -2,6 +2,7 @@ import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
 import { BrandColors } from '#utils/constants';
 import { defaultReply, errorReply, successReply } from '#utils/discord';
+import { canSendGuildEmbeds } from '#lib/utils/permissions';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
@@ -12,7 +13,7 @@ import type { LivestreamSubscription } from '#lib/types/YouTube';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Manage YouTube livestream notifications.',
-	runIn: ['GUILD_ANY'],
+	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
 	subcommands: [
 		{ name: 'subscribe', chatInputRun: 'handleSubscribe' },
 		{ name: 'unsubscribe', chatInputRun: 'handleUnsubscribe' },
@@ -39,7 +40,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('subscribe')
-						.setDescription('Add a YouTube livestream notification to a channel.')
+						.setDescription('Add a YouTube livestream notification to this channel.')
 						.addStringOption((option) =>
 							option //
 								.setName('channel')
@@ -69,11 +70,11 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommandGroup((group) =>
 					group
 						.setName('member')
-						.setDescription('Manage member streams notifications.')
+						.setDescription('Manage YouTube member livestream notifications.')
 						.addSubcommand((subcommand) =>
 							subcommand
 								.setName('subscribe')
-								.setDescription('Add a YouTube member livestream notification to a channel.')
+								.setDescription('Add a YouTube member livestream notification to this channel.')
 								.addStringOption((option) =>
 									option //
 										.setName('channel')
@@ -107,7 +108,7 @@ export class Command extends AmanekoSubcommand {
 						.setDescription('Remove all YouTube livestream notifications from a channel. (Default: this channel)')
 						.addChannelOption((option) =>
 							option
-								.setName('channel')
+								.setName('discord_channel')
 								.setDescription('The channel to clear YouTube livestream notifications from.')
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
@@ -161,9 +162,24 @@ export class Command extends AmanekoSubcommand {
 		const channelId = interaction.options.getString('channel', true);
 		const role = interaction.options.getRole('role');
 
+		const count = await this.container.prisma.subscription.count({
+			where: {
+				guildId: interaction.guildId,
+				discordChannelId: { not: null },
+				memberDiscordChannelId: { not: null }
+			}
+		});
+		if (count >= 25) {
+			return defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
+		}
+
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!canSendGuildEmbeds(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
@@ -212,7 +228,7 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Livestream notifications for **${channel.name}** weren't being sent to this server.`);
+			return errorReply(interaction, `Livestream notifications for **${channel.name}** are not being sent to this server.`);
 		}
 
 		return successReply(interaction, `Livestream notifications for **${channel.name}** will no longer be sent to this server.`);
@@ -223,10 +239,24 @@ export class Command extends AmanekoSubcommand {
 		const channelId = interaction.options.getString('channel', true);
 		const role = interaction.options.getRole('role');
 
-		const channel = this.container.cache.holodexChannels.get(channelId);
+		const count = await this.container.prisma.subscription.count({
+			where: {
+				guildId: interaction.guildId,
+				discordChannelId: { not: null },
+				memberDiscordChannelId: { not: null }
+			}
+		});
+		if (count >= 25) {
+			return defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
+		}
 
+		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!canSendGuildEmbeds(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
@@ -276,7 +306,7 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Member livestream notifications for **${channel.name}** weren't being sent to this server.`);
+			return errorReply(interaction, `Member livestream notifications for **${channel.name}** are not being sent to this server.`);
 		}
 
 		return successReply(interaction, `Member livestream notifications for **${channel.name}** will no longer be sent to this server.`);
@@ -284,7 +314,7 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const channel = interaction.options.getChannel('channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const channel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
 		if (channel) {
 			await this.container.prisma.subscription.updateMany({
@@ -327,7 +357,10 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (subscriptions.length === 0) {
-			return defaultReply(interaction, `This server is not subscribed to any channel.`);
+			return defaultReply(
+				interaction,
+				'This server is not subscribed to any channels. You can add one with `/youtube subscribe` or `/youtube member subscribe`.'
+			);
 		}
 
 		const subscriptionsPaginatedMessage = new PaginatedMessage()
@@ -376,6 +409,6 @@ export class Command extends AmanekoSubcommand {
 			.setColor(BrandColors.Default)
 			.setThumbnail(channel.image)
 			.setTitle(`Youtube notifications for: ${channel.englishName ?? channel.name}`)
-			.setDescription(`Youtube channel ID: ${channel.id}\nRole: ${role?.id ? roleMention(role.id) : 'No role set.'}`);
+			.setDescription(`Role: ${role?.id ? roleMention(role.id) : 'No role set.'}`);
 	}
 }

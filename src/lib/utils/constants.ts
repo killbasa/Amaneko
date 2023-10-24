@@ -20,7 +20,9 @@ export const enum BrandColors {
 export const AmanekoEmojis = {
 	Tools: ':tools:',
 	Speech: ':speech_balloon:',
-	Speaker: ':loud_sound:'
+	Speaker: ':loud_sound:',
+	GreenCheck: '✅',
+	RedX: '❌'
 };
 
 export const VTuberOrgEmojis = new Map<string, string>([

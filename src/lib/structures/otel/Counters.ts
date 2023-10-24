@@ -1,5 +1,4 @@
-import { metrics } from '@opentelemetry/api';
-import type { Counter } from '@opentelemetry/api';
+import type { Counter, Meter } from '@opentelemetry/api';
 
 export class Counters {
 	public readonly commands: Counter;
@@ -14,11 +13,10 @@ export class Counters {
 
 	public readonly tldex: {
 		relay: Counter;
+		cameo: Counter;
 	};
 
-	public constructor() {
-		const meter = metrics.getMeter('histograms');
-
+	public constructor(meter: Meter) {
 		this.commands = meter.createCounter('amaneko_commands_total', {
 			description: 'Counter for total amount of command uses.'
 		});
@@ -49,6 +47,9 @@ export class Counters {
 		this.tldex = {
 			relay: meter.createCounter('amaneko_tldex_relay_total', {
 				description: 'Counter for total amount of processed tldex comments.'
+			}),
+			cameo: meter.createCounter('amaneko_tldex_cameo_total', {
+				description: 'Counter for total amount of processed tldex cameos.'
 			})
 		};
 	}
@@ -81,5 +82,9 @@ export class Counters {
 
 	public incRelayComment(value = 1): void {
 		this.tldex.relay.add(value);
+	}
+
+	public incCameo(value = 1): void {
+		this.tldex.cameo.add(value);
 	}
 }

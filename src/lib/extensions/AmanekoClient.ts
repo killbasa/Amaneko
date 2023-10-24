@@ -50,19 +50,17 @@ export class AmanekoClient extends SapphireClient {
 		container.meili = new MeiliClient(config.meili);
 
 		container.otel = new OpenTelemetryClient({
-			traces: {
-				url: `http://${config.o11y.otel.endpoint}`
-			},
-			metrics: {
-				port: config.o11y.metrics.port,
-				enpoint: '/metrics'
-			}
+			url: `http://${config.o11y.otel.endpoint}`
 		});
-		container.metrics = new MetricsClient();
+		container.metrics = new MetricsClient({
+			port: config.o11y.metrics.port,
+			enpoint: '/metrics'
+		});
 	}
 
 	public override async login(token: string): Promise<string> {
 		container.otel.start();
+		await container.metrics.start();
 
 		await container.meili.sync();
 		container.tldex.connect();
@@ -84,7 +82,8 @@ export class AmanekoClient extends SapphireClient {
 			container.prisma.$disconnect(), //
 			container.redis.quit(),
 			container.tldex.destroy(),
-			container.otel.destroy()
+			container.otel.destroy(),
+			container.metrics.destroy()
 		]);
 
 		return super.destroy();

@@ -20,7 +20,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			});
 			if (embeds.size === 0) return;
 
-			return Promise.allSettled(
+			await Promise.allSettled(
 				Array.from(embeds).map(async ([messageId, channelId]) => {
 					return tracer.createSpan(`process_message:${messageId}`, async () => {
 						const discordChannel = await client.channels.fetch(channelId);
@@ -33,6 +33,8 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 					});
 				})
 			);
+
+			await redis.delete(YoutubeEmbedsKey(video.id));
 		});
 	}
 }

@@ -1,16 +1,15 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { BrandColors } from '#lib/utils/constants';
 import { MeiliCategories } from '#lib/types/Meili';
-import { channelLink } from '#lib/utils/youtube';
+import { BrandColors } from '#lib/utils/constants';
 import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
-import { canSendGuildEmbeds } from '#lib/utils/permissions';
+import { canSendGuildMessages } from '#lib/utils/permissions';
+import { channelLink } from '#lib/utils/youtube';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
+import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
-import type { HolodexChannel } from '@prisma/client';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: 'Manage YouTube community post notifications.',
+	description: "Start or stop sending a streamer's cameos.",
 	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
@@ -23,14 +22,14 @@ export class Command extends AmanekoSubcommand {
 	public override registerApplicationCommands(registry: AmanekoSubcommand.Registry): void {
 		registry.registerChatInputCommand((builder) =>
 			builder
-				.setName('community')
+				.setName('cameo')
 				.setDescription(this.description)
 				.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 				.setDMPermission(false)
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('add')
-						.setDescription('Add a community post subscription to this channel.')
+						.setDescription('Add a cameo subscription to this channel.')
 						.addStringOption((option) =>
 							option //
 								.setName('channel')
@@ -38,16 +37,11 @@ export class Command extends AmanekoSubcommand {
 								.setAutocomplete(true)
 								.setRequired(true)
 						)
-						.addRoleOption((option) =>
-							option //
-								.setName('role')
-								.setDescription('The role to ping for notifications.')
-						)
 				)
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('remove')
-						.setDescription('Remove a community post subscription.')
+						.setDescription('Remove a cameo subscription from this channel.')
 						.addStringOption((option) =>
 							option //
 								.setName('subscription')
@@ -59,18 +53,18 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('clear')
-						.setDescription('Remove all community post subscriptions from a channel. (Default: this channel)')
+						.setDescription('Remove all cameo subscriptions from a channel. (Default: this channel)')
 						.addChannelOption((option) =>
 							option //
 								.setName('discord_channel')
-								.setDescription('The channel to clear community post subscriptions from.')
+								.setDescription('The channel to clear cameo subscriptions from.')
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
 				)
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('list')
-						.setDescription('List all of the community post subscriptions in the server.')
+						.setDescription('List all of the cameo subscriptions in the server.')
 				)
 		);
 	}
@@ -89,7 +83,7 @@ export class Command extends AmanekoSubcommand {
 			}));
 		} else if (focusedOption.name === 'subscription') {
 			const channels = await this.container.prisma.subscription.findMany({
-				where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
+				where: { guildId: interaction.guildId, cameoChannelId: { not: null } },
 				select: { channel: true }
 			});
 			if (channels.length === 0) return interaction.respond([]);
@@ -106,16 +100,15 @@ export class Command extends AmanekoSubcommand {
 	public async handleAdd(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 		const channelId = interaction.options.getString('channel', true);
-		const role = interaction.options.getRole('role');
 
 		const count = await this.container.prisma.subscription.count({
 			where: {
 				guildId: interaction.guildId,
-				communityPostChannelId: { not: null }
+				cameoChannelId: { not: null }
 			}
 		});
 		if (count >= 25) {
-			return defaultReply(interaction, 'You can only have a maximum of 25 community post subscriptions.');
+			return defaultReply(interaction, 'You can only have a maximum of 25 cameo subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
@@ -123,19 +116,17 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
-		if (!canSendGuildEmbeds(interaction.channel)) {
-			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
+		if (!canSendGuildMessages(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send messages in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
 			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
 			update: {
-				communityPostChannelId: interaction.channelId,
-				communityPostRoleId: role?.id
+				cameoChannelId: interaction.channelId
 			},
 			create: {
-				communityPostChannelId: interaction.channelId,
-				communityPostRoleId: role?.id,
+				cameoChannelId: interaction.channelId,
 				channel: { connect: { id: channel.id } },
 				guild: {
 					connectOrCreate: {
@@ -146,11 +137,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		const embed = this.communityPostEmbed(channel, role?.id);
-		return interaction.editReply({
-			content: `New community posts will now be sent to this channel.`,
-			embeds: [embed]
-		});
+		return successReply(interaction, `Cameos from ${channel.name} will now be sent to this channel.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -164,21 +151,18 @@ export class Command extends AmanekoSubcommand {
 
 		const oldSettings = await this.container.prisma.subscription.findUnique({
 			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-			select: { communityPostChannelId: true }
+			select: { cameoChannelId: true }
 		});
-		if (!oldSettings?.communityPostChannelId) {
-			return defaultReply(interaction, `Community posts for ${channel.name} are not being sent to this server.`);
+		if (!oldSettings?.cameoChannelId) {
+			return defaultReply(interaction, `Cameos for ${channel.name} are not being sent to this server.`);
 		}
 
 		await this.container.prisma.subscription.update({
 			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-			data: { communityPostChannelId: null, communityPostRoleId: null }
+			data: { cameoChannelId: null }
 		});
 
-		return successReply(
-			interaction,
-			`Community posts for ${channel.name} will no longer be sent to ${channelMention(oldSettings.communityPostChannelId)}`
-		);
+		return successReply(interaction, `Cameos for ${channel.name} will no longer be sent to ${channelMention(oldSettings.cameoChannelId)}`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -187,39 +171,34 @@ export class Command extends AmanekoSubcommand {
 
 		const channelId = discordChannel?.id ?? interaction.channelId;
 		await this.container.prisma.subscription.updateMany({
-			where: { guildId: interaction.guildId, communityPostChannelId: channelId },
-			data: { communityPostChannelId: null, communityPostRoleId: null }
+			where: { guildId: interaction.guildId, cameoChannelId: channelId },
+			data: { cameoChannelId: null }
 		});
 
-		return successReply(interaction, `Community posts will no longer be sent in ${channelMention(channelId)}`);
+		return successReply(interaction, `Cameos will no longer be sent in ${channelMention(channelId)}`);
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
 		const data = await this.container.prisma.subscription.findMany({
-			where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
+			where: { guildId: interaction.guildId, cameoChannelId: { not: null } },
 			select: {
 				channel: { select: { id: true, name: true } },
-				communityPostChannelId: true,
-				communityPostRoleId: true
+				cameoChannelId: true
 			}
 		});
-
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no community posts being sent to this server. You can add one with `/community add`.');
+			return defaultReply(interaction, 'There are no cameos being sent to this server. You can add one with `/cameo add`.');
 		}
 
 		const embed = new EmbedBuilder() //
 			.setColor(BrandColors.Default)
-			.setTitle('Community Post settings')
+			.setTitle('Cameo settings')
 			.setDescription(
 				data
-					.map(({ channel, communityPostChannelId, communityPostRoleId }) => {
-						const role = communityPostRoleId //
-							? ` mentioning ${roleMention(communityPostRoleId)}`
-							: '';
-						return `${channelLink(channel.name, channel.id)} in ${channelMention(communityPostChannelId!)}${role}`;
+					.map(({ channel, cameoChannelId }) => {
+						return `${channelLink(channel.name, channel.id)} in ${channelMention(cameoChannelId!)}`;
 					})
 					.join('\n')
 			);
@@ -227,13 +206,5 @@ export class Command extends AmanekoSubcommand {
 		return interaction.editReply({
 			embeds: [embed]
 		});
-	}
-
-	private communityPostEmbed(channel: HolodexChannel, roleId?: string | null): EmbedBuilder {
-		return new EmbedBuilder()
-			.setColor(BrandColors.Default)
-			.setThumbnail(channel.image)
-			.setTitle(`Community posts for: ${channel.name}`)
-			.setDescription(`Role: ${roleId ? roleMention(roleId) : 'No role set.'}`);
 	}
 }

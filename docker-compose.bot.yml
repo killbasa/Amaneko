@@ -12,3 +12,5 @@ services:
       - MEILI_HOST=meili-amaneko
       - MEILI_PORT=7700
       - OTEL_ENDPOINT=agent:4317
+    ports:
+      - 8621:8621

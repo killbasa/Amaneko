@@ -2,6 +2,7 @@ import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
 import { BrandColors } from '#lib/utils/constants';
 import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { canSendGuildMessages } from '#lib/utils/permissions';
 import { channelLink } from '#lib/utils/youtube';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
@@ -41,7 +42,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('remove')
-						.setDescription('Remove a relay subscription from this channel.')
+						.setDescription('Remove a relay subscription.')
 						.addStringOption((option) =>
 							option //
 								.setName('subscription')
@@ -68,11 +69,11 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('clear')
-						.setDescription('Clear all relay subscriptions in this channel.')
+						.setDescription('Remove all relay subscriptions from a channel. (Default: this channel)')
 						.addChannelOption((option) =>
 							option //
 								.setName('discord_channel')
-								.setDescription('The channel to clear community post subscriptions from.')
+								.setDescription('The channel to clear relay subscriptions from.')
 								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
 						)
 				)
@@ -116,9 +117,23 @@ export class Command extends AmanekoSubcommand {
 		await interaction.deferReply();
 		const channelId = interaction.options.getString('channel', true);
 
+		const count = await this.container.prisma.subscription.count({
+			where: {
+				guildId: interaction.guildId,
+				relayChannelId: { not: null }
+			}
+		});
+		if (count >= 25) {
+			return defaultReply(interaction, 'You can only have a maximum of 25 relay subscriptions.');
+		}
+
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
+		}
+
+		if (!canSendGuildMessages(interaction.channel)) {
+			return errorReply(interaction, `I am not able to send messages in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
@@ -150,17 +165,20 @@ export class Command extends AmanekoSubcommand {
 			return errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
-		const data = await this.container.prisma.subscription
-			.update({
-				where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
-				data: { relayChannelId: null }
-			})
-			.catch(() => null);
-		if (!data) {
-			return errorReply(interaction, `Relays for ${channel.name} weren't being sent to this channel.`);
+		const oldSettings = await this.container.prisma.subscription.findUnique({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			select: { relayChannelId: true }
+		});
+		if (!oldSettings?.relayChannelId) {
+			return defaultReply(interaction, `Relays for ${channel.name} are not being sent to this server.`);
 		}
 
-		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to this channel.`);
+		await this.container.prisma.subscription.update({
+			where: { channelId_guildId: { guildId: interaction.guildId, channelId: channel.id } },
+			data: { relayChannelId: null }
+		});
+
+		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to ${channelMention(oldSettings.relayChannelId)}`);
 	}
 
 	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -195,12 +213,13 @@ export class Command extends AmanekoSubcommand {
 		await interaction.deferReply();
 		const discordChannel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
 
+		const channelId = discordChannel?.id ?? interaction.channelId;
 		await this.container.prisma.subscription.updateMany({
-			where: { guildId: interaction.guildId, relayChannelId: discordChannel?.id ?? interaction.channelId },
+			where: { guildId: interaction.guildId, relayChannelId: channelId },
 			data: { relayChannelId: null }
 		});
 
-		return successReply(interaction, 'Relays will no longer be sent in this channel.');
+		return successReply(interaction, `Relays will no longer be sent in ${channelMention(channelId)}`);
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -215,7 +234,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no relays being sent to this server.');
+			return defaultReply(interaction, 'There are no relays being sent to this server. You can add one with `/relay add`.');
 		}
 
 		const embed = new EmbedBuilder() //
@@ -240,12 +259,11 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		return new EmbedBuilder()
+			.setColor(BrandColors.Default)
 			.setTitle('Relay settings')
 			.addFields(
 				{ name: 'Moderator messages', value: `${guild?.relayMods === false ? '❌' : '✅'}` },
 				{ name: 'Translation messages', value: `${guild?.relayTranslations === false ? '❌' : '✅'}` }
-			)
-			.setColor(BrandColors.Default)
-			.setTimestamp();
+			);
 	}
 }

@@ -1,28 +1,19 @@
 import { AmanekoTracer } from '#lib/structures/otel/AmanekoTracer';
-import { Resource } from '@opentelemetry/resources';
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { trace } from '@opentelemetry/api';
+import { NodeSDK, api, resources, tracing } from '@opentelemetry/sdk-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
-import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 
 export class OpenTelemetryClient {
 	private readonly client: NodeSDK;
 
-	public constructor(options: { traces: { url: string }; metrics: { port: number; enpoint: string } }) {
-		const { metrics, traces } = options;
-
+	public constructor(options: { url: string }) {
 		this.client = new NodeSDK({
-			resource: new Resource({
+			resource: new resources.Resource({
 				[SemanticResourceAttributes.SERVICE_NAME]: 'amaneko'
 			}),
-			metricReader: new PrometheusExporter({
-				port: metrics.port
-			}),
-			spanProcessor: new BatchSpanProcessor(
+			spanProcessor: new tracing.BatchSpanProcessor(
 				new OTLPTraceExporter({
-					url: traces.url
+					url: options.url
 				})
 			),
 			instrumentations: []
@@ -38,6 +29,6 @@ export class OpenTelemetryClient {
 	}
 
 	public getTracer(name: string): AmanekoTracer {
-		return new AmanekoTracer(trace.getTracer(name));
+		return new AmanekoTracer(api.trace.getTracer(name));
 	}
 }
