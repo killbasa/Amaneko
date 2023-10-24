@@ -20,6 +20,9 @@ jobs:
   build-and-deploy:
     name: Build and deploy
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: Documentation
       url: ${{ steps.deployment.outputs.page_url }}
