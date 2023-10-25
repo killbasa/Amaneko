@@ -71,20 +71,17 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 
 				const messages = await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
 
-				await prisma.$transaction(
-					messages
+				await prisma.streamComment.createMany({
+					data: messages
 						.filter((entry): entry is PromiseFulfilledResult<Message<true>> => entry.status === 'fulfilled')
-						// eslint-disable-next-line @typescript-eslint/promise-function-async
 						.map((message) => {
-							return prisma.streamComment.create({
-								data: {
-									videoId: video.id,
-									content: historyContent,
-									guild: { connect: { id: message.value.guildId } }
-								}
-							});
+							return {
+								videoId: video.id,
+								content: historyContent,
+								guild: { connect: { id: message.value.guildId } }
+							};
 						})
-				);
+				});
 
 				metrics.counters.incRelayComment();
 			});
