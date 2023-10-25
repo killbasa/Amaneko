@@ -148,7 +148,7 @@ export class Command extends AmanekoSubcommand {
 
 		const embed = this.communityPostEmbed(channel, role?.id);
 		return interaction.editReply({
-			content: `New community posts will now be sent to this channel.`,
+			content: 'New community posts will now be sent to this channel.',
 			embeds: [embed]
 		});
 	}
@@ -167,7 +167,7 @@ export class Command extends AmanekoSubcommand {
 			select: { communityPostChannelId: true }
 		});
 		if (!oldSettings?.communityPostChannelId) {
-			return defaultReply(interaction, `Community posts for ${channel.name} are not being sent to this server.`);
+			return defaultReply(interaction, `Community posts for ${channelLink(channel.name, channel.id)} are not being sent to this server.`);
 		}
 
 		await this.container.prisma.subscription.update({
@@ -177,7 +177,7 @@ export class Command extends AmanekoSubcommand {
 
 		return successReply(
 			interaction,
-			`Community posts for ${channel.name} will no longer be sent to ${channelMention(oldSettings.communityPostChannelId)}`
+			`Community posts for ${channelLink(channel.name, channel.id)} will no longer be sent to ${channelMention(oldSettings.communityPostChannelId)}`
 		);
 	}
 

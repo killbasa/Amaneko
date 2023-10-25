@@ -1,6 +1,7 @@
 import { AmanekoEvents } from '#lib/utils/enums';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
+import { videoLink } from '#lib/utils/youtube';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { Holodex } from '#lib/types/Holodex';
@@ -49,7 +50,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 							if (comments.length === 0) return;
 
 							return channel.send({
-								content: `Here is this stream's TL log. <https://youtu.be/${video.id}>`,
+								content: `Here are the stream logs for [${video.title}](${videoLink(video.id)}).`,
 								files: [
 									{
 										name: `${video.id}.txt`,

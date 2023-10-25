@@ -2,6 +2,7 @@ import { AmanekoEvents } from '#lib/utils/enums';
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
+import { videoLink } from '#lib/utils/youtube';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder } from 'discord.js';
@@ -62,7 +63,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 				url: `https://www.youtube.com/channel/${video.channel.id}`
 			})
 			.setTitle(video.title)
-			.setURL(`https://youtu.be/${video.id}`)
+			.setURL(videoLink(video.id))
 			.setThumbnail(video.channel.photo)
 			.setDescription('I will now relay translations from live translators.')
 			.setFooter({ text: 'Powered by Holodex' })

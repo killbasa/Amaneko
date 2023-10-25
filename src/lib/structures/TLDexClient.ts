@@ -1,5 +1,5 @@
 import { AmanekoEvents } from '#lib/utils/enums';
-import { AmanekoEmojis, HOLODEX_WEBSOCKET_URL, VTuberOrgEmojis } from '#lib/utils/constants';
+import { HOLODEX_WEBSOCKET_URL } from '#lib/utils/constants';
 import { container } from '@sapphire/pieces';
 import { io } from 'socket.io-client';
 import { Time } from '@sapphire/duration';
@@ -189,40 +189,5 @@ export class TLDexClient {
 
 	private filter(message: TLDex.Payload): message is TLDex.VideoUpdatePayload {
 		return message.type === 'update';
-	}
-
-	public static formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
-		const message = comment.message.replaceAll('`', "'");
-
-		if (comment.is_vtuber) {
-			const channel = container.cache.holodexChannels.get(channelId)!;
-
-			let prefix: string;
-			if (channel.org) {
-				const emoji = VTuberOrgEmojis.get(channel.org);
-				if (emoji) {
-					prefix = emoji;
-				} else {
-					container.logger.warn(`[Relay] No emoji for ${channel.org}`, {
-						listener: this.name
-					});
-					prefix = AmanekoEmojis.Speaker;
-				}
-			} else {
-				prefix = AmanekoEmojis.Speaker;
-			}
-
-			return `${prefix} **${comment.name}:** \`${message}\``;
-		}
-
-		if (comment.is_tl) {
-			return `${AmanekoEmojis.Speech} ||${comment.name}:|| \`${message}\``;
-		}
-
-		if (comment.is_moderator) {
-			return `${AmanekoEmojis.Tools} **${comment.name}:** \`${message}\``;
-		}
-
-		return `${comment.name}: \`${message}\``;
 	}
 }

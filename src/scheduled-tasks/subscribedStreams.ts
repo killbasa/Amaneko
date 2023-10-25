@@ -4,6 +4,7 @@ import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { arrayIsEqual } from '#lib/utils/functions';
 import { AmanekoEvents } from '#lib/utils/enums';
 import { canSendGuildMessages } from '#lib/utils/permissions';
+import { videoLink } from '#lib/utils/youtube';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
@@ -132,7 +133,7 @@ export class Task extends AmanekoTask {
 
 					const streamFields: APIEmbedField[] = guildUpcomingStreams.map((stream) => ({
 						name: `**${stream.channel.name}**`,
-						value: `[${stream.title}](https://youtu.be/${stream.id}) <t:${new Date(stream.available_at).getTime() / 1000}:R>`
+						value: `[${stream.title}](${videoLink(stream.id)}) <t:${new Date(stream.available_at).getTime() / 1000}:R>`
 					}));
 
 					const scheduleChannel = await this.container.client.channels.fetch(guild.scheduleChannelId!);

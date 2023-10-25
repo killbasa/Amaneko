@@ -1,9 +1,9 @@
 import { AmanekoEvents } from '#lib/utils/enums';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
-import { cleanEmojis } from '#lib/utils/youtube';
-import { TLDexClient } from '#lib/structures/TLDexClient';
+import { cleanEmojis, videoLink } from '#lib/utils/youtube';
 import { canSendGuildMessages } from '#lib/utils/permissions';
-import { Listener } from '@sapphire/framework';
+import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
+import { Listener, container } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
@@ -19,9 +19,20 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const { tracer, container } = this;
 		const { prisma, client, metrics } = container;
 
-		if (comment.is_owner || !comment.is_vtuber) return;
+		const { is_owner: isOwner, is_vtuber: isVTuber, channel_id: channelId } = comment;
+		if (!channelId || isOwner || !isVTuber) return;
+
+		const targetChannel = container.cache.holodexChannels.get(channelId);
+		if (!targetChannel) {
+			container.logger.warn(`[Relay] No channel found for ${channelId} (target)`, {
+				listener: this.name
+			});
+			return;
+		}
 
 		await tracer.createSpan('relay_cameo', async () => {
+			const timer = metrics.histograms.observeRelay();
+
 			const cameoChannelIds = await tracer.createSpan('find_subscriptions', async () => {
 				return prisma.subscription.findMany({
 					where: {
@@ -52,11 +63,36 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			await tracer.createSpan('process_messages', async () => {
 				comment.message = cleanEmojis(comment.message);
 
-				const content = TLDexClient.formatMessage(video.channel.id, comment);
+				const content = this.formatMessage(video.channel.id, targetChannel.name, comment, video);
 				await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
 
 				metrics.counters.incCameo();
 			});
+
+			timer.end({ subscriptions: cameoChannelIds.length });
 		});
+	}
+
+	private formatMessage(channelId: string, targetName: string, comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
+		let prefix = AmanekoEmojis.Speaker;
+		const message = comment.message.replaceAll('`', "'");
+		const channel = container.cache.holodexChannels.get(channelId);
+
+		if (!channel) {
+			container.logger.warn(`[Relay] No channel found for ${channelId} (comment)`, {
+				listener: this.name
+			});
+		} else if (channel.org) {
+			const emoji = VTuberOrgEmojis.get(channel.org);
+			if (emoji) {
+				prefix = emoji;
+			} else {
+				container.logger.warn(`[Relay] No emoji for ${channel.org}`, {
+					listener: this.name
+				});
+			}
+		}
+
+		return `${prefix} **${comment.name}** in **${targetName}**'s chat: \`${message}\`\n**Chat:** [${video.title}](${videoLink(video.id)})`;
 	}
 }

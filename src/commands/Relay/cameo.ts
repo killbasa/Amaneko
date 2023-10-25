@@ -137,7 +137,10 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		return successReply(interaction, `Cameos from ${channel.name} will now be sent to this channel.`);
+		return successReply(
+			interaction, //
+			`Cameos from ${channelLink(channel.name, channel.id)} will now be sent to this channel.`
+		);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -154,7 +157,10 @@ export class Command extends AmanekoSubcommand {
 			select: { cameoChannelId: true }
 		});
 		if (!oldSettings?.cameoChannelId) {
-			return defaultReply(interaction, `Cameos for ${channel.name} are not being sent to this server.`);
+			return defaultReply(
+				interaction, //
+				`Cameos for ${channelLink(channel.name, channel.id)} are not being sent to this server.`
+			);
 		}
 
 		await this.container.prisma.subscription.update({
@@ -162,7 +168,10 @@ export class Command extends AmanekoSubcommand {
 			data: { cameoChannelId: null }
 		});
 
-		return successReply(interaction, `Cameos for ${channel.name} will no longer be sent to ${channelMention(oldSettings.cameoChannelId)}`);
+		return successReply(
+			interaction,
+			`Cameos for ${channelLink(channel.name, channel.id)} will no longer be sent to ${channelMention(oldSettings.cameoChannelId)}`
+		);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
