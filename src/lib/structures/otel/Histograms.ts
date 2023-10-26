@@ -1,4 +1,3 @@
-import { injectTrace } from '#lib/utils/functions';
 import type { Histogram, Meter } from '@opentelemetry/api';
 
 export class Histograms {
@@ -24,7 +23,7 @@ export class Histograms {
 		const now = performance.now();
 		return {
 			end: (labels): void => {
-				this.stream.record(performance.now() - now, injectTrace(labels));
+				this.stream.record(performance.now() - now, labels);
 			}
 		};
 	}
@@ -33,7 +32,7 @@ export class Histograms {
 		const now = performance.now();
 		return {
 			end: (labels): void => {
-				this.relay.record(performance.now() - now, injectTrace(labels));
+				this.relay.record(performance.now() - now, labels);
 			}
 		};
 	}
@@ -42,7 +41,7 @@ export class Histograms {
 		const now = performance.now();
 		return {
 			end: (labels): void => {
-				this.cameo.record(performance.now() - now, injectTrace(labels));
+				this.cameo.record(performance.now() - now, labels);
 			}
 		};
 	}
