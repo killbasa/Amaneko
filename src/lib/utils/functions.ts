@@ -40,3 +40,13 @@ export function injectTrace(labels: Record<string, number | string>): Record<str
 
 	return labels;
 }
+
+export function calculateTimestamp(start: string, commentTimestamp: number): string {
+	const startTime = new Date(Date.parse(start)).valueOf();
+	const loggedTime = new Date(commentTimestamp).valueOf();
+
+	if (loggedTime - startTime < 0) {
+		return `-${new Date(startTime - loggedTime).toISOString().substring(11, 19)}`;
+	}
+	return new Date(loggedTime - startTime).toISOString().substring(11, 19);
+}

@@ -3,6 +3,7 @@ import { cleanEmojis } from '#lib/utils/youtube';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
+import { calculateTimestamp } from '#lib/utils/functions';
 import { Listener, container } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
@@ -132,10 +133,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			throw Error(`Received comment from stream that never started. (${video.id})`);
 		}
 
-		const startTime = new Date(Date.parse(start)).valueOf();
-		const loggedTime = new Date(comment.timestamp).valueOf();
-		const timestamp = new Date(loggedTime - startTime).toISOString().substring(11, 19);
-
+		const timestamp = calculateTimestamp(start, comment.timestamp);
 		return `${timestamp} (${comment.name}) ${comment.message}`;
 	}
 }
