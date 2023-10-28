@@ -78,6 +78,8 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 						.map((message) => {
 							return {
 								videoId: video.id,
+								messageId: message.value.id,
+								channelId: comment.channel_id,
 								content: historyContent,
 								guild: { connect: { id: message.value.guildId } }
 							};
