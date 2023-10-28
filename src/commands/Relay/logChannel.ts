@@ -1,8 +1,9 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { NotifChannelTypes } from '#lib/utils/constants';
+import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
 import { canSendGuildAttachments } from '#lib/utils/permissions';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ChannelType, PermissionFlagsBits, channelMention } from 'discord.js';
+import { PermissionFlagsBits, channelMention } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Have relay logs sent to a specific channel.',
@@ -29,7 +30,7 @@ export class Command extends AmanekoSubcommand {
 								.setName('discord_channel')
 								.setDescription('The channel to send relay logs to.')
 								.setRequired(true)
-								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+								.addChannelTypes(...NotifChannelTypes)
 						)
 				)
 				.addSubcommand((subcommand) =>
@@ -47,7 +48,7 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleSet(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const channel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const channel = interaction.options.getChannel('discord_channel', true, NotifChannelTypes);
 		const channelId = channel.id;
 
 		if (!canSendGuildAttachments(channel)) {

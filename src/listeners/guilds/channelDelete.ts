@@ -1,6 +1,6 @@
+import { isNotifChannel } from '#lib/utils/discord';
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ChannelType } from 'discord.js';
 import type { DMChannel, NewsChannel, NonThreadGuildBasedChannel, TextChannel } from 'discord.js';
 
 @ApplyOptions<Listener.Options>({
@@ -8,29 +8,38 @@ import type { DMChannel, NewsChannel, NonThreadGuildBasedChannel, TextChannel } 
 })
 export class GuildListener extends Listener<typeof Events.ChannelDelete> {
 	public async run(channel: DMChannel | NonThreadGuildBasedChannel): Promise<void> {
+		const { prisma } = this.container;
+
 		if (!this.isValid(channel)) return;
 
-		await this.container.prisma.$transaction([
-			this.container.prisma.guild.update({
+		await prisma.$transaction([
+			prisma.guild.update({
 				where: {
 					id: channel.guildId,
 					scheduleChannelId: channel.id
 				},
 				data: { scheduleChannelId: null }
 			}),
-			this.container.prisma.subscription.updateMany({
+			prisma.guild.update({
+				where: {
+					id: channel.guildId,
+					relayHistoryChannelId: channel.id
+				},
+				data: { relayHistoryChannelId: null }
+			}),
+			prisma.subscription.updateMany({
 				where: { discordChannelId: channel.id },
 				data: { discordChannelId: null }
 			}),
-			this.container.prisma.subscription.updateMany({
+			prisma.subscription.updateMany({
 				where: { memberDiscordChannelId: channel.id },
 				data: { memberDiscordChannelId: null }
 			}),
-			this.container.prisma.subscription.updateMany({
+			prisma.subscription.updateMany({
 				where: { relayChannelId: channel.id },
 				data: { relayChannelId: null }
 			}),
-			this.container.prisma.subscription.updateMany({
+			prisma.subscription.updateMany({
 				where: { communityPostChannelId: channel.id },
 				data: { communityPostChannelId: null }
 			})
@@ -42,10 +51,6 @@ export class GuildListener extends Listener<typeof Events.ChannelDelete> {
 			return false;
 		}
 
-		if (![ChannelType.GuildAnnouncement, ChannelType.GuildText].includes(channel.type)) {
-			return false;
-		}
-
-		return true;
+		return isNotifChannel(channel.type);
 	}
 }

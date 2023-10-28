@@ -1,16 +1,16 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
-import { BrandColors } from '#lib/utils/constants';
-import { defaultReply, errorReply, successReply } from '#lib/utils/discord';
+import { BrandColors, NotifChannelTypes } from '#lib/utils/constants';
+import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { channelLink } from '#lib/utils/youtube';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
+import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: "Start or stop sending a streamer's cameos.",
-	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
+	runIn: NotifChannelTypes,
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
 		{ name: 'remove', chatInputRun: 'handleRemove' },
@@ -58,7 +58,7 @@ export class Command extends AmanekoSubcommand {
 							option //
 								.setName('discord_channel')
 								.setDescription('The channel to clear cameo subscriptions from.')
-								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+								.addChannelTypes(...NotifChannelTypes)
 						)
 				)
 				.addSubcommand((subcommand) =>
@@ -167,7 +167,7 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const discordChannel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const discordChannel = interaction.options.getChannel('discord_channel', false, NotifChannelTypes);
 
 		const channelId = discordChannel?.id ?? interaction.channelId;
 		await this.container.prisma.subscription.updateMany({

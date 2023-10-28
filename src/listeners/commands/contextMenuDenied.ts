@@ -1,4 +1,4 @@
-import { errorReply } from '#lib/utils/discord';
+import { errorReply } from '#lib/utils/reply';
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { ContextMenuCommandDeniedPayload, UserError } from '@sapphire/framework';

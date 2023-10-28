@@ -2,7 +2,7 @@ import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { AmanekoError } from '#lib/structures/AmanekoError';
 import { BrandColors } from '#utils/constants';
 import { getUsername } from '#utils/youtube';
-import { successReply } from '#lib/utils/discord';
+import { successReply } from '#lib/utils/reply';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
