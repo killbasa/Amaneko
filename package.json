@@ -110,5 +110,5 @@
 		"#lib/*": "./dist/lib/*.js",
 		"#utils/*": "./dist/lib/utils/*.js"
 	},
-	"packageManager": "yarn@4.0.0"
+	"packageManager": "yarn@4.0.1"
 }

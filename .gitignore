@@ -1,7 +1,8 @@
 .git/
 .idea/
 .pnp.*
-.yarn/
+.yarn/install-state.gz
+.yarn/build-state.yml
 coverage/
 dist/
 docs/.vitepress/cache
