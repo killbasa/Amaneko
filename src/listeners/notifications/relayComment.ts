@@ -1,9 +1,10 @@
 import { AmanekoEvents } from '#lib/utils/enums';
 import { cleanEmojis } from '#lib/utils/youtube';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
-import { TLDexClient } from '#lib/structures/TLDexClient';
 import { canSendGuildMessages } from '#lib/utils/permissions';
-import { Listener } from '@sapphire/framework';
+import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
+import { calculateTimestamp } from '#lib/utils/functions';
+import { Listener, container } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
 import type { TLDex } from '#lib/types/TLDex';
@@ -66,25 +67,24 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			await tracer.createSpan('process_messages', async () => {
 				comment.message = cleanEmojis(comment.message);
 
-				const content = TLDexClient.formatMessage(video.channel.id, comment);
+				const content = this.formatMessage(video.channel.id, comment);
 				const historyContent = this.formatHistoryMessage(comment, video);
 
 				const messages = await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
 
-				await prisma.$transaction(
-					messages
+				await prisma.streamComment.createMany({
+					data: messages
 						.filter((entry): entry is PromiseFulfilledResult<Message<true>> => entry.status === 'fulfilled')
-						// eslint-disable-next-line @typescript-eslint/promise-function-async
 						.map((message) => {
-							return prisma.streamComment.create({
-								data: {
-									videoId: video.id,
-									content: historyContent,
-									guild: { connect: { id: message.value.guildId } }
-								}
-							});
+							return {
+								videoId: video.id,
+								messageId: message.value.id,
+								channelId: comment.channel_id,
+								content: historyContent,
+								guild: { connect: { id: message.value.guildId } }
+							};
 						})
-				);
+				});
 
 				metrics.counters.incRelayComment();
 			});
@@ -93,16 +93,49 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		});
 	}
 
+	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
+		const message = comment.message.replaceAll('`', "'");
+
+		if (comment.is_vtuber) {
+			let prefix = AmanekoEmojis.Speaker;
+			const channel = container.cache.holodexChannels.get(channelId);
+
+			if (!channel) {
+				container.logger.warn(`[Relay] No channel found for ${channelId}`, {
+					listener: this.name
+				});
+			} else if (channel.org) {
+				const emoji = VTuberOrgEmojis.get(channel.org);
+				if (emoji) {
+					prefix = emoji;
+				} else {
+					container.logger.warn(`[Relay] No emoji for ${channel.org}`, {
+						listener: this.name
+					});
+				}
+			}
+
+			return `${prefix} **${comment.name}:** \`${message}\``;
+		}
+
+		if (comment.is_tl) {
+			return `${AmanekoEmojis.Speech} ||${comment.name}:|| \`${message}\``;
+		}
+
+		if (comment.is_moderator) {
+			return `${AmanekoEmojis.Tools} **${comment.name}:** \`${message}\``;
+		}
+
+		return `**${comment.name}:** \`${message}\``;
+	}
+
 	private formatHistoryMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
 		const start = video.start_actual ?? video.start_scheduled;
 		if (!start) {
 			throw Error(`Received comment from stream that never started. (${video.id})`);
 		}
 
-		const startTime = new Date(Date.parse(start)).valueOf();
-		const loggedTime = new Date(comment.timestamp).valueOf();
-		const timestamp = new Date(loggedTime - startTime).toISOString().substring(11, 19);
-
+		const timestamp = calculateTimestamp(start, comment.timestamp);
 		return `${timestamp} (${comment.name}) ${comment.message}`;
 	}
 }

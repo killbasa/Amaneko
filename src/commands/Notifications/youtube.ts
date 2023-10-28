@@ -3,6 +3,7 @@ import { MeiliCategories } from '#lib/types/Meili';
 import { BrandColors, NotifChannelTypes } from '#utils/constants';
 import { defaultReply, errorReply, successReply } from '#utils/reply';
 import { canSendGuildEmbeds } from '#lib/utils/permissions';
+import { channelLink } from '#lib/utils/youtube';
 import { EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
@@ -228,10 +229,16 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Livestream notifications for **${channel.name}** are not being sent to this server.`);
+			return errorReply(
+				interaction, //
+				`Livestream notifications for **${channelLink(channel.name, channel.id)}** are not being sent to this server.`
+			);
 		}
 
-		return successReply(interaction, `Livestream notifications for **${channel.name}** will no longer be sent to this server.`);
+		return successReply(
+			interaction,
+			`Livestream notifications for **${channelLink(channel.name, channel.id)}** will no longer be sent to this server.`
+		);
 	}
 
 	public async handleMemberSubscribe(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -306,10 +313,16 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(interaction, `Member livestream notifications for **${channel.name}** are not being sent to this server.`);
+			return errorReply(
+				interaction,
+				`Member livestream notifications for **${channelLink(channel.name, channel.id)}** are not being sent to this server.`
+			);
 		}
 
-		return successReply(interaction, `Member livestream notifications for **${channel.name}** will no longer be sent to this server.`);
+		return successReply(
+			interaction,
+			`Member livestream notifications for **${channelLink(channel.name, channel.id)}** will no longer be sent to this server.`
+		);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {

@@ -3,6 +3,7 @@ import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { YoutubeEmbedsKey } from '#lib/utils/cache';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
+import { videoLink } from '#lib/utils/youtube';
 import { Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, roleMention } from 'discord.js';
@@ -41,7 +42,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 						url: `https://www.youtube.com/channel/${video.channel.id}`
 					})
 					.setTitle(video.title)
-					.setURL(`https://youtu.be/${video.id}`)
+					.setURL(videoLink(video.id))
 					.setThumbnail(video.channel.photo)
 					.setImage(`https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`)
 					.setDescription(video.description?.slice(0, 50) || null)
@@ -51,7 +52,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 				const components = new ActionRowBuilder<ButtonBuilder>().setComponents([
 					new ButtonBuilder() //
 						.setStyle(ButtonStyle.Link)
-						.setURL(`https://youtu.be/${video.id}`)
+						.setURL(videoLink(video.id))
 						.setLabel('Watch Stream')
 				]);
 

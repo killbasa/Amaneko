@@ -21,6 +21,10 @@ export function channelLink(name: string, id: string): string {
 	return `[${name}](https://www.youtube.com/channel/${id})`;
 }
 
+export function videoLink(videoId: string): string {
+	return `https://youtu.be/${videoId}`;
+}
+
 export function cleanEmojis(context: string): string {
 	return context.replace(YoutubeEmojiRegex, '');
 }

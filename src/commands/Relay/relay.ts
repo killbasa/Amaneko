@@ -153,7 +153,10 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		return successReply(interaction, `Relays from ${channel.name} will now be sent to this channel.`);
+		return successReply(
+			interaction, //
+			`Relays from ${channelLink(channel.name, channel.id)} will now be sent to this channel.`
+		);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -178,7 +181,10 @@ export class Command extends AmanekoSubcommand {
 			data: { relayChannelId: null }
 		});
 
-		return successReply(interaction, `Relays for ${channel.name} will no longer be sent to ${channelMention(oldSettings.relayChannelId)}`);
+		return successReply(
+			interaction,
+			`Relays for ${channelLink(channel.name, channel.id)} will no longer be sent to ${channelMention(oldSettings.relayChannelId)}`
+		);
 	}
 
 	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {

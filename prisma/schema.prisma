@@ -53,7 +53,9 @@ model StreamComment {
   id      BigInt @id @default(autoincrement())
   videoId String
 
-  content String
+  messageId String  @unique
+  channelId String?
+  content   String
 
   guildId String?
   guild   Guild?  @relation(fields: [guildId], references: [id], onDelete: Cascade)
