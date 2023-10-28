@@ -98,11 +98,11 @@ export class Command extends AmanekoSubcommand {
 	public async handleCheck(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		const guildId = interaction.options.getString('guild', true);
 
-		const result = await this.container.prisma.guildBlacklist.count({
+		const result = await this.container.prisma.guildBlacklist.findUnique({
 			where: { guildId }
 		});
 
-		if (result > 1) {
+		if (result !== null) {
 			return defaultReply(interaction, `${guildId} is blacklisted.`);
 		}
 
