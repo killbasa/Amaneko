@@ -53,7 +53,7 @@ model StreamComment {
   id      BigInt @id @default(autoincrement())
   videoId String
 
-  messageId String
+  messageId String  @unique
   channelId String?
   content   String
 
