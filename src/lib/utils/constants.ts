@@ -1,4 +1,5 @@
 import { getRootData } from '@sapphire/pieces';
+import { ChannelType } from 'discord.js';
 
 export const mainFolder = getRootData().root;
 
@@ -37,3 +38,5 @@ export const VTuberOrgEmojis = new Map<string, string>([
 	['VShojo', '<:VShojo:1158110359136260226>'],
 	['VSpo', '<:VSpo:1158867477112029264>']
 ]);
+
+export const NotifChannelTypes = [ChannelType.GuildAnnouncement, ChannelType.GuildText] as const;

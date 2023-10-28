@@ -123,6 +123,10 @@ export class TLDexClient {
 		return Array.from(this.videos).map(([videoId]) => videoId);
 	}
 
+	public hasRoom(videoId: string): boolean {
+		return this.videos.has(videoId);
+	}
+
 	public async subscribe(video: Holodex.VideoWithChannel): Promise<void> {
 		if (this.videos.has(video.id)) {
 			this.videos.set(video.id, video);

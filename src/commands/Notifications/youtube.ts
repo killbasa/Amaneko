@@ -1,9 +1,9 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
-import { BrandColors } from '#utils/constants';
-import { defaultReply, errorReply, successReply } from '#utils/discord';
+import { BrandColors, NotifChannelTypes } from '#utils/constants';
+import { defaultReply, errorReply, successReply } from '#utils/reply';
 import { canSendGuildEmbeds } from '#lib/utils/permissions';
-import { ChannelType, EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';
+import { EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
@@ -13,7 +13,7 @@ import type { LivestreamSubscription } from '#lib/types/YouTube';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Manage YouTube livestream notifications.',
-	runIn: [ChannelType.GuildAnnouncement, ChannelType.GuildText],
+	runIn: NotifChannelTypes,
 	subcommands: [
 		{ name: 'subscribe', chatInputRun: 'handleSubscribe' },
 		{ name: 'unsubscribe', chatInputRun: 'handleUnsubscribe' },
@@ -110,7 +110,7 @@ export class Command extends AmanekoSubcommand {
 							option
 								.setName('discord_channel')
 								.setDescription('The channel to clear YouTube livestream notifications from.')
-								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+								.addChannelTypes(...NotifChannelTypes)
 						)
 				)
 				.addSubcommand((subcommand) =>
@@ -314,7 +314,7 @@ export class Command extends AmanekoSubcommand {
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
-		const channel = interaction.options.getChannel('discord_channel', false, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const channel = interaction.options.getChannel('discord_channel', false, NotifChannelTypes);
 
 		if (channel) {
 			await this.container.prisma.subscription.updateMany({

@@ -2,7 +2,7 @@ import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
 import { AmanekoEmojis, BrandColors } from '#lib/utils/constants';
 import { canSendGuildEmbeds, canSendGuildMessages, hasPermissions } from '#lib/utils/permissions';
 import { channelLink } from '#lib/utils/youtube';
-import { defaultReply } from '#lib/utils/discord';
+import { defaultReply } from '#lib/utils/reply';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ChannelTypes } from '@sapphire/discord.js-utilities';

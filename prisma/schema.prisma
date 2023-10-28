@@ -22,6 +22,10 @@ model Guild {
   comments      StreamComment[]
 }
 
+model GuildBlacklist {
+  guildId String @id @unique
+}
+
 model Blacklist {
   id String @id @default(uuid())
 

@@ -1,8 +1,9 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { defaultReply, errorReply, successReply } from '#utils/discord';
+import { defaultReply, errorReply, successReply } from '#utils/reply';
 import { canSendGuildEmbeds } from '#lib/utils/permissions';
+import { NotifChannelTypes } from '#lib/utils/constants';
 import { ApplyOptions } from '@sapphire/decorators';
-import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
+import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
@@ -31,7 +32,7 @@ export class Command extends AmanekoSubcommand {
 								.setName('discord_channel')
 								.setDescription('The discord channel where the schedule will be posted.')
 								.setRequired(true)
-								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+								.addChannelTypes(...NotifChannelTypes)
 						)
 				)
 				.addSubcommand((subcommand) =>
@@ -43,7 +44,7 @@ export class Command extends AmanekoSubcommand {
 								.setName('discord_channel')
 								.setDescription('New channel to post the schedule.')
 								.setRequired(true)
-								.addChannelTypes(ChannelType.GuildAnnouncement, ChannelType.GuildText)
+								.addChannelTypes(...NotifChannelTypes)
 						)
 				)
 				.addSubcommand((subcommand) =>
@@ -57,7 +58,7 @@ export class Command extends AmanekoSubcommand {
 	public async handleSet(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
-		const discordChannel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const discordChannel = interaction.options.getChannel('discord_channel', true, NotifChannelTypes);
 		const channelId = discordChannel.id;
 
 		if (!canSendGuildEmbeds(discordChannel)) {
@@ -92,7 +93,7 @@ export class Command extends AmanekoSubcommand {
 	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		await interaction.deferReply();
 
-		const discordChannel = interaction.options.getChannel('discord_channel', true, [ChannelType.GuildAnnouncement, ChannelType.GuildText]);
+		const discordChannel = interaction.options.getChannel('discord_channel', true, NotifChannelTypes);
 
 		const channelId = discordChannel.id;
 		if (!canSendGuildEmbeds(discordChannel)) {
