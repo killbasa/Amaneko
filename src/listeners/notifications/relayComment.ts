@@ -81,7 +81,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 								messageId: message.value.id,
 								channelId: comment.channel_id,
 								content: historyContent,
-								guild: { connect: { id: message.value.guildId } }
+								guildId: message.value.guildId
 							};
 						})
 				});
