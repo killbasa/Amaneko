@@ -16,12 +16,10 @@ export class Task extends AmanekoTask {
 
 	public override async run(): Promise<void> {
 		const { tracer, container } = this;
-		const { holodex, tldex, logger, redis, metrics } = container;
+		const { holodex, tldex, logger, redis } = container;
 
 		await tracer.createSpan('process_streams', async () => {
 			logger.debug('[StreamTask] Checking streams');
-
-			const timer = metrics.histograms.observeStream();
 
 			const liveStreams = await tracer.createSpan('fetch_streams', async () => {
 				return holodex.getVideos({
@@ -37,8 +35,6 @@ export class Task extends AmanekoTask {
 					}
 				}
 			});
-
-			timer.end({ streams: liveStreams.length });
 
 			await tracer.createSpan('cleanup_streams', async () => {
 				const cachedStreams = await redis.hGetValues<Holodex.VideoWithChannel>(this.streamsKey);
