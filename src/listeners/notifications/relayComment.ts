@@ -1,5 +1,5 @@
 import { AmanekoEvents } from '#lib/utils/enums';
-import { cleanEmojis } from '#lib/utils/youtube';
+import { cleanEmojis, videoLink } from '#lib/utils/youtube';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
@@ -19,6 +19,11 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 	public async run(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Promise<void> {
 		const { tracer, container } = this;
 		const { prisma, client, metrics } = container;
+
+		// TODO: Allow certain verified channels?
+		if (comment.is_verified && (!comment.is_owner || !comment.is_vtuber || !comment.is_tl || !comment.is_moderator)) {
+			return;
+		}
 
 		await tracer.createSpan('relay_comment', async () => {
 			const relayChannelIds = await tracer.createSpan('find_subscriptions', async () => {
@@ -65,7 +70,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			await tracer.createSpan('process_messages', async () => {
 				comment.message = cleanEmojis(comment.message);
 
-				const content = this.formatMessage(video.channel.id, comment);
+				const content = this.formatMessage(comment, video);
 				const historyContent = this.formatHistoryMessage(comment, video);
 
 				const messages = await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
@@ -89,21 +94,23 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		});
 	}
 
-	private formatMessage(channelId: string, comment: TLDex.CommentPayload): string {
+	private formatMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
 		const message = comment.message.replaceAll('`', "'");
 
-		if (comment.is_vtuber) {
-			let prefix = AmanekoEmojis.Speaker;
-			const channel = container.cache.holodexChannels.get(channelId);
+		let prefix = `**${comment.name}:**`;
+
+		if (comment.is_vtuber && comment.channel_id) {
+			let emoji = AmanekoEmojis.Speaker;
+			const channel = container.cache.holodexChannels.get(comment.channel_id);
 
 			if (!channel) {
-				container.logger.warn(`[Relay] No channel found for ${channelId}`, {
+				container.logger.warn(`[Relay] No channel found for ${comment.channel_id}`, {
 					listener: this.name
 				});
 			} else if (channel.org) {
-				const emoji = VTuberOrgEmojis.get(channel.org);
-				if (emoji) {
-					prefix = emoji;
+				const orgEmoji = VTuberOrgEmojis.get(channel.org);
+				if (orgEmoji) {
+					emoji = orgEmoji;
 				} else {
 					container.logger.warn(`[Relay] No emoji for ${channel.org}`, {
 						listener: this.name
@@ -111,18 +118,15 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 				}
 			}
 
-			return `${prefix} **${comment.name}:** \`${message}\``;
+			const name: string = channel?.englishName ?? channel?.name ?? comment.name;
+			prefix = `${emoji} **${name}:**`;
+		} else if (comment.is_tl) {
+			prefix = `${AmanekoEmojis.Speech} ||${comment.name}:||`;
+		} else if (comment.is_moderator) {
+			prefix = `${AmanekoEmojis.Tools} **${comment.name}:**`;
 		}
 
-		if (comment.is_tl) {
-			return `${AmanekoEmojis.Speech} ||${comment.name}:|| \`${message}\``;
-		}
-
-		if (comment.is_moderator) {
-			return `${AmanekoEmojis.Tools} **${comment.name}:** \`${message}\``;
-		}
-
-		return `**${comment.name}:** \`${message}\``;
+		return `${prefix} \`${message}\` | <${videoLink(video.id)}>`;
 	}
 
 	private formatHistoryMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
