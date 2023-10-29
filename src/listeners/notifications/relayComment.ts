@@ -9,6 +9,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
 import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
+import type { Prisma } from '@prisma/client';
 
 @ApplyOptions<Listener.Options>({
 	name: 'RelayComment',
@@ -22,27 +23,26 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		await tracer.createSpan('relay_comment', async () => {
 			const timer = metrics.histograms.observeRelay();
 
-			const ownerCheck = comment.is_owner
-				? []
-				: [
-						{
-							OR: [{ relayMods: { not: false } }, { relayTranslations: { not: false } }]
-						},
-						{
-							OR: [{ relayMods: { equals: comment.is_moderator } }, { relayTranslations: { equals: comment.is_tl } }]
-						}
-				  ];
-
 			const relayChannelIds = await tracer.createSpan('find_subscriptions', async () => {
+				const query: Prisma.SubscriptionWhereInput = {
+					channelId: video.channel.id,
+					relayChannelId: { not: null }
+				};
+
+				if (comment.is_vtuber) {
+					query.guild = {
+						blacklist: { none: { channelId: comment.channel_id } }
+					};
+				} else {
+					query.guild = {
+						blacklist: { none: { channelId: comment.channel_id } },
+						relayTranslations: comment.is_tl ? { not: false } : undefined,
+						relayMods: comment.is_moderator ? { not: false } : undefined
+					};
+				}
+
 				return prisma.subscription.findMany({
-					where: {
-						channelId: video.channel.id,
-						relayChannelId: { not: null },
-						guild: {
-							AND: ownerCheck,
-							blacklist: { none: { channelId: comment.channel_id } }
-						}
-					},
+					where: query,
 					select: { guildId: true, relayChannelId: true }
 				});
 			});
