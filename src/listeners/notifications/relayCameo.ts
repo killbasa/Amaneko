@@ -11,8 +11,7 @@ import type { GuildTextBasedChannel } from 'discord.js';
 
 @ApplyOptions<Listener.Options>({
 	name: 'RelayCameo',
-	event: AmanekoEvents.StreamComment,
-	enabled: false
+	event: AmanekoEvents.StreamComment
 })
 export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.StreamComment> {
 	public async run(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Promise<void> {
