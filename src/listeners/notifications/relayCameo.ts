@@ -99,8 +99,8 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			}
 		}
 
-		const name = channel?.englishName ?? channel?.name ?? comment.name;
-		const targetName = targetChannel.englishName ?? targetChannel.name;
+		const name: string = channel?.englishName ?? channel?.name ?? comment.name;
+		const targetName: string = targetChannel.englishName ?? targetChannel.name;
 		return `${prefix} **${name}** in **${targetName}**'s [chat](<${videoLink(video.id)}>): \`${message}\``;
 	}
 }
