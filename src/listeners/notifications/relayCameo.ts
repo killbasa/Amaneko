@@ -8,6 +8,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
 import type { GuildTextBasedChannel } from 'discord.js';
+import type { HolodexChannel } from '@prisma/client';
 
 @ApplyOptions<Listener.Options>({
 	name: 'RelayCameo',
@@ -21,9 +22,9 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const { is_owner: isOwner, is_vtuber: isVTuber, channel_id: channelId } = comment;
 		if (!channelId || isOwner || !isVTuber) return;
 
-		const targetChannel = container.cache.holodexChannels.get(channelId);
+		const targetChannel = container.cache.holodexChannels.get(video.channel.id);
 		if (!targetChannel) {
-			container.logger.warn(`[Relay] No channel found for ${channelId} (target)`, {
+			container.logger.warn(`[Cameo] No channel found for ${video.channel.id} (target)`, {
 				listener: this.name
 			});
 			return;
@@ -62,7 +63,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			await tracer.createSpan('process_messages', async () => {
 				comment.message = cleanEmojis(comment.message);
 
-				const content = this.formatMessage(video.channel.id, targetChannel.name, comment, video);
+				const content = this.formatMessage(channelId, targetChannel, comment, video);
 				await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
 
 				metrics.counters.incCameo();
@@ -72,7 +73,12 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		});
 	}
 
-	private formatMessage(channelId: string, targetName: string, comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
+	private formatMessage(
+		channelId: string, //
+		targetChannel: HolodexChannel,
+		comment: TLDex.CommentPayload,
+		video: Holodex.VideoWithChannel
+	): string {
 		let prefix = AmanekoEmojis.Speaker;
 		const message = comment.message.replaceAll('`', "'");
 		const channel = container.cache.holodexChannels.get(channelId);
@@ -92,6 +98,8 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			}
 		}
 
-		return `${prefix} **${comment.name}** in **${targetName}**'s chat: \`${message}\`\n**Chat:** [${video.title}](${videoLink(video.id)})`;
+		const name = channel?.englishName ?? channel?.name ?? comment.name;
+		const targetName = targetChannel.englishName ?? targetChannel.name;
+		return `${prefix} **${name}** in **${targetName}**'s chat: \`${message}\`\n**Chat:** [${video.title}](<${videoLink(video.id)}>)`;
 	}
 }
