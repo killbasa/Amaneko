@@ -21,8 +21,6 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const { prisma, client, metrics } = container;
 
 		await tracer.createSpan('relay_comment', async () => {
-			const timer = metrics.histograms.observeRelay();
-
 			const relayChannelIds = await tracer.createSpan('find_subscriptions', async () => {
 				const query: Prisma.SubscriptionWhereInput = {
 					channelId: video.channel.id,
@@ -88,8 +86,6 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 
 				metrics.counters.incRelayComment();
 			});
-
-			timer.end({ subscriptions: relayChannelIds.length });
 		});
 	}
 

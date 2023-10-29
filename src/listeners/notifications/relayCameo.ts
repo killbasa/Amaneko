@@ -31,8 +31,6 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		}
 
 		await tracer.createSpan('relay_cameo', async () => {
-			const timer = metrics.histograms.observeRelay();
-
 			const cameoChannelIds = await tracer.createSpan('find_subscriptions', async () => {
 				return prisma.subscription.findMany({
 					where: {
@@ -68,8 +66,6 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 
 				metrics.counters.incCameo();
 			});
-
-			timer.end({ subscriptions: cameoChannelIds.length });
 		});
 	}
 

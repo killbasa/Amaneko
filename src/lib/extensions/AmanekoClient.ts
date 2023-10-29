@@ -50,11 +50,13 @@ export class AmanekoClient extends SapphireClient {
 		container.meili = new MeiliClient(config.meili);
 
 		container.otel = new OpenTelemetryClient({
-			url: `http://${config.o11y.otel.endpoint}`
+			url: `http://${config.o11y.otel.endpoint}`,
+			env: config.env
 		});
 		container.metrics = new MetricsClient({
 			port: config.o11y.metrics.port,
-			enpoint: '/metrics'
+			enpoint: '/metrics',
+			env: config.env
 		});
 	}
 

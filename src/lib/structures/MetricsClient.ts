@@ -1,18 +1,17 @@
 import { Counters } from '#lib/structures/otel/Counters';
-import { Histograms } from '#lib/structures/otel/Histograms';
 import { container } from '@sapphire/framework';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
-import { metrics } from '@opentelemetry/sdk-node';
+import { metrics, resources } from '@opentelemetry/sdk-node';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 import type { Meter } from '@opentelemetry/api';
 
 export class MetricsClient {
 	public readonly counters: Counters;
-	public readonly histograms: Histograms;
 
 	private readonly client: PrometheusExporter;
 	private readonly provider: metrics.MeterProvider;
 
-	public constructor(options: { port: number; enpoint: string }) {
+	public constructor(options: { port: number; enpoint: string; env: string }) {
 		this.client = new PrometheusExporter(
 			{
 				port: options.port,
@@ -24,12 +23,16 @@ export class MetricsClient {
 			}
 		);
 
-		this.provider = new metrics.MeterProvider();
+		this.provider = new metrics.MeterProvider({
+			resource: new resources.Resource({
+				[SemanticResourceAttributes.SERVICE_NAME]: 'amaneko',
+				[SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: options.env
+			})
+		});
 		this.provider.addMetricReader(this.client);
 
 		this.setupGauges();
 		this.counters = new Counters(this.getMeter());
-		this.histograms = new Histograms(this.getMeter());
 	}
 
 	public async start(): Promise<void> {
