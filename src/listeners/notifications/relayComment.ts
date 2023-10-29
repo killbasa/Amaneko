@@ -20,6 +20,9 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const { tracer, container } = this;
 		const { prisma, client, metrics } = container;
 
+		// TODO: Allow certain verified channels?
+		if (comment.is_verified && (!comment.is_vtuber || !comment.is_tl || !comment.is_moderator)) return;
+
 		await tracer.createSpan('relay_comment', async () => {
 			const timer = metrics.histograms.observeRelay();
 

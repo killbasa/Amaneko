@@ -20,7 +20,8 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const { prisma, client, metrics } = container;
 
 		const { is_owner: isOwner, is_vtuber: isVTuber, channel_id: channelId } = comment;
-		if (!channelId || isOwner || !isVTuber) return;
+		if (!channelId) return;
+		if (isOwner || !isVTuber) return;
 
 		const targetChannel = container.cache.holodexChannels.get(video.channel.id);
 		if (!targetChannel) {
@@ -100,6 +101,6 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 
 		const name = channel?.englishName ?? channel?.name ?? comment.name;
 		const targetName = targetChannel.englishName ?? targetChannel.name;
-		return `${prefix} **${name}** in **${targetName}**'s chat: \`${message}\`\n**Chat:** [${video.title}](<${videoLink(video.id)}>)`;
+		return `${prefix} **${name}** in **${targetName}**'s [chat](<${videoLink(video.id)}>): \`${message}\``;
 	}
 }
