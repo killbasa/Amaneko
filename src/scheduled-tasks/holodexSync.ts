@@ -27,7 +27,12 @@ export class Task extends AmanekoTask {
 		await meili.upsertMany(
 			MeiliCategories.HolodexChannels,
 			channels.map(({ id, name, english_name, org, suborg, group }) => {
-				return { id, name, englishName: english_name, org, subOrg: suborg, group };
+				const enName =
+					english_name && english_name.length > 0 //
+						? english_name
+						: null;
+
+				return { id, name, englishName: enName, org, subOrg: suborg, group };
 			})
 		);
 
