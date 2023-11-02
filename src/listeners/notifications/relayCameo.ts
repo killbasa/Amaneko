@@ -20,7 +20,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const { prisma, client, metrics } = container;
 
 		const { is_owner: isOwner, is_vtuber: isVTuber, channel_id: channelId } = comment;
-		if (!channelId) return;
+		if (!channelId || channelId === video.channel.id) return;
 		if (isOwner || !isVTuber) return;
 
 		const targetChannel = container.cache.holodexChannels.get(video.channel.id);
