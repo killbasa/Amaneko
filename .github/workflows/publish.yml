@@ -17,18 +17,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-publish:
-    name: Build and publish
+  publish-nightly:
+    name: Build and publish (nightly)
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
       - name: Setup Docker
-        uses: docker/setup-buildx-action@v2.7.0
+        uses: docker/setup-buildx-action@v3.0.0
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3.0.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -39,4 +39,27 @@ jobs:
         with:
           push: true
           file: ./Dockerfile
-          tags: ghcr.io/killbasa/amaneko:latest
+          tags: |
+            ghcr.io/killbasa/amaneko:nightly
+            ghcr.io/killbasa/amaneko:${{ github.sha }}
+
+  publish-production:
+    name: Build and publish (production)
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3.0.0
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push new tag
+        run: docker buildx imagetools create ghcr.io/killbasa/amaneko:${{ github.sha }} --tag ghcr.io/killbasa/amaneko:prod
