@@ -50,7 +50,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 							if (comments.length === 0) return;
 
 							return channel.send({
-								content: `Here are the stream logs for [${video.title}](${videoLink(video.id)}).`,
+								content: `Here are the stream logs for ${video.title}\n${videoLink(video.id)}.`,
 								files: [
 									{
 										name: `${video.id}.txt`,
