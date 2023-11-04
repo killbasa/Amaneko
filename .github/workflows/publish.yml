@@ -40,6 +40,7 @@ jobs:
           push: true
           file: ./Dockerfile
           tags: |
+            ghcr.io/killbasa/amaneko:latest
             ghcr.io/killbasa/amaneko:nightly
             ghcr.io/killbasa/amaneko:${{ github.sha }}
 
