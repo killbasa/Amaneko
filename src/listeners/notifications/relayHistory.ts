@@ -33,48 +33,43 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 					}
 				});
 			});
-			if (subscriptions.length === 0) return;
 
-			const result = await tracer.createSpan('process_subscriptions', async () => {
-				return Promise.allSettled(
-					subscriptions.map(({ guild, relayChannelId }) => {
-						return tracer.createSpan(`process_subscription:${guild.id}`, async () => {
-							const channel = await client.channels.fetch(guild.relayHistoryChannelId ?? relayChannelId!);
-							if (!canSendGuildMessages(channel)) return;
+			if (subscriptions.length > 0) {
+				const result = await tracer.createSpan('process_subscriptions', async () => {
+					return Promise.allSettled(
+						subscriptions.map(({ guild, relayChannelId }) => {
+							return tracer.createSpan(`process_subscription:${guild.id}`, async () => {
+								const channel = await client.channels.fetch(guild.relayHistoryChannelId ?? relayChannelId!);
+								if (!canSendGuildMessages(channel)) return;
 
-							const comments = await prisma.streamComment.findMany({
-								where: { guildId: guild.id, videoId: video.id },
-								select: { content: true },
-								orderBy: { id: 'asc' }
+								const comments = await prisma.streamComment.findMany({
+									where: { guildId: guild.id, videoId: video.id },
+									select: { content: true },
+									orderBy: { id: 'asc' }
+								});
+								if (comments.length === 0) return;
+
+								return channel.send({
+									content: `Here are the stream logs for ${video.title}\n${videoLink(video.id)}`,
+									files: [
+										{
+											name: `${video.id}.txt`,
+											attachment: Buffer.from(comments.map(({ content }) => content).join('\n'))
+										}
+									]
+								});
 							});
-							if (comments.length === 0) return;
+						})
+					);
+				});
 
-							return channel.send({
-								content: `Here are the stream logs for ${video.title}\n${videoLink(video.id)}.`,
-								files: [
-									{
-										name: `${video.id}.txt`,
-										attachment: Buffer.from(comments.map(({ content }) => content).join('\n'))
-									}
-								]
-							});
-						});
-					})
-				);
-			});
-
-			for (const entry of result) {
-				metrics.counters.incRelayHistoryNotif({ success: entry.status === 'fulfilled' });
+				for (const entry of result) {
+					metrics.counters.incRelayHistoryNotif({ success: entry.status === 'fulfilled' });
+				}
 			}
 
-			await tracer.createSpan('cleanup_comments', async () => {
-				return Promise.allSettled(
-					subscriptions.map(({ guild }) => {
-						return prisma.streamComment.deleteMany({
-							where: { guildId: guild.id, videoId: video.id }
-						});
-					})
-				);
+			await prisma.streamComment.deleteMany({
+				where: { videoId: video.id }
 			});
 		});
 	}
