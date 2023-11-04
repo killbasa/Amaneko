@@ -40,6 +40,7 @@ jobs:
           push: true
           file: ./Dockerfile
           tags: |
+            ghcr.io/killbasa/amaneko:latest
             ghcr.io/killbasa/amaneko:nightly
             ghcr.io/killbasa/amaneko:${{ github.sha }}
 
@@ -47,6 +48,7 @@ jobs:
     name: Build and publish (production)
     runs-on: ubuntu-latest
     environment: Production
+    needs: publish-nightly
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -62,4 +64,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push new tag
-        run: docker buildx imagetools create ghcr.io/killbasa/amaneko:${{ github.sha }} --tag ghcr.io/killbasa/amaneko:prod
+        run: docker buildx imagetools create ghcr.io/killbasa/amaneko:${{ github.sha }} --tag ghcr.io/killbasa/amaneko:stable
