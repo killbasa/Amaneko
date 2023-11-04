@@ -1,5 +1,5 @@
 import { AmanekoEvents } from '#lib/utils/enums';
-import { cleanEmojis, videoLink } from '#lib/utils/youtube';
+import { cleanEmojis } from '#lib/utils/youtube';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
@@ -70,7 +70,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			await tracer.createSpan('process_messages', async () => {
 				comment.message = cleanEmojis(comment.message);
 
-				const content = this.formatMessage(comment, video);
+				const content = this.formatMessage(comment);
 				const historyContent = this.formatHistoryMessage(comment, video);
 
 				const messages = await Promise.allSettled(channels.map(async (channel) => channel.send({ content })));
@@ -94,7 +94,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		});
 	}
 
-	private formatMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
+	private formatMessage(comment: TLDex.CommentPayload): string {
 		const message = comment.message.replaceAll('`', "'");
 
 		let prefix = `**${comment.name}:**`;
@@ -126,7 +126,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			prefix = `${AmanekoEmojis.Tools} **${comment.name}:**`;
 		}
 
-		return `${prefix} \`${message}\` | <${videoLink(video.id)}>`;
+		return `${prefix} \`${message}\``;
 	}
 
 	private formatHistoryMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
