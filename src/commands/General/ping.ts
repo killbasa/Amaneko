@@ -17,7 +17,7 @@ export class Command extends AmanekoCommand {
 	}
 
 	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction): Promise<unknown> {
-		const message = await interaction.reply({ content: 'Ping?', fetchReply: true });
+		const message = await interaction.reply({ content: 'Ping?', ephemeral: true, fetchReply: true });
 
 		const diff = message.createdTimestamp - interaction.createdTimestamp;
 		const ping = Math.round(this.container.client.ws.ping);

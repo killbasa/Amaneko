@@ -3,6 +3,7 @@ import type { Counter, Meter } from '@opentelemetry/api';
 export class Counters {
 	public readonly commands: Counter;
 	public readonly interactions: Counter;
+	public readonly requests: Counter;
 
 	public readonly notifications: {
 		stream: Counter;
@@ -25,8 +26,8 @@ export class Counters {
 			description: 'Counter for total amount of interactions.'
 		});
 
-		this.interactions = meter.createCounter('amaneko_interactions_total', {
-			description: 'Counter for total amount of interactions.'
+		this.requests = meter.createCounter('amaneko_requests_total', {
+			description: 'Counter for total amount of HTTP requests.'
 		});
 
 		this.notifications = {
@@ -62,6 +63,10 @@ export class Counters {
 	public incInteractions(data: { interaction: string; success: boolean }): void {
 		const { interaction, success } = data;
 		this.interactions.add(1, { interaction, success: String(success) });
+	}
+
+	public incRequests(): void {
+		this.requests.add(1);
 	}
 
 	public incStreamNotif({ success }: { success: boolean }): void {
