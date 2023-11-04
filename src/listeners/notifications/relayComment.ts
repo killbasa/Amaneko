@@ -1,5 +1,5 @@
 import { AmanekoEvents } from '#lib/utils/enums';
-import { cleanEmojis } from '#lib/utils/youtube';
+import { cleanEmojis, videoLink } from '#lib/utils/youtube';
 import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
@@ -126,9 +126,8 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			prefix = `${AmanekoEmojis.Tools} **${comment.name}:**`;
 		}
 
-		const { id, english_name, name } = video.channel;
-
-		return `${prefix} \`${message}\`\n**Chat:** [${english_name ?? name}](<https://www.youtube.com/channel/${id}>)`;
+		const name = video.channel.english_name ?? video.channel.name;
+		return `${prefix} \`${message}\`\n**Chat:** [${name}](<${videoLink(video.id)}>)`;
 	}
 
 	private formatHistoryMessage(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): string {
