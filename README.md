@@ -3,6 +3,7 @@
 # Amaneko
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Uptime Kuma](https://status.amaneko.ca/api/badge/8/status?upLabel=online&downLabel=offline&label=Bot+status)](https://status.amaneko.ca/)
 
 ### Discord bot for VTuber livestream relays, cameos, and notifications.
 
@@ -17,7 +18,9 @@
 
 ## Links 🔗
 
-TODO
+- Bot invite (soon)
+- [Documentation](https://docs.amaneko.ca/)
+- [Status page](https://status.amaneko.ca/)
 
 ## Setup 🔧
 
