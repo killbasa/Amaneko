@@ -42,7 +42,6 @@ jobs:
           tags: |
             ghcr.io/killbasa/amaneko:latest
             ghcr.io/killbasa/amaneko:nightly
-            ghcr.io/killbasa/amaneko:${{ github.sha }}
 
   publish-production:
     name: Build and publish (production)
@@ -64,4 +63,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push new tag
-        run: docker buildx imagetools create ghcr.io/killbasa/amaneko:${{ github.sha }} --tag ghcr.io/killbasa/amaneko:stable
+        run: docker buildx imagetools create ghcr.io/killbasa/amaneko:nightly --tag ghcr.io/killbasa/amaneko:stable
