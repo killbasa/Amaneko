@@ -5,7 +5,13 @@
 	"labels": ["dependencies"],
 	"npm": {
 		"postUpdateOptions": ["yarnDedupeHighest"],
-		"rangeStrategy": "bump"
+		"rangeStrategy": "bump",
+		"packageRules": [
+			{
+				"matchDepTypes": ["engines"],
+				"enabled": false
+			}
+		]
 	},
 	"docker-compose": {
 		"enabled": false
