@@ -3,7 +3,14 @@
 	"extends": ["config:base", "group:allNonMajor"],
 	"schedule": ["before 10am on Saturday"],
 	"labels": ["dependencies"],
+	"npm": {
+		"postUpdateOptions": ["yarnDedupeHighest"],
+		"rangeStrategy": "bump"
+	},
 	"docker-compose": {
+		"enabled": false
+	},
+	"github-actions": {
 		"enabled": false
 	}
 }
