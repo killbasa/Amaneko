@@ -22,6 +22,12 @@
 - [Documentation](https://docs.amaneko.ca/)
 - [Status page](https://status.amaneko.ca/)
 
+## Image tags
+
+[Nightly](https://github.com/killbasa/Amaneko/pkgs/container/amaneko/146766665?tag=nightly): Version that is used for Amaneko's staging environment. **Bugs and crashes may occur.**
+
+[Stable](https://github.com/killbasa/Amaneko/pkgs/container/amaneko/146766665?tag=stable): Version that is used for Amaneko's production environment.
+
 ## Setup 🔧
 
 ### 1. Fork and clone the repository

@@ -22,6 +22,9 @@ RUN yarn install --immutable && \
 ## App ##
 FROM base as app
 
+LABEL org.opencontainers.image.source=https://github.com/killbasa/Amaneko
+LABEL org.opencontainers.image.licenses=MIT
+
 WORKDIR /app
 
 RUN yarn global add prisma && \
