@@ -238,7 +238,7 @@ export class ContextCommand extends AmanekoCommand {
 			select: { channelId: true }
 		});
 		if (!userToBlacklist?.channelId) {
-			return errorReply(interaction, 'This message is either not a stream comment or it is no longer in our database.');
+			return errorReply(interaction, 'This message is either not a stream comment or the stream is over.');
 		}
 
 		const blacklistedUsername = await getUsername(userToBlacklist.channelId);
