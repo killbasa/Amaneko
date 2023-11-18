@@ -12,38 +12,50 @@ export class GuildListener extends Listener<typeof Events.ChannelDelete> {
 
 		if (!this.isValid(channel)) return;
 
-		// Using upsert since update can throw an error.
-		await prisma.$transaction([
-			prisma.guild.upsert({
+		await Promise.allSettled([
+			prisma.guild.update({
 				where: {
 					id: channel.guildId,
 					scheduleChannelId: channel.id
 				},
-				update: { scheduleChannelId: null },
-				create: { id: channel.guildId }
+				data: { scheduleChannelId: null }
 			}),
-			prisma.guild.upsert({
+			prisma.guild.update({
 				where: {
 					id: channel.guildId,
 					relayHistoryChannelId: channel.id
 				},
-				update: { relayHistoryChannelId: null },
-				create: { id: channel.guildId }
-			}),
+				data: { relayHistoryChannelId: null }
+			})
+		]);
+
+		await prisma.$transaction([
 			prisma.subscription.updateMany({
-				where: { discordChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					discordChannelId: channel.id
+				},
 				data: { discordChannelId: null }
 			}),
 			prisma.subscription.updateMany({
-				where: { memberDiscordChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					memberDiscordChannelId: channel.id
+				},
 				data: { memberDiscordChannelId: null }
 			}),
 			prisma.subscription.updateMany({
-				where: { relayChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					relayChannelId: channel.id
+				},
 				data: { relayChannelId: null }
 			}),
 			prisma.subscription.updateMany({
-				where: { communityPostChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					communityPostChannelId: channel.id
+				},
 				data: { communityPostChannelId: null }
 			})
 		]);
