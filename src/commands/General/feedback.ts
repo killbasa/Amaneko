@@ -9,7 +9,7 @@ import { ActionRowBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from
 	description: 'Give feedback to the devs to improve the bot!',
 	preconditions: ['FeedbackBlacklist'],
 	cooldownScope: BucketScope.User,
-	cooldownDelay: Time.Second * 5
+	cooldownDelay: Time.Minute * 5
 })
 export class Command extends AmanekoCommand {
 	public override registerApplicationCommands(registry: AmanekoCommand.Registry): void {

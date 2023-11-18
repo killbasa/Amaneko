@@ -29,20 +29,17 @@ export class ModalHandler extends InteractionHandler {
 		if (canSendGuildEmbeds(channel)) {
 			await channel.send({
 				embeds: [
-					new EmbedBuilder()
+					new EmbedBuilder() //
 						.setColor(BrandColors.Default)
 						.setTitle('Feedback')
-						.setFields([
-							{ name: 'User ID', value: codeBlock(interaction.user.id) },
-							{ name: 'Content', value: codeBlock(text.trim()) }
-						])
+						.setDescription(codeBlock(text.trim()))
 						.setTimestamp()
 				],
 				components: [
 					new ActionRowBuilder<ButtonBuilder>({
 						components: [
 							new ButtonBuilder({
-								customId: CustomIDs.FeedbackBlacklist,
+								customId: `${CustomIDs.FeedbackBlacklist}:${interaction.user.id}`,
 								label: 'Blacklist user',
 								style: ButtonStyle.Danger
 							})

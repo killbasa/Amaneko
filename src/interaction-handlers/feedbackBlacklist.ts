@@ -1,8 +1,9 @@
+import { AmanekoEmojis, BrandColors } from '#lib/utils/constants';
 import { CustomIDs } from '#lib/utils/enums';
 import { errorReply, successReply } from '#lib/utils/reply';
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
-import { ButtonInteraction } from 'discord.js';
+import { ButtonInteraction, EmbedBuilder } from 'discord.js';
 
 @ApplyOptions<InteractionHandler.Options>({
 	name: CustomIDs.FeedbackBlacklist,
@@ -23,6 +24,16 @@ export class ButtonHandler extends InteractionHandler {
 			return;
 		}
 
+		const embed = EmbedBuilder.from(interaction.message.embeds.at(0)!);
+		await interaction.message.edit({
+			embeds: [
+				embed //
+					.setColor(BrandColors.Error)
+					.setFooter({ text: `${AmanekoEmojis.RedX} Blacklisted` })
+			],
+			components: []
+		});
+
 		await prisma.feedbackBlacklist.create({
 			data: { userId }
 		});
@@ -31,11 +42,11 @@ export class ButtonHandler extends InteractionHandler {
 	}
 
 	public override async parse(interaction: ButtonInteraction) {
-		if (interaction.customId !== CustomIDs.FeedbackBlacklist) return this.none();
+		if (!interaction.customId.startsWith(CustomIDs.FeedbackBlacklist)) return this.none();
 
-		const userId = interaction.message.embeds.at(0)?.fields.find((field) => field.name === 'User ID')?.value;
+		const userId = interaction.customId.split(':').at(1);
 		if (!userId) {
-			await errorReply(interaction, 'Failed to get user ID from embed.', true);
+			await errorReply(interaction, 'Failed to get user ID from message.', true);
 			return this.none();
 		}
 
