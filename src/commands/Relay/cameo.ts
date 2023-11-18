@@ -89,7 +89,7 @@ export class Command extends AmanekoSubcommand {
 			if (channels.length === 0) return interaction.respond([]);
 
 			options = channels.map(({ channel }) => ({
-				name: channel.name,
+				name: channel.name ?? channel.id,
 				value: channel.id
 			}));
 		}
