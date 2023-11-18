@@ -16,7 +16,9 @@ export class AmanekoClient extends SapphireClient {
 
 		super({
 			intents: [IntentsBitField.Flags.Guilds],
+			disableMentionPrefix: true,
 			loadSubcommandErrorListeners: false,
+			loadScheduledTaskErrorListeners: true,
 			allowedMentions: {},
 			logger: {
 				instance: new AmanekoLogger({

@@ -27,9 +27,14 @@ async function safeReply(
 	interaction: InteractionUnion,
 	color: BrandColors,
 	text: string,
-	tryEphemeral?: boolean
+	options?: boolean | { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
-	const data = formatResponse(interaction, color, text, tryEphemeral);
+	const ephemeral: boolean =
+		typeof options === 'boolean' //
+			? options
+			: options?.tryEphemeral ?? false;
+
+	const data = formatResponse(interaction, color, text, ephemeral);
 	return interaction.deferred || interaction.replied //
 		? interaction.editReply(data)
 		: interaction.reply(data);
@@ -38,23 +43,23 @@ async function safeReply(
 export async function defaultReply(
 	interaction: InteractionUnion,
 	text: string,
-	options?: { tryEphemeral?: boolean }
+	options?: boolean | { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
-	return safeReply(interaction, BrandColors.Default, text, options?.tryEphemeral);
+	return safeReply(interaction, BrandColors.Default, text, options);
 }
 
 export async function successReply(
 	interaction: InteractionUnion,
 	text: string,
-	options?: { tryEphemeral?: boolean }
+	options?: boolean | { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
-	return safeReply(interaction, BrandColors.Success, text, options?.tryEphemeral);
+	return safeReply(interaction, BrandColors.Success, text, options);
 }
 
 export async function errorReply(
 	interaction: InteractionUnion,
 	text: string,
-	options?: { tryEphemeral?: boolean }
+	options?: boolean | { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
-	return safeReply(interaction, BrandColors.Error, text, options?.tryEphemeral);
+	return safeReply(interaction, BrandColors.Error, text, options);
 }

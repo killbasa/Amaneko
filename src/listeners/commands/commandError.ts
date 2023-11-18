@@ -27,7 +27,7 @@ async function handleError(data: {
 		command
 	});
 
-	await errorReply(interaction, 'Something went wrong when handling your request.');
+	await errorReply(interaction, 'Something went wrong when handling your request.', true);
 }
 
 @ApplyOptions<Listener.Options>({

@@ -14,6 +14,8 @@ export const YoutubeEmojiRegex = /https:\/\/yt\d+\.ggpht\.com\/[a-zA-Z0-9_\-=/]+
 
 export const NotifChannelTypes = [ChannelType.GuildAnnouncement, ChannelType.GuildText] as const;
 
+export const DevSettingsKey = 'amaneko:dev_settings';
+
 export const enum BrandColors {
 	Default = '#9966CC',
 	Success = '#33B54E',
@@ -25,7 +27,8 @@ export const AmanekoEmojis = {
 	Speech: ':speech_balloon:',
 	Speaker: ':loud_sound:',
 	GreenCheck: '✅',
-	RedX: '❌'
+	RedX: '❌',
+	Block: '🚫'
 };
 
 export const VTuberOrgEmojis = new Map<string, string>([

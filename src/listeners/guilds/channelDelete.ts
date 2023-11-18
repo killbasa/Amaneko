@@ -12,20 +12,23 @@ export class GuildListener extends Listener<typeof Events.ChannelDelete> {
 
 		if (!this.isValid(channel)) return;
 
+		// Using upsert since update can throw an error.
 		await prisma.$transaction([
-			prisma.guild.update({
+			prisma.guild.upsert({
 				where: {
 					id: channel.guildId,
 					scheduleChannelId: channel.id
 				},
-				data: { scheduleChannelId: null }
+				update: { scheduleChannelId: null },
+				create: { id: channel.guildId }
 			}),
-			prisma.guild.update({
+			prisma.guild.upsert({
 				where: {
 					id: channel.guildId,
 					relayHistoryChannelId: channel.id
 				},
-				data: { relayHistoryChannelId: null }
+				update: { relayHistoryChannelId: null },
+				create: { id: channel.guildId }
 			}),
 			prisma.subscription.updateMany({
 				where: { discordChannelId: channel.id },

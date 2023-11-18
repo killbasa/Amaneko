@@ -26,6 +26,10 @@ model GuildBlacklist {
   guildId String @id @unique
 }
 
+model FeedbackBlacklist {
+  userId String @id @unique
+}
+
 model Blacklist {
   id String @id @default(uuid())
 
