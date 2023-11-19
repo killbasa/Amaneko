@@ -9,7 +9,9 @@ import type { RateLimitData } from 'discord.js';
 })
 export class ClientListener extends Listener<typeof RESTEvents.RateLimited> {
 	public async run(data: RateLimitData): Promise<void> {
-		this.container.logger.error(
+		const level = data.global ? 'fatal' : 'warn';
+
+		this.container.logger[level](
 			'Encountered unexpected 429 rate limit',
 			`  Global         : ${data.global}`,
 			`  Method         : ${data.method}`,
