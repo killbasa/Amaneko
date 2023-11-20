@@ -54,6 +54,7 @@ export class AmanekoLogger extends Logger implements ILogger {
 		this.console[method](JSON.stringify(log));
 	}
 
+	// This is static because having it as an instance method messes with the `instanceof Error` check.
 	public static isRecord(value: unknown): value is Record<string, unknown> {
 		if (value instanceof Error) return false;
 		return typeof value === 'object' && value !== null && !Array.isArray(value);

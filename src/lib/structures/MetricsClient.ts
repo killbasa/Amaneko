@@ -61,26 +61,6 @@ export class MetricsClient {
 			});
 
 		meter
-			.createObservableGauge('amaneko_channels_total', {
-				description: 'Gauge for total amount of channels.'
-			})
-			.addCallback((gauge) => {
-				if (container.client.isReady()) {
-					gauge.observe(container.client.channels.cache.size);
-				}
-			});
-
-		meter
-			.createObservableGauge('amaneko_users_total', {
-				description: 'Gauge for total amount of users.'
-			})
-			.addCallback((gauge) => {
-				if (container.client.isReady()) {
-					gauge.observe(container.client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0));
-				}
-			});
-
-		meter
 			.createObservableGauge('amaneko_subscriptions_total', {
 				description: 'Gauge for total amount of subscriptions.'
 			})

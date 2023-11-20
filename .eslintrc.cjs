@@ -17,6 +17,13 @@ module.exports = {
 			rules: {
 				'import/no-unresolved': 'off'
 			}
+		},
+		{
+			files: ['**/interaction-handlers/**/*.ts'],
+			rules: {
+				'@typescript-eslint/explicit-function-return-type': 'off',
+				'@typescript-eslint/explicit-module-boundary-types': 'off'
+			}
 		}
 	]
 };

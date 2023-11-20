@@ -15,7 +15,7 @@ export class Command extends AmanekoCommand {
 		registry.registerChatInputCommand(
 			(builder) =>
 				builder //
-					.setName('holodexsync')
+					.setName('dev_holodexsync')
 					.setDescription(this.description)
 					.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 					.setDMPermission(false),

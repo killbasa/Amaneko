@@ -4,7 +4,7 @@ import { ApplyOptions } from '@sapphire/decorators';
 import { PermissionFlagsBits } from 'discord.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	description: 'Manage the guild blacklist',
+	description: 'Manage the feedback blacklist',
 	preconditions: ['BotOwnerOnly'],
 	subcommands: [
 		{ name: 'add', chatInputRun: 'handleAdd' },
@@ -17,40 +17,40 @@ export class Command extends AmanekoSubcommand {
 		registry.registerChatInputCommand(
 			(builder) =>
 				builder //
-					.setName('dev_blacklistguild')
+					.setName('dev_blacklistfeedback')
 					.setDescription(this.description)
 					.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 					.setDMPermission(false)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('add')
-							.setDescription('Add a guild to blacklist.')
+							.setDescription('Add a user to the feedback blacklist.')
 							.addStringOption((option) =>
 								option //
-									.setName('guild')
-									.setDescription('The ID of the guild.')
+									.setName('user')
+									.setDescription('The ID of the user.')
 									.setRequired(true)
 							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('remove')
-							.setDescription('Remove a guild blacklist.')
+							.setDescription('Remove a user from the feedback blacklist.')
 							.addStringOption((option) =>
 								option //
-									.setName('guild')
-									.setDescription('The ID of the guild.')
+									.setName('user')
+									.setDescription('The ID of the user.')
 									.setRequired(true)
 							)
 					)
 					.addSubcommand((subcommand) =>
 						subcommand //
 							.setName('check')
-							.setDescription('Check if a guild is blacklisted.')
+							.setDescription('Check if a user is blacklisted.')
 							.addStringOption((option) =>
 								option //
-									.setName('guild')
-									.setDescription('The ID of the guild.')
+									.setName('user')
+									.setDescription('The ID of the user.')
 									.setRequired(true)
 							)
 					),
@@ -61,51 +61,42 @@ export class Command extends AmanekoSubcommand {
 	}
 
 	public async handleAdd(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
-		const guildId = interaction.options.getString('guild', true);
+		const userId = interaction.options.getString('user', true);
 
-		await this.container.prisma.guildBlacklist.upsert({
-			where: { guildId },
-			update: { guildId },
-			create: { guildId }
+		await this.container.prisma.feedbackBlacklist.upsert({
+			where: { userId },
+			update: { userId },
+			create: { userId }
 		});
 
-		try {
-			const guild = interaction.client.guilds.cache.get(guildId);
-			if (guild) {
-				await guild.leave();
-			}
-		} catch (err: unknown) {
-			return errorReply(interaction, `Failed to leave ${guildId}.`);
-		}
-
-		return defaultReply(interaction, `${guildId} has been added to the guild blacklist.`);
+		return defaultReply(interaction, `\`${userId}\` has been added to the feedback blacklist.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
-		const guildId = interaction.options.getString('guild', true);
+		const userId = interaction.options.getString('user', true);
 
 		try {
-			await this.container.prisma.guildBlacklist.delete({
-				where: { guildId }
+			await this.container.prisma.feedbackBlacklist.delete({
+				where: { userId }
 			});
 		} catch (err: unknown) {
-			return errorReply(interaction, `Failed to remove the blacklist for ${guildId}.`);
+			return errorReply(interaction, `Failed to remove the blacklist for \`${userId}\`.`);
 		}
 
-		return defaultReply(interaction, `${guildId} has been removed from the guild blacklist.`);
+		return defaultReply(interaction, `\`${userId}\` has been removed from the feedback blacklist.`);
 	}
 
 	public async handleCheck(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
-		const guildId = interaction.options.getString('guild', true);
+		const userId = interaction.options.getString('user', true);
 
-		const result = await this.container.prisma.guildBlacklist.findUnique({
-			where: { guildId }
+		const result = await this.container.prisma.feedbackBlacklist.findUnique({
+			where: { userId }
 		});
 
 		if (result !== null) {
-			return defaultReply(interaction, `${guildId} is blacklisted.`);
+			return defaultReply(interaction, `\`${userId}\` is blacklisted.`);
 		}
 
-		return defaultReply(interaction, `${guildId} is not blacklisted.`);
+		return defaultReply(interaction, `\`${userId}\` is not blacklisted.`);
 	}
 }

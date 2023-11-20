@@ -8,8 +8,6 @@ import type { ChatInputCommandDeniedPayload, UserError } from '@sapphire/framewo
 })
 export class CommandListener extends Listener<typeof Events.ChatInputCommandDenied> {
 	public async run({ message }: UserError, { interaction }: ChatInputCommandDeniedPayload): Promise<void> {
-		await errorReply(interaction, message, {
-			tryEphemeral: true
-		});
+		await errorReply(interaction, message, true);
 	}
 }

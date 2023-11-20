@@ -17,3 +17,8 @@ export const AmanekoEvents = {
 export const AmanekoTasks = {
 	HolodexSync: 'HolodexSync'
 } as const;
+
+export const CustomIDs = {
+	Feedback: 'amaneko/feedback',
+	FeedbackBlacklist: 'amaneko/feedback-blacklist'
+} as const;

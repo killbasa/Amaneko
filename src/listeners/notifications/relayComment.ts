@@ -19,10 +19,19 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 	public async run(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Promise<void> {
 		const { tracer, container } = this;
 		const { prisma, client, metrics } = container;
+		const { is_owner: isOwner, is_vtuber: isVTuber, is_tl: isTL, is_moderator: isMod, channel_id: cmtChannelId } = comment;
 
+		// Filter out verified-only channels
 		// TODO: Allow certain verified channels?
-		if (comment.is_verified && (!comment.is_owner || !comment.is_vtuber || !comment.is_tl || !comment.is_moderator)) {
+		if (comment.is_verified && (!isOwner || !isVTuber || !isTL || !isMod)) {
 			return;
+		}
+
+		// Filter out Super Chat heart messages
+		if (isOwner || (cmtChannelId && cmtChannelId === video.channel.id)) {
+			if (comment.message.startsWith('hearted a Super Chat from')) {
+				return;
+			}
 		}
 
 		await tracer.createSpan('relay_comment', async () => {
@@ -32,15 +41,15 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 					relayChannelId: { not: null }
 				};
 
-				if (comment.is_vtuber) {
+				if (isVTuber) {
 					query.guild = {
-						blacklist: { none: { channelId: comment.channel_id } }
+						blacklist: { none: { channelId: cmtChannelId } }
 					};
 				} else {
 					query.guild = {
-						blacklist: { none: { channelId: comment.channel_id } },
-						relayTranslations: comment.is_tl ? { not: false } : undefined,
-						relayMods: comment.is_moderator ? { not: false } : undefined
+						blacklist: { none: { channelId: cmtChannelId } },
+						relayTranslations: isTL ? { not: false } : undefined,
+						relayMods: isMod ? { not: false } : undefined
 					};
 				}
 
@@ -82,7 +91,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 							return {
 								videoId: video.id,
 								messageId: message.value.id,
-								channelId: comment.channel_id,
+								channelId: cmtChannelId,
 								content: historyContent,
 								guildId: message.value.guildId
 							};

@@ -12,7 +12,7 @@ export class GuildListener extends Listener<typeof Events.ChannelDelete> {
 
 		if (!this.isValid(channel)) return;
 
-		await prisma.$transaction([
+		await Promise.allSettled([
 			prisma.guild.update({
 				where: {
 					id: channel.guildId,
@@ -26,21 +26,36 @@ export class GuildListener extends Listener<typeof Events.ChannelDelete> {
 					relayHistoryChannelId: channel.id
 				},
 				data: { relayHistoryChannelId: null }
-			}),
+			})
+		]);
+
+		await prisma.$transaction([
 			prisma.subscription.updateMany({
-				where: { discordChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					discordChannelId: channel.id
+				},
 				data: { discordChannelId: null }
 			}),
 			prisma.subscription.updateMany({
-				where: { memberDiscordChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					memberDiscordChannelId: channel.id
+				},
 				data: { memberDiscordChannelId: null }
 			}),
 			prisma.subscription.updateMany({
-				where: { relayChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					relayChannelId: channel.id
+				},
 				data: { relayChannelId: null }
 			}),
 			prisma.subscription.updateMany({
-				where: { communityPostChannelId: channel.id },
+				where: {
+					guildId: channel.guildId,
+					communityPostChannelId: channel.id
+				},
 				data: { communityPostChannelId: null }
 			})
 		]);
