@@ -15,7 +15,8 @@ COPY .yarnrc.yml tsconfig.base.json yarn.lock package.json tsup.config.ts ./
 COPY src/ src/
 COPY prisma/ prisma/
 
-RUN yarn install --immutable && \
+RUN apk add --no-cache python3 g++ make && \
+	yarn install --immutable && \
 	yarn build && \
 	yarn workspaces focus --production
 
