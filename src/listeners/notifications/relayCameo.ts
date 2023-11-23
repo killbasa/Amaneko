@@ -17,11 +17,13 @@ import type { HolodexChannel } from '@prisma/client';
 export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.StreamComment> {
 	public async run(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Promise<void> {
 		const { tracer, container } = this;
-		const { prisma, client, metrics } = container;
+		const { prisma, client, metrics, logger } = container;
 
 		const { is_owner: isOwner, is_vtuber: isVTuber, channel_id: channelId } = comment;
-		if (!channelId || channelId === video.channel.id) return;
-		if (isOwner || !isVTuber) return;
+		if (!channelId || channelId === video.channel.id || isOwner || !isVTuber) {
+			logger.debug(`[Cameo] Filtered out comment from ${comment.name} (${video.channel.id})`);
+			return;
+		}
 
 		const targetChannel = container.cache.holodexChannels.get(video.channel.id);
 		if (!targetChannel) {
@@ -41,7 +43,10 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 					select: { guildId: true, cameoChannelId: true }
 				});
 			});
-			if (cameoChannelIds.length === 0) return;
+			if (cameoChannelIds.length === 0) {
+				logger.debug(`[Cameo] No subscriptions found for ${comment.channel_id} (${video.channel.id})`);
+				return;
+			}
 
 			const channels = await tracer.createSpan('fetch_channels', async () => {
 				const fetchedChannels = await Promise.allSettled(
@@ -81,7 +86,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		const channel = container.cache.holodexChannels.get(channelId);
 
 		if (!channel) {
-			container.logger.warn(`[Relay] No channel found for ${channelId} (comment)`, {
+			container.logger.warn(`[Cameo] No channel found for ${channelId} (comment)`, {
 				listener: this.name
 			});
 		} else if (channel.org) {
@@ -89,7 +94,7 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 			if (emoji) {
 				prefix = emoji;
 			} else {
-				container.logger.warn(`[Relay] No emoji for ${channel.org}`, {
+				container.logger.warn(`[Cameo] No emoji for ${channel.org}`, {
 					listener: this.name
 				});
 			}

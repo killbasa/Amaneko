@@ -18,18 +18,20 @@ import type { Prisma } from '@prisma/client';
 export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.StreamComment> {
 	public async run(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Promise<void> {
 		const { tracer, container } = this;
-		const { prisma, client, metrics } = container;
+		const { prisma, client, metrics, logger } = container;
 		const { is_owner: isOwner, is_vtuber: isVTuber, is_tl: isTL, is_moderator: isMod, channel_id: cmtChannelId } = comment;
 
 		// Filter out verified-only channels
 		// TODO: Allow certain verified channels?
 		if (comment.is_verified && (!isOwner || !isVTuber || !isTL || !isMod)) {
+			logger.debug(`[Relay] Filtered out verified comment from ${comment.name} (${video.channel.id})`);
 			return;
 		}
 
 		// Filter out Super Chat heart messages
 		if (isOwner || (cmtChannelId && cmtChannelId === video.channel.id)) {
 			if (comment.message.startsWith('hearted a Super Chat from')) {
+				logger.debug(`[Relay] Filtered out Super Chat heart message from ${comment.name} (${video.channel.id})`);
 				return;
 			}
 		}
@@ -58,7 +60,10 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 					select: { guildId: true, relayChannelId: true }
 				});
 			});
-			if (relayChannelIds.length === 0) return;
+			if (relayChannelIds.length === 0) {
+				logger.debug(`[Relay] No subscriptions found for ${video.channel.id} (${cmtChannelId})`);
+				return;
+			}
 
 			const channels = await tracer.createSpan('fetch_channels', async () => {
 				const fetchedChannels = await Promise.allSettled(

@@ -17,6 +17,10 @@ export class AmanekoLogger extends Logger implements ILogger {
 		this.json = options?.json ?? false;
 	}
 
+	public setLevel(level: LogLevel): void {
+		this.level = level;
+	}
+
 	public override write(level: LogLevel, ...values: readonly unknown[]): void {
 		if (!this.json) {
 			super.write(level, ...values);
