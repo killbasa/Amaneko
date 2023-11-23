@@ -88,7 +88,7 @@ export class Command extends AmanekoCommand {
 			interaction,
 			check: canSendGuildEmbeds,
 			title: 'Permissions for YouTube subscriptions',
-			description: 'Required permissions:\n• `View Channel`\n• `Send Messages`\n• `Embed Links`',
+			description: '**Required permissions:**\n• `View Channel`\n• `Send Messages`\n• `Embed Links`',
 			subscriptions: subscriptions.map((subscription) => {
 				return { ...subscription, discordChannelId: subscription.discordChannelId! };
 			})
@@ -113,7 +113,7 @@ export class Command extends AmanekoCommand {
 			interaction,
 			check: canSendGuildEmbeds,
 			title: 'Permissions for YouTube member subscriptions',
-			description: 'Required permissions:\n• `View Channel`\n• `Send Messages`\n• `Embed Links`',
+			description: '**Required permissions:**\n• `View Channel`\n• `Send Messages`\n• `Embed Links`',
 			subscriptions: subscriptions.map((subscription) => {
 				return { ...subscription, discordChannelId: subscription.memberDiscordChannelId! };
 			})
@@ -138,7 +138,7 @@ export class Command extends AmanekoCommand {
 			interaction,
 			check: canSendGuildMessages,
 			title: 'Permissions for relay subscriptions',
-			description: 'Required permissions:\n• `View Channel`\n• `Send Messages`',
+			description: '**Required permissions:**\n• `View Channel`\n• `Send Messages`',
 			subscriptions: subscriptions.map((subscription) => {
 				return { ...subscription, discordChannelId: subscription.relayChannelId! };
 			})
@@ -163,7 +163,7 @@ export class Command extends AmanekoCommand {
 			interaction,
 			check: canSendGuildMessages,
 			title: 'Permissions for cameo subscriptions',
-			description: 'Required permissions:\n• `View Channel`\n• `Send Messages`',
+			description: '**Required permissions:**\n• `View Channel`\n• `Send Messages`',
 			subscriptions: subscriptions.map((subscription) => {
 				return { ...subscription, discordChannelId: subscription.cameoChannelId! };
 			})
@@ -188,7 +188,7 @@ export class Command extends AmanekoCommand {
 			interaction,
 			check: canSendGuildEmbeds,
 			title: 'Permissions for community post subscriptions',
-			description: 'Required permissions:\n• `View Channel`\n• `Send Messages`\n• `Embed Links`',
+			description: '**Required permissions:**\n• `View Channel`\n• `Send Messages`\n• `Embed Links`',
 			subscriptions: subscriptions.map((subscription) => {
 				return { ...subscription, discordChannelId: subscription.communityPostChannelId! };
 			})
@@ -255,11 +255,7 @@ export class Command extends AmanekoCommand {
 				new EmbedBuilder()
 					.setColor(BrandColors.Default) //
 					.setTitle(title)
-					.setDescription(description)
-					.setFields({
-						name: 'Subscriptions',
-						value: list
-					})
+					.setDescription(`${description}\n\n**Subscriptions:**\n${list}`)
 			]
 		});
 	}
