@@ -52,4 +52,4 @@ jobs:
       - name: Run tests
         run: yarn test
         env:
-          DATABASE_URL: postgresql://user:password@postgres:5432/amaneko
+          DATABASE_URL: postgresql://user:password@localhost:5432/amaneko
