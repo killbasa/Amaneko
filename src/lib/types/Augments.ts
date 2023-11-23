@@ -12,14 +12,23 @@ import type { Holodex } from '#lib/types/Holodex';
 import type { MetricsClient } from '#lib/structures/MetricsClient';
 import type { youtube_v3 } from 'googleapis';
 import type { OpenTelemetryClient } from '#lib/structures/OpenTelemetryClient';
+import type { LogLevel } from '@sapphire/framework';
 
 declare module 'discord.js' {
+	interface Client {}
+
 	interface ClientEvents {
 		[AmanekoEvents.CommunityPost]: [post: CommunityPostData];
 		[AmanekoEvents.StreamPrechat]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamStart]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamEnd]: [video: Holodex.VideoWithChannel];
 		[AmanekoEvents.StreamComment]: [message: TLDex.CommentPayload, video: Holodex.VideoWithChannel];
+	}
+}
+
+declare module '@sapphire/framework' {
+	interface ILogger {
+		setLevel(level: LogLevel): void;
 	}
 }
 
