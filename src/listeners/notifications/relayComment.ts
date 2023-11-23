@@ -24,12 +24,17 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 		// Filter out verified-only channels
 		// TODO: Allow certain verified channels?
 		if (comment.is_verified && (!isOwner || !isVTuber || !isTL || !isMod)) {
-			logger.debug(`[Relay] Filtered out verified comment from ${comment.name} (${video.channel.id})`);
+			logger.debug(`[Relay] Filtered out verified comment from ${comment.name} (${video.channel.id})`, {
+				isOwner,
+				isVTuber,
+				isTL,
+				isMod
+			});
 			return;
 		}
 
 		// Filter out Super Chat heart messages
-		if (isOwner || (cmtChannelId && cmtChannelId === video.channel.id)) {
+		if (isOwner || cmtChannelId === video.channel.id) {
 			if (comment.message.startsWith('hearted a Super Chat from')) {
 				logger.debug(`[Relay] Filtered out Super Chat heart message from ${comment.name} (${video.channel.id})`);
 				return;

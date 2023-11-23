@@ -21,7 +21,12 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 
 		const { is_owner: isOwner, is_vtuber: isVTuber, channel_id: channelId } = comment;
 		if (!channelId || channelId === video.channel.id || isOwner || !isVTuber) {
-			logger.debug(`[Cameo] Filtered out comment from ${comment.name} (${video.channel.id})`);
+			logger.debug(`[Cameo] Filtered out comment from ${comment.name} (${video.channel.id})`, {
+				channelId,
+				videoChannelId: video.channel.id,
+				isOwner,
+				isVTuber
+			});
 			return;
 		}
 
