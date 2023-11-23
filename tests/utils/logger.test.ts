@@ -1,6 +1,9 @@
 import { LogLevel } from '@sapphire/framework';
 import { AmanekoLogger } from '#src/lib/extensions/AmanekoLogger';
 
+/**
+ * These can be skipped unless you're working on the logger.
+ */
 describe('AmanekoLogger', () => {
 	const logger = new AmanekoLogger({
 		level: LogLevel.Trace,

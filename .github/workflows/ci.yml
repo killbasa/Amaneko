@@ -10,6 +10,22 @@ jobs:
   checks:
     name: Checks
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.0-alpine
+        env:
+          POSTGRES_DB: amaneko
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/amaneko
 
     steps:
       - name: Check out Git repository
@@ -22,7 +38,9 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: |
+          yarn install --immutable
+          yarn db:push
 
       - name: Run typecheck
         run: yarn typecheck
