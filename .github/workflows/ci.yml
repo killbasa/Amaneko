@@ -24,6 +24,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+    env:
+      DATABASE_URL: postgresql://user:password@localhost:5432/amaneko
 
     steps:
       - name: Check out Git repository
@@ -53,5 +55,3 @@ jobs:
 
       - name: Run tests
         run: yarn test
-        env:
-          DATABASE_URL: postgresql://user:password@localhost:5432/amaneko
