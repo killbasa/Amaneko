@@ -36,7 +36,9 @@ jobs:
           cache: yarn
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: |
+          yarn install --immutable
+          yarn db:push
 
       - name: Run typecheck
         run: yarn typecheck
