@@ -7,7 +7,8 @@ export default defineConfig({
 		coverage: {
 			provider: 'istanbul',
 			reporter: ['text']
-		}
+		},
+		globalSetup: './tests/vitest.global.ts'
 	},
 	resolve: {
 		alias: {

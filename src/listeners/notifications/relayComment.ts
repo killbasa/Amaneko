@@ -4,12 +4,12 @@ import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
 import { calculateTimestamp } from '#lib/utils/functions';
+import { resolveRelayQuery } from '#lib/utils/notifications';
 import { Listener, container } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
 import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
-import type { Prisma } from '@prisma/client';
 
 @ApplyOptions<Listener.Options>({
 	name: 'RelayComment',
@@ -43,25 +43,8 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 
 		await tracer.createSpan('relay_comment', async () => {
 			const relayChannelIds = await tracer.createSpan('find_subscriptions', async () => {
-				const query: Prisma.SubscriptionWhereInput = {
-					channelId: video.channel.id,
-					relayChannelId: { not: null }
-				};
-
-				if (isVTuber) {
-					query.guild = {
-						blacklist: { none: { channelId: cmtChannelId } }
-					};
-				} else {
-					query.guild = {
-						blacklist: { none: { channelId: cmtChannelId } },
-						relayTranslations: isTL ? { not: false } : undefined,
-						relayMods: isMod ? { not: false } : undefined
-					};
-				}
-
 				return prisma.subscription.findMany({
-					where: query,
+					where: resolveRelayQuery(comment, video),
 					select: { guildId: true, relayChannelId: true }
 				});
 			});
