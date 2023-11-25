@@ -65,6 +65,18 @@ describe('shouldFilterComment', () => {
 			expect(result).toBe(false);
 		});
 
+		it('should not filter a random message from owner', async () => {
+			const commnent = getComment({
+				message: 'random stuff',
+				verified: true,
+				mod: true,
+				owner: true
+			});
+			const result = shouldFilterComment(commnent, video);
+
+			expect(result).toBe(false);
+		});
+
 		it('should not filter if not owner', async () => {
 			const commnent = getComment({
 				message: 'hearted a Super Chat from',
