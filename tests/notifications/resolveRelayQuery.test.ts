@@ -1,7 +1,7 @@
 import { client } from '../mocks/prisma';
+import { getComment } from '../mocks/tldex';
 import type { DeepPartial } from '#src/lib/types/Generic';
 import type { Holodex } from '#src/lib/types/Holodex';
-import type { TLDex } from '#src/lib/types/TLDex';
 import type { Subscription } from '@prisma/client';
 import { resolveRelayQuery } from '#src/lib/utils/notifications';
 
@@ -9,16 +9,6 @@ describe('resolveRelayQuery', () => {
 	const video: DeepPartial<Holodex.VideoWithChannel> = {
 		channel: { id: '1' }
 	};
-
-	function getComment(data: { vtuber?: boolean; tl?: boolean; mod?: boolean }): DeepPartial<TLDex.CommentPayload> {
-		const { vtuber = false, tl = false, mod = false } = data;
-		return {
-			is_vtuber: vtuber,
-			is_tl: tl,
-			is_moderator: mod,
-			channel_id: '1'
-		};
-	}
 
 	/**
 	 * Checks if the result of the query matches the expected IDs

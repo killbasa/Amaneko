@@ -4,7 +4,7 @@ import { AmanekoListener } from '#lib/extensions/AmanekoListener';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
 import { calculateTimestamp } from '#lib/utils/functions';
-import { resolveRelayQuery } from '#lib/utils/notifications';
+import { resolveRelayQuery, shouldFilterComment } from '#lib/utils/notifications';
 import { Listener, container } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
@@ -19,27 +19,9 @@ export class NotificationListener extends AmanekoListener<typeof AmanekoEvents.S
 	public async run(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Promise<void> {
 		const { tracer, container } = this;
 		const { prisma, client, metrics, logger } = container;
-		const { is_owner: isOwner, is_vtuber: isVTuber, is_tl: isTL, is_moderator: isMod, channel_id: cmtChannelId } = comment;
+		const { channel_id: cmtChannelId } = comment;
 
-		// Filter out verified-only channels
-		// TODO: Allow certain verified channels?
-		if (comment.is_verified && (!isOwner || !isVTuber || !isTL || !isMod)) {
-			logger.debug(`[Relay] Filtered out verified comment from ${comment.name} (${video.channel.id})`, {
-				isOwner,
-				isVTuber,
-				isTL,
-				isMod
-			});
-			return;
-		}
-
-		// Filter out Super Chat heart messages
-		if (isOwner || cmtChannelId === video.channel.id) {
-			if (comment.message.startsWith('hearted a Super Chat from')) {
-				logger.debug(`[Relay] Filtered out Super Chat heart message from ${comment.name} (${video.channel.id})`);
-				return;
-			}
-		}
+		if (shouldFilterComment(comment, video)) return;
 
 		await tracer.createSpan('relay_comment', async () => {
 			const relayChannelIds = await tracer.createSpan('find_subscriptions', async () => {
