@@ -6,12 +6,12 @@ import { calculateTimestamp } from '#lib/utils/functions';
 import { resolveRelayQuery, shouldFilterComment } from '#lib/utils/notifications';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
 import { ApplyOptions } from '@sapphire/decorators';
-import { container } from '@sapphire/framework';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
 import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<AmanekoNotifier.Options>({
+	name: 'RelayComment',
 	event: AmanekoEvents.StreamComment
 })
 export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment> {
@@ -132,9 +132,3 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		return `${timestamp} (${comment.name}) ${comment.message}`;
 	}
 }
-
-void container.stores.loadPiece({
-	name: 'RelayComment',
-	piece: Notifier,
-	store: 'notifiers'
-});

@@ -3,7 +3,6 @@ import { canSendGuildMessages } from '#lib/utils/permissions';
 import { videoLink } from '#lib/utils/youtube';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
 import { ApplyOptions } from '@sapphire/decorators';
-import { container } from '@sapphire/framework';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<AmanekoNotifier.Options>({
@@ -82,9 +81,3 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamEnd> {
 		});
 	}
 }
-
-void container.stores.loadPiece({
-	name: 'StreamEndRelayHistory',
-	piece: Notifier,
-	store: 'notifiers'
-});

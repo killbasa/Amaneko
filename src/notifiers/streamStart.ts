@@ -6,7 +6,6 @@ import { videoLink } from '#lib/utils/youtube';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, roleMention } from 'discord.js';
-import { container } from '@sapphire/framework';
 import type { Channel } from 'discord.js';
 import type { Holodex } from '#lib/types/Holodex';
 
@@ -116,9 +115,3 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamStart> 
 		}
 	}
 }
-
-void container.stores.loadPiece({
-	name: AmanekoEvents.StreamStart,
-	piece: Notifier,
-	store: 'notifiers'
-});

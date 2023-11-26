@@ -2,7 +2,6 @@ import { AmanekoEvents } from '#lib/utils/enums';
 import { YoutubeEmbedsKey } from '#lib/utils/cache';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
 import { ApplyOptions } from '@sapphire/decorators';
-import { container } from '@sapphire/framework';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<AmanekoNotifier.Options>({
@@ -43,9 +42,3 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamEnd> {
 		await redis.delete(YoutubeEmbedsKey(videoId));
 	}
 }
-
-void container.stores.loadPiece({
-	name: 'StreamEndCleanup',
-	piece: Notifier,
-	store: 'notifiers'
-});

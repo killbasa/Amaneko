@@ -10,12 +10,12 @@ export namespace TLDex {
 
 	export type CommentPayload = {
 		type?: string;
-		message: string;
-		name: string;
-		timestamp: number;
 		channel_id?: string;
+		name: string;
+		message: string;
+		timestamp: number;
+		video_offset: number;
 		is_tl?: boolean;
-		is_owner?: boolean;
 		is_vtuber?: boolean;
 		is_moderator?: boolean;
 		is_verified?: boolean;

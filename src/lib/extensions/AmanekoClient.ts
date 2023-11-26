@@ -1,15 +1,16 @@
-import { NotifierStore } from '#lib/extensions/NotifierStore';
 import { HolodexClient } from '#lib/structures/HolodexClient';
 import { MeiliClient } from '#lib/extensions/MeiliClient';
 import { TLDexClient } from '#lib/structures/TLDexClient';
 import { MetricsClient } from '#lib/structures/MetricsClient';
 import { OpenTelemetryClient } from '#lib/structures/OpenTelemetryClient';
 import { AmanekoLogger } from '#lib/extensions/AmanekoLogger';
+import { mainFolder } from '#lib/utils/constants';
 import { RedisClient } from '@killbasa/redis-utils';
 import { PrismaClient } from '@prisma/client';
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
 import { Collection, IntentsBitField } from 'discord.js';
 import { google } from 'googleapis';
+import { resolve } from 'node:path';
 
 export class AmanekoClient extends SapphireClient {
 	public constructor() {
@@ -97,6 +98,6 @@ export class AmanekoClient extends SapphireClient {
 	}
 
 	private registerStores(): void {
-		container.stores.register(new NotifierStore());
+		container.stores.get('listeners').registerPath(resolve(mainFolder, 'notifiers'));
 	}
 }

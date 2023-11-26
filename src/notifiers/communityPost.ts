@@ -4,10 +4,10 @@ import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, roleMention } from 'discord.js';
-import { container } from '@sapphire/framework';
 import type { CommunityPostData } from '#lib/types/YouTube';
 
 @ApplyOptions<AmanekoNotifier.Options>({
+	name: AmanekoEvents.CommunityPost,
 	event: AmanekoEvents.CommunityPost
 })
 export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.CommunityPost> {
@@ -68,9 +68,3 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.CommunityPost
 			.setDescription(post.content);
 	}
 }
-
-void container.stores.loadPiece({
-	name: AmanekoEvents.CommunityPost,
-	piece: Notifier,
-	store: 'notifiers'
-});
