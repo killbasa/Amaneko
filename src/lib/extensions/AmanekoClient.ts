@@ -1,3 +1,4 @@
+import { NotifierStore } from '#lib/extensions/NotifierStore';
 import { HolodexClient } from '#lib/structures/HolodexClient';
 import { MeiliClient } from '#lib/extensions/MeiliClient';
 import { TLDexClient } from '#lib/structures/TLDexClient';
@@ -40,6 +41,8 @@ export class AmanekoClient extends SapphireClient {
 				}
 			}
 		});
+
+		this.registerStores();
 
 		container.youtube = google.youtube({ version: 'v3', auth: container.config.youtube.apikey });
 		container.holodex = new HolodexClient(config.holodex);
@@ -91,5 +94,9 @@ export class AmanekoClient extends SapphireClient {
 		]);
 
 		return super.destroy();
+	}
+
+	private registerStores(): void {
+		container.stores.register(new NotifierStore());
 	}
 }

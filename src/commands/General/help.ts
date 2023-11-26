@@ -35,7 +35,7 @@ export class Command extends AmanekoCommand {
 		);
 	}
 
-	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction): Promise<void> {
+	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction<'raw'>): Promise<void> {
 		const category = interaction.options.getString('category');
 		const embed = new EmbedBuilder() //
 			.setColor(BrandColors.Default)

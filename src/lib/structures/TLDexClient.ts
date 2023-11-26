@@ -1,6 +1,6 @@
 import { AmanekoEvents } from '#lib/utils/enums';
 import { HOLODEX_WEBSOCKET_URL } from '#lib/utils/constants';
-import { container } from '@sapphire/pieces';
+import { container } from '@sapphire/framework';
 import { io } from 'socket.io-client';
 import { Time } from '@sapphire/duration';
 import type { TLDex } from '#lib/types/TLDex';

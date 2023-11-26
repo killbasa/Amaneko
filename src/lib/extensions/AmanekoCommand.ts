@@ -1,4 +1,5 @@
 import { Command } from '@sapphire/framework';
+import type { CacheType } from 'discord.js';
 
 export class AmanekoCommand extends Command {
 	public constructor(context: Command.LoaderContext, options: Command.Options) {
@@ -8,9 +9,9 @@ export class AmanekoCommand extends Command {
 
 export namespace AmanekoCommand {
 	export type Options = Command.Options;
-	export type Context = Command.LoaderContext;
-	export type ChatInputCommandInteraction = Command.ChatInputCommandInteraction<'cached'>;
-	export type ContextMenuCommandInteraction = Command.ContextMenuCommandInteraction<'cached'>;
-	export type AutocompleteInteraction = Command.AutocompleteInteraction<'cached'>;
+	export type LoaderContext = Command.LoaderContext;
+	export type ChatInputCommandInteraction<Cached extends CacheType = 'cached'> = Command.ChatInputCommandInteraction<Cached>;
+	export type ContextMenuCommandInteraction<Cached extends CacheType = 'cached'> = Command.ContextMenuCommandInteraction<Cached>;
+	export type AutocompleteInteraction<Cached extends CacheType = 'cached'> = Command.AutocompleteInteraction<Cached>;
 	export type Registry = Command.Registry;
 }

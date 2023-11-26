@@ -1,5 +1,6 @@
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
+import { yellowBright } from 'colorette';
 import type { Client } from 'discord.js';
 
 @ApplyOptions<Listener.Options>({
@@ -7,11 +8,32 @@ import type { Client } from 'discord.js';
 })
 export class ClientListener extends Listener<typeof Events.ClientReady> {
 	public async run(client: Client<true>): Promise<void> {
-		const { logger, config } = this.container;
+		const { config, logger } = this.container;
 
-		logger.info('');
-		logger.info(`Logged in as: ${client.user.username}`);
-		logger.info(`Environment: ${config.env}`);
-		logger.info('');
+		const pad = ' '.repeat(3);
+		const title = yellowBright;
+
+		logger.info(`${pad}${title('Logged in as')}: ${client.user.username}`);
+		logger.info(`${pad}${title('Environment')}: ${config.env}`);
+
+		this.printList({
+			title: title('Stores'),
+			array: this.container.stores.map((store) => `${store.size} ${store.name}`),
+			pad
+		});
+	}
+
+	private printList(data: { pad: string; title: string; array: string[] }): void {
+		const { logger } = this.container;
+		const { pad, title, array } = data;
+
+		logger.info(`\n${pad}${title}`);
+		const last = array.pop();
+
+		for (const entry of array) {
+			logger.info(`${pad}├─ ${entry}`);
+		}
+
+		logger.info(`${pad}└─ ${last}`);
 	}
 }

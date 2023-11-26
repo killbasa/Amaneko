@@ -1,7 +1,7 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { MeiliCategories } from '#lib/types/Meili';
-import { BrandColors, NotifChannelTypes } from '#utils/constants';
-import { defaultReply, errorReply, successReply } from '#utils/reply';
+import { BrandColors, NotifChannelTypes } from '#lib/utils/constants';
+import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
 import { canSendGuildEmbeds } from '#lib/utils/permissions';
 import { channelLink } from '#lib/utils/youtube';
 import { EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';

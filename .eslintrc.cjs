@@ -19,7 +19,7 @@ module.exports = {
 			}
 		},
 		{
-			files: ['**/interaction-handlers/**/*.ts'],
+			files: ['**/interaction-handlers/**/*.ts', '**/notifiers/**/*.ts'],
 			rules: {
 				'@typescript-eslint/explicit-function-return-type': 'off',
 				'@typescript-eslint/explicit-module-boundary-types': 'off'

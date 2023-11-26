@@ -1,6 +1,6 @@
 import { YoutubeEmojiRegex } from '#lib/utils/constants';
 import { YoutubeDataSchema } from '#lib/schemas/YoutubeDataSchema';
-import { container } from '@sapphire/pieces';
+import { container } from '@sapphire/framework';
 import type { YoutubeData } from '#lib/schemas/YoutubeDataSchema';
 
 export const getUsername = async (id: string): Promise<string> => {

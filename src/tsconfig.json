@@ -6,8 +6,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"#config": ["config.ts"],
-			"#lib/*": ["lib/*"],
-			"#utils/*": ["lib/utils/*"]
+			"#lib/*": ["lib/*"]
 		}
 	},
 	"include": ["."]

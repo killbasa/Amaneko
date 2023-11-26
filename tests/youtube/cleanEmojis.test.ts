@@ -1,6 +1,6 @@
 import { cleanEmojis } from '#src/lib/utils/youtube';
 
-describe('Comment emoji regex', () => {
+describe('cleanEmojis', () => {
 	const emoji = ':Zoom:https://yt3.ggpht.com/JUCiu5tPJlIqAmpHbAc6t4Se_OQByUq0K59eCluoYvL3u2ndqWofD2nR0z4XsyHRJc7JCPiIYg=w24-h24-c-k-nd';
 
 	test('single emoji with space', () => {
