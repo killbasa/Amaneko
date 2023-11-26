@@ -1,3 +1,4 @@
+import { toSnakeCase } from '#lib/utils/functions';
 import { Listener, Piece, Result } from '@sapphire/framework';
 import { AsyncQueue } from '@sapphire/async-queue';
 import { Option } from '@sapphire/result';
@@ -15,18 +16,18 @@ export abstract class AmanekoNotifier<E extends keyof AmanekoNotifications> exte
 	public constructor(context: Listener.LoaderContext, options: AmanekoNotifier.Options) {
 		super(context, options);
 
-		this.tracer = this.container.otel.getTracer(context.name);
+		this.tracer = this.container.otel.getTracer(toSnakeCase(context.name));
 		this.queue = new AsyncQueue();
 	}
 
 	public async run(...args: AmanekoNotifierPayload<E>): Promise<void> {
-		const data = await this.tracer.createSpan(`${this.name}_process`, async () => {
+		const data = await this.tracer.createSpan('process', async () => {
 			return this.process(...args);
 		});
 		if (data.isNone()) return;
 
 		await this.queue.wait();
-		const result = await this.tracer.createSpan(`${this.name}_send`, async () => {
+		const result = await this.tracer.createSpan('send', async () => {
 			return Result.fromAsync(async () => this.send(data));
 		});
 

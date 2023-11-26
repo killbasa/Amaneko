@@ -1,7 +1,7 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
 import { AmanekoError } from '#lib/structures/AmanekoError';
-import { BrandColors } from '#utils/constants';
-import { getUsername } from '#utils/youtube';
+import { BrandColors } from '#lib/utils/constants';
+import { getUsername } from '#lib/utils/youtube';
 import { successReply } from '#lib/utils/reply';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';

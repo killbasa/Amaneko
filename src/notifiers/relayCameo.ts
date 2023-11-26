@@ -3,7 +3,7 @@ import { cleanEmojis, videoLink } from '#lib/utils/youtube';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
-import { shouldFilterCameo } from '#utils/notifications';
+import { shouldFilterCameo } from '#lib/utils/notifications';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
 import type { TLDex } from '#lib/types/TLDex';

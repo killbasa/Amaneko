@@ -6,7 +6,6 @@
 		"baseUrl": ".",
 		"paths": {
 			"#config": ["config.ts"],
-			"#utils/*": ["lib/utils/*"],
 			"#lib/*": ["lib/*"]
 		}
 	},

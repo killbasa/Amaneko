@@ -112,7 +112,6 @@
 	},
 	"imports": {
 		"#config": "./dist/config.js",
-		"#utils/*": "./dist/lib/utils/*.js",
 		"#lib/*": "./dist/lib/*.js"
 	},
 	"packageManager": "yarn@4.0.2"

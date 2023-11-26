@@ -50,3 +50,10 @@ export function calculateTimestamp(start: string, commentTimestamp: number): str
 	}
 	return new Date(loggedTime - startTime).toISOString().substring(11, 19);
 }
+
+export function toSnakeCase(str: string): string {
+	return str
+		.split(/\.?(?=[A-Z])/)
+		.join('_')
+		.toLowerCase();
+}

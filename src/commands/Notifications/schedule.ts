@@ -1,5 +1,5 @@
 import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { defaultReply, errorReply, successReply } from '#utils/reply';
+import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
 import { canSendGuildEmbeds } from '#lib/utils/permissions';
 import { NotifChannelTypes } from '#lib/utils/constants';
 import { ApplyOptions } from '@sapphire/decorators';

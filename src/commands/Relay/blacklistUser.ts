@@ -1,4 +1,4 @@
-import { getUsername } from '#utils/youtube';
+import { getUsername } from '#lib/utils/youtube';
 import { errorReply, successReply } from '#lib/utils/reply';
 import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
 import { ApplyOptions } from '@sapphire/decorators';
