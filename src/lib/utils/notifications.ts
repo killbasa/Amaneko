@@ -57,3 +57,22 @@ export function shouldFilterComment(cmt: TLDex.CommentPayload, video: Holodex.Vi
 
 	return false;
 }
+
+export function shouldFilterCameo(cmt: TLDex.CommentPayload, video: Holodex.VideoWithChannel): boolean {
+	const { logger } = container;
+
+	if (!cmt.channel_id || !cmt.is_vtuber || cmt.channel_id === video.channel.id || cmt.is_owner) {
+		if (process.env.NODE_ENV !== 'test') {
+			logger.debug(`[Cameo] Filtered out comment from ${cmt.name} (${video.channel.id})`, {
+				channelId: cmt.channel_id,
+				videoChannelId: video.channel.id,
+				isOwner: cmt.is_owner,
+				isVTuber: cmt.is_vtuber
+			});
+		}
+
+		return true;
+	}
+
+	return false;
+}

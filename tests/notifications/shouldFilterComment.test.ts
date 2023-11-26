@@ -10,44 +10,44 @@ describe('shouldFilterComment', () => {
 
 	describe('check verified', () => {
 		test('verified', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'random stuff',
 				verified: true
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(true);
 		});
 
 		test('verified, vtuber', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'random stuff',
 				verified: true,
 				vtuber: true
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(false);
 		});
 
 		test('verified, translation', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'random stuff',
 				verified: true,
 				tl: true
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(false);
 		});
 
 		test('verified, moderator', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'random stuff',
 				verified: true,
 				mod: true
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(false);
 		});
@@ -55,61 +55,61 @@ describe('shouldFilterComment', () => {
 
 	describe('check super chat', () => {
 		it('should not filter a random message', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'random stuff',
 				verified: true,
 				mod: true
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(false);
 		});
 
 		it('should not filter a random message from owner', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'random stuff',
 				verified: true,
 				mod: true,
 				owner: true
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(false);
 		});
 
 		it('should not filter if not owner', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'hearted a Super Chat from',
 				verified: true,
 				vtuber: true,
 				owner: false
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(false);
 		});
 
 		it('should filter for owner', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				message: 'hearted a Super Chat from',
 				verified: true,
 				vtuber: true,
 				owner: true
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(true);
 		});
 
 		it('should filter for same ID', async () => {
-			const commnent = getComment({
+			const comment = getComment({
 				channeId: '2',
 				message: 'hearted a Super Chat from',
 				verified: true,
 				vtuber: true,
 				owner: false
 			});
-			const result = shouldFilterComment(commnent, video);
+			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(true);
 		});

@@ -100,17 +100,13 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 			const channel = cache.holodexChannels.get(comment.channel_id);
 
 			if (!channel) {
-				logger.warn(`[Relay] No channel found for ${comment.channel_id}`, {
-					listener: this.name
-				});
+				logger.warn(`[Relay] No channel found for ${comment.channel_id}`);
 			} else if (channel.org) {
 				const orgEmoji = VTuberOrgEmojis.get(channel.org);
 				if (orgEmoji) {
 					emoji = orgEmoji;
 				} else {
-					logger.warn(`[Relay] No emoji for ${channel.org}`, {
-						listener: this.name
-					});
+					logger.warn(`[Relay] No emoji for ${channel.org}`);
 				}
 			}
 

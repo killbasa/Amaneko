@@ -3,6 +3,7 @@ import { cleanEmojis, videoLink } from '#lib/utils/youtube';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
+import { shouldFilterCameo } from '#utils/notifications';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
 import type { TLDex } from '#lib/types/TLDex';
@@ -19,22 +20,11 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		const { tracer, container } = this;
 		const { prisma, client, logger } = container;
 
-		const { is_owner: isOwner, is_vtuber: isVTuber, channel_id: channelId } = comment;
-		if (!channelId || channelId === video.channel.id || isOwner || !isVTuber) {
-			logger.debug(`[Cameo] Filtered out comment from ${comment.name} (${video.channel.id})`, {
-				channelId,
-				videoChannelId: video.channel.id,
-				isOwner,
-				isVTuber
-			});
-			return this.none();
-		}
+		if (shouldFilterCameo(comment, video)) return this.none();
 
 		const targetChannel = container.cache.holodexChannels.get(video.channel.id);
 		if (!targetChannel) {
-			container.logger.warn(`[Cameo] No channel found for ${video.channel.id} (target)`, {
-				listener: this.name
-			});
+			container.logger.warn(`[Cameo] No channel found for ${video.channel.id} (target)`);
 			return this.none();
 		}
 
@@ -74,7 +64,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 
 		return this.some({
 			channels,
-			content: this.formatMessage(channelId, targetChannel, comment, video)
+			content: this.formatMessage(targetChannel, comment, video)
 		});
 	}
 
@@ -94,8 +84,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 	}
 
 	private formatMessage(
-		channelId: string, //
-		targetChannel: HolodexChannel,
+		targetChannel: HolodexChannel, //
 		comment: TLDex.CommentPayload,
 		video: Holodex.VideoWithChannel
 	): string {
@@ -103,20 +92,18 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 
 		let prefix = AmanekoEmojis.Speaker;
 		const message = comment.message.replaceAll('`', "'");
-		const channel = cache.holodexChannels.get(channelId);
+		const channel: HolodexChannel | undefined = comment.channel_id //
+			? cache.holodexChannels.get(comment.channel_id)
+			: undefined;
 
 		if (!channel) {
-			logger.warn(`[Cameo] No channel found for ${channelId} (comment)`, {
-				listener: this.name
-			});
+			logger.warn(`[Cameo] No channel found for ${comment.channel_id} (comment)`);
 		} else if (channel.org) {
 			const emoji = VTuberOrgEmojis.get(channel.org);
 			if (emoji) {
 				prefix = emoji;
 			} else {
-				logger.warn(`[Cameo] No emoji for ${channel.org}`, {
-					listener: this.name
-				});
+				logger.warn(`[Cameo] No emoji for ${channel.org}`);
 			}
 		}
 
