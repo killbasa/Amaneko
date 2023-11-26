@@ -49,21 +49,20 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		});
 		if (channels.length === 0) return this.none();
 
+		comment.message = cleanEmojis(comment.message);
+
 		return this.some({
-			comment,
-			video,
 			channels,
-			cmtChannelId
+			content: this.formatMessage(comment, video),
+			videoId: video.id,
+			cmtChannelId,
+			historyContent: this.formatHistoryMessage(comment, video)
 		});
 	}
 
-	public async send({ comment, video, channels, cmtChannelId }: AmanekoNotifier.ProcessResult<this>) {
+	public async send({ channels, content, videoId, cmtChannelId, historyContent }: AmanekoNotifier.ProcessResult<this>) {
 		const { container } = this;
 		const { prisma, metrics } = container;
-
-		comment.message = cleanEmojis(comment.message);
-		const content = this.formatMessage(comment, video);
-		const historyContent = this.formatHistoryMessage(comment, video);
 
 		const messages = await Promise.allSettled(
 			channels.map(async (channel) => {
@@ -76,7 +75,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 				.filter((entry): entry is PromiseFulfilledResult<Message<true>> => entry.status === 'fulfilled')
 				.map((message) => {
 					return {
-						videoId: video.id,
+						videoId,
 						messageId: message.value.id,
 						channelId: cmtChannelId,
 						content: historyContent,

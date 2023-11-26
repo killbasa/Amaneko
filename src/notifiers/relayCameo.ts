@@ -70,21 +70,17 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 			return this.none();
 		}
 
+		comment.message = cleanEmojis(comment.message);
+
 		return this.some({
-			comment,
-			video,
 			channels,
-			commentChannelId: channelId,
-			targetChannel
+			content: this.formatMessage(channelId, targetChannel, comment, video)
 		});
 	}
 
-	public async send({ comment, video, channels, commentChannelId, targetChannel }: AmanekoNotifier.ProcessResult<this>) {
+	public async send({ channels, content }: AmanekoNotifier.ProcessResult<this>) {
 		const { container } = this;
 		const { metrics } = container;
-
-		comment.message = cleanEmojis(comment.message);
-		const content = this.formatMessage(commentChannelId, targetChannel, comment, video);
 
 		const messages = await Promise.allSettled(
 			channels.map(async (channel) => {

@@ -27,15 +27,14 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.CommunityPost
 
 		return this.some({
 			post,
-			subscriptions
+			subscriptions,
+			embed: this.buildEmbed(post)
 		});
 	}
 
-	public async send({ post, subscriptions }: AmanekoNotifier.ProcessResult<this>) {
+	public async send({ post, subscriptions, embed }: AmanekoNotifier.ProcessResult<this>) {
 		const { tracer, container } = this;
 		const { redis, client, metrics } = container;
-
-		const embed = this.buildEmbed(post);
 
 		const messages = await Promise.allSettled([
 			subscriptions.map(async ({ guildId, communityPostChannelId, communityPostRoleId }) => {

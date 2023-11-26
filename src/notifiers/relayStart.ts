@@ -30,16 +30,14 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamPrechat
 		if (subscriptions.length === 0) return this.none();
 
 		return this.some({
-			video,
-			subscriptions
+			subscriptions,
+			embed: this.buildEmbed(video)
 		});
 	}
 
-	public async send({ video, subscriptions }: AmanekoNotifier.ProcessResult<this>) {
+	public async send({ subscriptions, embed }: AmanekoNotifier.ProcessResult<this>) {
 		const { tracer, container } = this;
 		const { client, metrics } = container;
-
-		const embed = this.buildEmbed(video);
 
 		const messages = await Promise.allSettled(
 			subscriptions.map(({ guildId, relayChannelId }) => {

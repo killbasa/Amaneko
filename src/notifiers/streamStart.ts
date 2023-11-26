@@ -19,10 +19,6 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamStart> 
 		const { tracer, container } = this;
 		const { prisma } = container;
 
-		const isMemberStream: boolean = video.topic_id //
-			? HolodexMembersOnlyPatterns.includes(video.topic_id)
-			: false;
-
 		const subscriptions = await tracer.createSpan('find_subscriptions', async () => {
 			return prisma.subscription.findMany({
 				where: {
@@ -55,6 +51,10 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamStart> 
 				.setURL(videoLink(video.id))
 				.setLabel('Watch Stream')
 		]);
+
+		const isMemberStream: boolean = video.topic_id //
+			? HolodexMembersOnlyPatterns.includes(video.topic_id)
+			: false;
 
 		return this.some({
 			video,
