@@ -21,7 +21,7 @@ export class Command extends AmanekoCommand {
 		);
 	}
 
-	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction): Promise<unknown> {
+	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction<'raw'>): Promise<unknown> {
 		const modal = new ModalBuilder({
 			custom_id: CustomIDs.Feedback,
 			title: 'Amaneko feedback',

@@ -85,11 +85,11 @@ export class Counters {
 		this.notifications.history.add(1, { success: String(success) });
 	}
 
-	public incRelayComment(value = 1): void {
-		this.tldex.relay.add(value);
+	public incRelayComment({ success }: { success: boolean }): void {
+		this.tldex.relay.add(1, { success: String(success) });
 	}
 
-	public incCameo(value = 1): void {
-		this.tldex.cameo.add(value);
+	public incCameo({ success }: { success: boolean }): void {
+		this.tldex.cameo.add(1, { success: String(success) });
 	}
 }
