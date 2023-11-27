@@ -5,7 +5,6 @@ import { videoLink } from '#lib/utils/youtube';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder } from 'discord.js';
-import { container } from '@sapphire/framework';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<AmanekoNotifier.Options>({
@@ -74,9 +73,3 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamPrechat
 			.setTimestamp();
 	}
 }
-
-void container.stores.loadPiece({
-	name: AmanekoEvents.StreamPrechat,
-	piece: Notifier,
-	store: 'notifiers'
-});

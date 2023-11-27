@@ -13,7 +13,6 @@ import type { MetricsClient } from '#lib/structures/MetricsClient';
 import type { youtube_v3 } from 'googleapis';
 import type { OpenTelemetryClient } from '#lib/structures/OpenTelemetryClient';
 import type { LogLevel } from '@sapphire/framework';
-import type { NotifierStore } from '#lib/extensions/NotifierStore';
 
 declare module 'discord.js' {
 	interface Client {}
@@ -50,9 +49,7 @@ declare module '@sapphire/pieces' {
 		};
 	}
 
-	interface StoreRegistryEntries {
-		notifiers: NotifierStore;
-	}
+	interface StoreRegistryEntries {}
 }
 
 declare module '@sapphire/plugin-logger' {

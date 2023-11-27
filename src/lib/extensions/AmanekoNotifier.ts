@@ -28,7 +28,7 @@ export abstract class AmanekoNotifier<E extends keyof AmanekoNotifications> exte
 
 		await this.queue.wait();
 		const result = await this.tracer.createSpan('send', async () => {
-			return Result.fromAsync(async () => this.send(data));
+			return Result.fromAsync(async () => this.send(data.unwrap()));
 		});
 
 		result.inspectErr((error) => {

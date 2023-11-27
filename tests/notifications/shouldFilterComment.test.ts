@@ -67,38 +67,14 @@ describe('shouldFilterComment', () => {
 
 		it('should not filter a random message from owner', async () => {
 			const comment = getComment({
+				channeId: '2',
 				message: 'random stuff',
 				verified: true,
-				mod: true,
-				owner: true
+				mod: true
 			});
 			const result = shouldFilterComment(comment, video);
 
 			expect(result).toBe(false);
-		});
-
-		it('should not filter if not owner', async () => {
-			const comment = getComment({
-				message: 'hearted a Super Chat from',
-				verified: true,
-				vtuber: true,
-				owner: false
-			});
-			const result = shouldFilterComment(comment, video);
-
-			expect(result).toBe(false);
-		});
-
-		it('should filter for owner', async () => {
-			const comment = getComment({
-				message: 'hearted a Super Chat from',
-				verified: true,
-				vtuber: true,
-				owner: true
-			});
-			const result = shouldFilterComment(comment, video);
-
-			expect(result).toBe(true);
 		});
 
 		it('should filter for same ID', async () => {
@@ -106,8 +82,7 @@ describe('shouldFilterComment', () => {
 				channeId: '2',
 				message: 'hearted a Super Chat from',
 				verified: true,
-				vtuber: true,
-				owner: false
+				vtuber: true
 			});
 			const result = shouldFilterComment(comment, video);
 

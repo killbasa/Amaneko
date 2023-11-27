@@ -36,15 +36,6 @@ describe('shouldFilterCameo', () => {
 
 			expect(result).toBe(true);
 		});
-
-		test('owner', async () => {
-			const comment = getComment({
-				owner: true
-			});
-			const result = shouldFilterCameo(comment, video);
-
-			expect(result).toBe(true);
-		});
 	});
 
 	describe('no filter', () => {

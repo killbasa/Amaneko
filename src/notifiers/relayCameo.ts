@@ -5,7 +5,6 @@ import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
 import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
 import { shouldFilterCameo } from '#lib/utils/notifications';
 import { ApplyOptions } from '@sapphire/decorators';
-import { container } from '@sapphire/framework';
 import type { TLDex } from '#lib/types/TLDex';
 import type { Holodex } from '#lib/types/Holodex';
 import type { GuildTextBasedChannel } from 'discord.js';
@@ -112,9 +111,3 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		return `${prefix} **${name}** in [**${targetName}**'s chat](<${videoLink(video.id)}>): \`${message}\``;
 	}
 }
-
-void container.stores.loadPiece({
-	name: 'RelayCameo',
-	piece: Notifier,
-	store: 'notifiers'
-});

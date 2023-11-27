@@ -34,7 +34,6 @@ export function shouldFilterComment(cmt: TLDex.CommentPayload, video: Holodex.Vi
 	if (cmt.is_verified && !cmt.is_vtuber && !cmt.is_tl && !cmt.is_moderator) {
 		if (process.env.NODE_ENV !== 'test') {
 			logger.debug(`[Relay] Filtered out verified comment from ${cmt.name} (${video.channel.id})`, {
-				isOwner: cmt.is_owner,
 				isVTuber: cmt.is_vtuber,
 				isTL: cmt.is_tl,
 				isMod: cmt.is_moderator
@@ -45,7 +44,7 @@ export function shouldFilterComment(cmt: TLDex.CommentPayload, video: Holodex.Vi
 	}
 
 	// Filter out Super Chat heart messages
-	if (cmt.is_owner || cmt.channel_id === video.channel.id) {
+	if (cmt.channel_id === video.channel.id) {
 		if (cmt.message.startsWith('hearted a Super Chat from')) {
 			if (process.env.NODE_ENV !== 'test') {
 				logger.debug(`[Relay] Filtered out Super Chat heart message from ${cmt.name} (${video.channel.id})`);
@@ -61,12 +60,11 @@ export function shouldFilterComment(cmt: TLDex.CommentPayload, video: Holodex.Vi
 export function shouldFilterCameo(cmt: TLDex.CommentPayload, video: Holodex.VideoWithChannel): boolean {
 	const { logger } = container;
 
-	if (!cmt.channel_id || !cmt.is_vtuber || cmt.channel_id === video.channel.id || cmt.is_owner) {
+	if (!cmt.channel_id || !cmt.is_vtuber || cmt.channel_id === video.channel.id) {
 		if (process.env.NODE_ENV !== 'test') {
 			logger.debug(`[Cameo] Filtered out comment from ${cmt.name} (${video.channel.id})`, {
 				channelId: cmt.channel_id,
 				videoChannelId: video.channel.id,
-				isOwner: cmt.is_owner,
 				isVTuber: cmt.is_vtuber
 			});
 		}
