@@ -33,20 +33,25 @@ export class Task extends AmanekoTask {
 
 			await tracer.createSpan('process_channels', async () => {
 				for (const channelId of channelIds) {
-					await tracer.createSpan(`process_channel:${channelId}`, async () => {
-						await sleep(2000);
-						logger.debug(`[CommunityPosts] Checking posts for ${channelId}`);
+					try {
+						await tracer.createSpan(`process_channel:${channelId}`, async () => {
+							logger.debug(`[CommunityPosts] Checking posts for ${channelId}`);
 
-						const post = await tracer.createSpan(`process_channel:${channelId}:scrape`, async () => {
-							return this.getLatestPost(channelId);
+							const post = await tracer.createSpan(`process_channel:${channelId}:scrape`, async () => {
+								return this.getLatestPost(channelId);
+							});
+							if (!post?.isToday) return;
+
+							const savedPostId = await redis.hGet<string>('communityposts', channelId);
+							if (savedPostId === post.id) return;
+
+							client.emit(AmanekoEvents.CommunityPost, post);
 						});
-						if (!post?.isToday) return;
-
-						const savedPostId = await redis.hGet<string>('communityposts', channelId);
-						if (savedPostId === post.id) return;
-
-						client.emit(AmanekoEvents.CommunityPost, post);
-					});
+					} catch (err: unknown) {
+						logger.error(`[CommunityPosts] Error while processing channel ${channelId}`, err);
+					} finally {
+						await sleep(2000);
+					}
 				}
 			});
 		});
