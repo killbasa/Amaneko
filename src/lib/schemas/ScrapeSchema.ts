@@ -1,33 +1,35 @@
 import { z } from 'zod';
 
 const PostSchema = z.object({
-	backstagePostRenderer: z.object({
-		postId: z.string(),
-		authorText: z.object({
-			runs: z.array(
-				z.object({
-					text: z.string()
-				})
-			)
-		}),
-		authorThumbnail: z.object({
-			thumbnails: z.array(z.object({ url: z.string() }))
-		}),
-		contentText: z.object({
-			runs: z.array(
-				z.object({
-					text: z.string()
-				})
-			)
-		}),
-		publishedTimeText: z.object({
-			runs: z.array(
-				z.object({
-					text: z.string()
-				})
-			)
+	backstagePostRenderer: z
+		.object({
+			postId: z.string(),
+			authorText: z.object({
+				runs: z.array(
+					z.object({
+						text: z.string()
+					})
+				)
+			}),
+			authorThumbnail: z.object({
+				thumbnails: z.array(z.object({ url: z.string() }))
+			}),
+			contentText: z.object({
+				runs: z.array(
+					z.object({
+						text: z.string()
+					})
+				)
+			}),
+			publishedTimeText: z.object({
+				runs: z.array(
+					z.object({
+						text: z.string()
+					})
+				)
+			})
 		})
-	})
+		.optional()
 });
 
 export const ScrapeSchema = z.array(
