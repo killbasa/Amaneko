@@ -55,7 +55,7 @@
 		"@sapphire/framework": "^4.8.2",
 		"@sapphire/plugin-logger": "^3.0.7",
 		"@sapphire/plugin-scheduled-tasks": "^8.1.0",
-		"@sapphire/plugin-subcommands": "^5.1.0",
+		"@sapphire/plugin-subcommands": "^6.0.1",
 		"bufferutil": "^4.0.8",
 		"bullmq": "^4.14.4",
 		"colorette": "^2.0.20",
