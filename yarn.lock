@@ -1773,12 +1773,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sapphire/fetch@npm:^2.4.1":
-  version: 2.4.1
-  resolution: "@sapphire/fetch@npm:2.4.1"
-  dependencies:
-    cross-fetch: "npm:^3.1.5"
-  checksum: 095b94fc09b4ac548fe33c5b93bb5efd699ac605e9c6367961716532ad66dcffd9ccc994b7e723c85fb930c40586f3679d7bfc1fb6e6f8fe54a48f63931374d9
+"@sapphire/fetch@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "@sapphire/fetch@npm:3.0.1"
+  checksum: f7158fe7d205cab876714da8b0358b1ec6ef13f84d7d1a36d336de43e8ba1d914c7f50e633064f7807ff7a2558ea9730b60cbc9c97c402b8f2b140181da6265b
   languageName: node
   linkType: hard
 
@@ -2740,7 +2738,7 @@ __metadata:
     "@sapphire/decorators": "npm:^6.0.2"
     "@sapphire/discord.js-utilities": "npm:^7.1.2"
     "@sapphire/duration": "npm:^1.1.0"
-    "@sapphire/fetch": "npm:^2.4.1"
+    "@sapphire/fetch": "npm:^3.0.1"
     "@sapphire/framework": "npm:^4.8.2"
     "@sapphire/plugin-logger": "npm:^3.0.7"
     "@sapphire/plugin-scheduled-tasks": "npm:^8.1.0"
@@ -3497,7 +3495,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-fetch@npm:^3.1.5, cross-fetch@npm:^3.1.6":
+"cross-fetch@npm:^3.1.6":
   version: 3.1.8
   resolution: "cross-fetch@npm:3.1.8"
   dependencies:
