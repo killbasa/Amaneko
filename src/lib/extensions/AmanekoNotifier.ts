@@ -22,13 +22,13 @@ export abstract class AmanekoNotifier<E extends keyof AmanekoNotifications> exte
 
 	public async run(...args: AmanekoNotifierPayload<E>): Promise<void> {
 		const data = await this.tracer.createSpan('process', async () => {
-			return this.process(...args);
+			return await this.process(...args);
 		});
 		if (data.isNone()) return;
 
 		await this.queue.wait();
 		const result = await this.tracer.createSpan('send', async () => {
-			return Result.fromAsync(async () => this.send(data.unwrap()));
+			return await Result.fromAsync(async () => this.send(data.unwrap()));
 		});
 
 		result.inspectErr((error) => {

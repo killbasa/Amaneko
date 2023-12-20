@@ -24,7 +24,15 @@ Remove a cameo subscription from this channel.
 
 ## /cameo clear
 
-Clear all cameo subscriptions in this channel.
+Remove all cameo subscriptions from a channel.
+
+::: info
+If no Discord channel is provided, it will default to the channel that the command is run in.
+:::
+
+| Option          | Required | Autocomplete | Description                                    |
+| --------------- | :------: | :----------: | :--------------------------------------------- |
+| Discord channel |    ✕     |      ✕       | The channel to clear cameo subscriptions from. |
 
 ## /cameo list
 

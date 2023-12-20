@@ -44,7 +44,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamEnd> {
 
 		if (subscriptions.length > 0) {
 			const messages = await tracer.createSpan('process_subscriptions', async () => {
-				return Promise.allSettled(
+				return await Promise.allSettled(
 					subscriptions.map(({ guild, relayChannelId }) => {
 						return tracer.createSpan(`process_subscription:${guild.id}`, async () => {
 							const channel = await client.channels.fetch(guild.relayHistoryChannelId ?? relayChannelId!);

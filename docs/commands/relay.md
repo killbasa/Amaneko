@@ -16,7 +16,7 @@ Add a relay subscription to this channel.
 
 ## /relay remove
 
-Remove a relay subscription from this channel.
+Remove a relay subscription.
 
 | Option       | Required | Autocomplete | Description                                |
 | ------------ | :------: | :----------: | :----------------------------------------- |
@@ -37,7 +37,7 @@ Providing no options will show the current settings.
 
 ## /relay clear
 
-Clear all relay subscriptions in this channel.
+Remove all relay subscriptions from a channel.
 
 ::: info
 If no Discord channel is provided, it will default to the channel that the command is run in.

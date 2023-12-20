@@ -82,7 +82,7 @@ export class AmanekoClient extends SapphireClient {
 			)
 		};
 
-		return super.login(token);
+		return await super.login(token);
 	}
 
 	public override async destroy(): Promise<void> {
@@ -94,7 +94,7 @@ export class AmanekoClient extends SapphireClient {
 			container.metrics.destroy()
 		]);
 
-		return super.destroy();
+		await super.destroy();
 	}
 
 	private registerStores(): void {

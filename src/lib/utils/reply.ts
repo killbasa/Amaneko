@@ -36,8 +36,8 @@ async function safeReply(
 
 	const data = formatResponse(interaction, color, text, ephemeral);
 	return interaction.deferred || interaction.replied //
-		? interaction.editReply(data)
-		: interaction.reply(data);
+		? await interaction.editReply(data)
+		: await interaction.reply(data);
 }
 
 export async function defaultReply(
@@ -45,7 +45,7 @@ export async function defaultReply(
 	text: string,
 	options?: boolean | { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
-	return safeReply(interaction, BrandColors.Default, text, options);
+	return await safeReply(interaction, BrandColors.Default, text, options);
 }
 
 export async function successReply(
@@ -53,7 +53,7 @@ export async function successReply(
 	text: string,
 	options?: boolean | { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
-	return safeReply(interaction, BrandColors.Success, text, options);
+	return await safeReply(interaction, BrandColors.Success, text, options);
 }
 
 export async function errorReply(
@@ -61,5 +61,5 @@ export async function errorReply(
 	text: string,
 	options?: boolean | { tryEphemeral?: boolean }
 ): Promise<InteractionResponse | Message> {
-	return safeReply(interaction, BrandColors.Error, text, options);
+	return await safeReply(interaction, BrandColors.Error, text, options);
 }

@@ -12,7 +12,10 @@ export default defineConfig({
 		search: {
 			provider: 'local'
 		},
-		socialLinks: [{ icon: 'github', link: 'https://github.com/killbasa/Amaneko' }],
+		socialLinks: [
+			{ icon: 'discord', link: '' },
+			{ icon: 'github', link: 'https://github.com/killbasa/Amaneko' }
+		],
 		editLink: {
 			pattern: 'https://github.com/killbasa/Amaneko/edit/main/docs/:path',
 			text: 'Suggest changes to this page'
@@ -20,8 +23,11 @@ export default defineConfig({
 		nav: [],
 		sidebar: [
 			{ text: 'Setup', link: '/setup' },
+			{ text: 'Features', link: '/features' },
+			{ text: 'FAQ', link: '/faq' },
 			{
 				text: 'Commands',
+				link: '/commands',
 				items: [
 					{ text: 'Blacklist', link: '/commands/blacklist' },
 					{ text: 'Cameo', link: '/commands/cameo' },

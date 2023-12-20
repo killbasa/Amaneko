@@ -50,7 +50,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('unset')
-						.setDescription('Removes the schedule from the server.')
+						.setDescription('Remove the schedule from the server.')
 				)
 		);
 	}

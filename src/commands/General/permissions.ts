@@ -44,28 +44,33 @@ export class Command extends AmanekoCommand {
 		);
 	}
 
-	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction): Promise<unknown> {
+	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction): Promise<void> {
 		await interaction.deferReply();
 		const feature = interaction.options.getString('feature', true) as Features;
 
 		switch (feature) {
 			case Features.youtube: {
-				return this.handleYoutube(interaction);
+				await this.handleYoutube(interaction);
+				break;
 			}
 			case Features.youtubeMember: {
-				return this.handleYoutubeMember(interaction);
+				await this.handleYoutubeMember(interaction);
+				break;
 			}
 			case Features.relay: {
-				return this.handleRelay(interaction);
+				await this.handleRelay(interaction);
+				break;
 			}
 			case Features.cameo: {
-				return this.handleCameo(interaction);
+				await this.handleCameo(interaction);
+				break;
 			}
 			case Features.community: {
-				return this.handleCommunityPost(interaction);
+				await this.handleCommunityPost(interaction);
+				break;
 			}
 			default: {
-				return this.handleLogs(interaction);
+				await this.handleLogs(interaction);
 			}
 		}
 	}

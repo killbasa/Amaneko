@@ -14,10 +14,10 @@ export class HolodexClient {
 
 		const url = new URL(`${HOLODEX_BASE_URL}/channels`);
 		url.searchParams.append('type', 'vtuber');
-		url.searchParams.append('limit', `${limit}`);
-		url.searchParams.append('offset', `${offset}`);
+		url.searchParams.append('limit', limit.toString());
+		url.searchParams.append('offset', offset.toString());
 
-		return this.fetch<Holodex.Channel[]>(url, this.apiKey);
+		return await this.fetch<Holodex.Channel[]>(url, this.apiKey);
 	}
 
 	public async getLiveVideos(query: { channels?: Set<string>; maxUpcoming?: number }): Promise<Holodex.VideoWithChannel[]> {
@@ -59,7 +59,7 @@ export class HolodexClient {
 	}
 
 	private async fetch<T = unknown>(url: URL, apiKey: string): Promise<T> {
-		return fetch<T>(
+		return await fetch<T>(
 			url.href,
 			{
 				method: FetchMethods.Get,
