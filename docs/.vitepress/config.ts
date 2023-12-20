@@ -33,6 +33,7 @@ export default defineConfig({
 					{ text: 'Cameo', link: '/commands/cameo' },
 					{ text: 'Community post', link: '/commands/community-post' },
 					{ text: 'Log channel', link: '/commands/log-channel' },
+					{ text: 'Permissions', link: '/commands/permissions' },
 					{ text: 'Relay', link: '/commands/relay' },
 					{ text: 'Schedule', link: '/commands/schedule' },
 					{ text: 'YouTube', link: '/commands/youtube' }

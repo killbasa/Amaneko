@@ -7,7 +7,6 @@ import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	name: 'schedule',
 	description: 'Sets up and manages a schedule for upcoming streams from currently subscribed channels.',
 	subcommands: [
 		{ name: 'set', chatInputRun: 'handleSet' },

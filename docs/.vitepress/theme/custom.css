@@ -7,6 +7,7 @@
 
 .dark {
 	--vp-c-bg: hsla(270, 20%, 15%, 1);
+	--vp-local-nav-bg-color: var(--vp-sidebar-bg-color);
 }
 
 h1,
