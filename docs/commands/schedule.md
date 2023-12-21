@@ -16,12 +16,12 @@ Set up a schedule in the specified channel.
 
 ## /schedule unset
 
-Removes the schedule from the server.
+Remove the schedule from the server.
 
 ## /schedule settings
 
-Set up a schedule in the specified channel.
+Change the schedule's settings.
 
-| Option          | Required | Autocomplete | Description                                            |
-| --------------- | :------: | :----------: | :----------------------------------------------------- |
-| Discord channel |    ✓     |      ✕       | The discord channel where the schedule will be posted. |
+| Option          | Required | Autocomplete | Description                       |
+| --------------- | :------: | :----------: | :-------------------------------- |
+| Discord channel |    ✓     |      ✕       | New channel to post the schedule. |

@@ -1,7 +1,13 @@
 :root {
+	--vp-c-brand-1: hsla(270, 50%, 60%, 1);
+	--vp-c-brand-2: hsla(270, 50%, 70%, 1);
+	--vp-c-brand-3: hsla(270, 50%, 80%, 1);
+	--vp-c-brand-soft: hsla(270, 50%, 85%, 1);
 }
 
 .dark {
+	--vp-c-bg: hsla(270, 20%, 15%, 1);
+	--vp-local-nav-bg-color: var(--vp-sidebar-bg-color);
 }
 
 h1,

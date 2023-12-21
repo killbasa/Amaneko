@@ -8,15 +8,15 @@ import type { CommandInteraction, ContextMenuCommandInteraction, Message } from 
 })
 export class AmanekoPrecondition extends Precondition {
 	public override async chatInputRun(interaction: CommandInteraction): AsyncPreconditionResult {
-		return this.isBlacklisted(interaction.user.id);
+		return await this.isBlacklisted(interaction.user.id);
 	}
 
 	public override async contextMenuRun(interaction: ContextMenuCommandInteraction): AsyncPreconditionResult {
-		return this.isBlacklisted(interaction.user.id);
+		return await this.isBlacklisted(interaction.user.id);
 	}
 
 	public override async messageRun(message: Message): AsyncPreconditionResult {
-		return this.isBlacklisted(message.author.id);
+		return await this.isBlacklisted(message.author.id);
 	}
 
 	private async isBlacklisted(userId: string): AsyncPreconditionResult {
@@ -25,7 +25,7 @@ export class AmanekoPrecondition extends Precondition {
 		});
 
 		if (result > 0) {
-			return this.error({
+			return await this.error({
 				message: [
 					'You have been blacklisted from giving feedback.', //
 					'If you believe this is a mistake, please join the support server.'
@@ -33,7 +33,7 @@ export class AmanekoPrecondition extends Precondition {
 			});
 		}
 
-		return this.ok();
+		return await this.ok();
 	}
 }
 

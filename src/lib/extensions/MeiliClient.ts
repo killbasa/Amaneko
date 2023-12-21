@@ -22,13 +22,13 @@ export class MeiliClient extends MeiliSearch {
 	}
 
 	public async get<I extends MeiliIndex>(index: I, searchString: string): Promise<SearchResponse<MeiliDocument<I>, SearchParams>> {
-		return super
+		return await super
 			.index(index) //
 			.search(searchString, { limit: 25 });
 	}
 
 	public async upsertMany<T extends MeiliIndex>(index: T, documents: MeiliDocument<T>[]): Promise<EnqueuedTask> {
-		return super
+		return await super
 			.index(index) //
 			.addDocuments(documents);
 	}

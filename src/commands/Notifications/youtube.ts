@@ -384,7 +384,7 @@ export class Command extends AmanekoSubcommand {
 			subscriptionsPaginatedMessage.addPageEmbed(this.subscriptionEmbedBuilder(subscription));
 		}
 
-		return subscriptionsPaginatedMessage.run(interaction);
+		return await subscriptionsPaginatedMessage.run(interaction);
 	}
 
 	private subscriptionEmbedBuilder({

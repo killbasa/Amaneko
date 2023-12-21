@@ -7,7 +7,6 @@ import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
-	name: 'schedule',
 	description: 'Sets up and manages a schedule for upcoming streams from currently subscribed channels.',
 	subcommands: [
 		{ name: 'set', chatInputRun: 'handleSet' },
@@ -50,7 +49,7 @@ export class Command extends AmanekoSubcommand {
 				.addSubcommand((subcommand) =>
 					subcommand //
 						.setName('unset')
-						.setDescription('Removes the schedule from the server.')
+						.setDescription('Remove the schedule from the server.')
 				)
 		);
 	}

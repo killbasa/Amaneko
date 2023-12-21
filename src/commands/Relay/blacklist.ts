@@ -175,7 +175,7 @@ export class Command extends AmanekoSubcommand {
 			menu.addPageEmbed(this.blacklistEmbed(blacklist.slice(i, i + chunkSize)));
 		}
 
-		return menu.run(interaction);
+		return await menu.run(interaction);
 	}
 
 	private blacklistEmbed(blacklist: Blacklist[] = []): EmbedBuilder {

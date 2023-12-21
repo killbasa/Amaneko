@@ -38,7 +38,7 @@ export class Task extends AmanekoTask {
 							logger.debug(`[CommunityPosts] Checking posts for ${channelId}`);
 
 							const post = await tracer.createSpan(`process_channel:${channelId}:scrape`, async () => {
-								return this.getLatestPost(channelId);
+								return await this.getLatestPost(channelId);
 							});
 							if (!post?.isToday) return;
 
