@@ -2775,7 +2775,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^6.15.0"
     "@vitest/coverage-istanbul": "npm:^1.1.0"
     bufferutil: "npm:^4.0.8"
-    bullmq: "npm:^4.16.0"
+    bullmq: "npm:^4.17.0"
     colorette: "npm:^2.0.20"
     discord.js: "npm:^14.14.1"
     dotenv: "npm:^16.3.1"
@@ -2783,7 +2783,7 @@ __metadata:
     eslint-config-prettier: "npm:^9.1.0"
     eslint-import-resolver-typescript: "npm:^3.6.1"
     eslint-plugin-import: "npm:^2.29.1"
-    eslint-plugin-prettier: "npm:^5.1.0"
+    eslint-plugin-prettier: "npm:^5.1.1"
     googleapis: "npm:^129.0.0"
     husky: "npm:^8.0.3"
     ioredis: "npm:^5.3.2"
@@ -3109,9 +3109,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bullmq@npm:^4.16.0":
-  version: 4.16.0
-  resolution: "bullmq@npm:4.16.0"
+"bullmq@npm:^4.17.0":
+  version: 4.17.0
+  resolution: "bullmq@npm:4.17.0"
   dependencies:
     cron-parser: "npm:^4.6.0"
     glob: "npm:^8.0.3"
@@ -3122,7 +3122,7 @@ __metadata:
     semver: "npm:^7.5.4"
     tslib: "npm:^2.0.0"
     uuid: "npm:^9.0.0"
-  checksum: d44ee797045a6f3eaefaf34b1591ba2d63c3ddcbe4bcde5bd363157aa19c913ea5cfc8b37285d570c6b5fae0b9377c0cd99a7c30c982152c55fa88c5248dde1a
+  checksum: a703499172dd38c74b353cf97c58ffb692e1fd757555334e4b8375d518bc0d882bd4bb0954b29217ff87ed064328e178a60ecec988cb72201f2d94e9eb1cd465
   languageName: node
   linkType: hard
 
@@ -4137,9 +4137,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-prettier@npm:^5.0.1, eslint-plugin-prettier@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "eslint-plugin-prettier@npm:5.1.0"
+"eslint-plugin-prettier@npm:^5.0.1, eslint-plugin-prettier@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "eslint-plugin-prettier@npm:5.1.1"
   dependencies:
     prettier-linter-helpers: "npm:^1.0.0"
     synckit: "npm:^0.8.5"
@@ -4153,7 +4153,7 @@ __metadata:
       optional: true
     eslint-config-prettier:
       optional: true
-  checksum: 6db5a9dade4157092e87eb876508c8b510ab9bb0e4592536933d84b351b99d7c30259bad8ba76057b5c739fa62005d26f3008745438dc785060dbaae741f7fa5
+  checksum: 58ed63a1d937519fef5d0656df74a98163f3bdad978e20040a1fdfaa773a61fe8ca362ca19a316856446b226a64a227dd03f2ffe8fe7397f067d4442355b35fa
   languageName: node
   linkType: hard
 
