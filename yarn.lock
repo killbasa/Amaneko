@@ -1113,12 +1113,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@killbasa/redis-utils@npm:^0.0.6":
-  version: 0.0.6
-  resolution: "@killbasa/redis-utils@npm:0.0.6"
+"@killbasa/redis-utils@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "@killbasa/redis-utils@npm:0.0.7"
   peerDependencies:
     ioredis: ^5.0.0
-  checksum: 53ea11d53d5792ba462d06206ce29be9fcfc4f77c263b3b403317d59d3da63f7a866f0b880de61f842877d5230bcc3085d035b33ab68b89510e28ed8881c603b
+  checksum: be1b52ddf6cd22e6b4d5b7a60371f841a03d0bd2f986f89cf82c4231a359c85bed33b8da02d561dd262e690abda197218bea3626b0060fb1154c132d21408c77
   languageName: node
   linkType: hard
 
@@ -2773,7 +2773,7 @@ __metadata:
     "@kbotdev/eslint-config": "npm:^2.0.1"
     "@kbotdev/prettier-config": "npm:^1.0.2"
     "@kbotdev/ts-config": "npm:^1.0.2"
-    "@killbasa/redis-utils": "npm:^0.0.6"
+    "@killbasa/redis-utils": "npm:^0.0.7"
     "@opentelemetry/api": "npm:^1.7.0"
     "@opentelemetry/exporter-prometheus": "npm:^0.46.0"
     "@opentelemetry/exporter-trace-otlp-grpc": "npm:^0.46.0"
