@@ -43,7 +43,7 @@
 		"dd": "yarn dedupe --strategy highest"
 	},
 	"dependencies": {
-		"@killbasa/redis-utils": "^0.0.5",
+		"@killbasa/redis-utils": "^0.0.6",
 		"@opentelemetry/api": "^1.7.0",
 		"@opentelemetry/exporter-prometheus": "^0.46.0",
 		"@opentelemetry/exporter-trace-otlp-grpc": "^0.46.0",
