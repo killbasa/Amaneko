@@ -65,7 +65,7 @@
 		"colorette": "^2.0.20",
 		"discord.js": "^14.14.1",
 		"dotenv": "^16.3.1",
-		"googleapis": "^129.0.0",
+		"googleapis": "^130.0.0",
 		"ioredis": "^5.3.2",
 		"meilisearch": "^0.36.0",
 		"socket.io-client": "^4.7.2",
