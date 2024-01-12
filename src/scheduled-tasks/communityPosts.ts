@@ -1,5 +1,5 @@
 import { ScrapeSchema } from '#lib/schemas/ScrapeSchema';
-import { AmanekoEvents } from '#lib/utils/enums';
+import { AmanekoEvents, AmanekoTasks } from '#lib/utils/enums';
 import { sleep } from '#lib/utils/functions';
 import { AmanekoTask } from '#lib/extensions/AmanekoTask';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
@@ -9,11 +9,11 @@ import { FetchResultTypes, fetch } from '@sapphire/fetch';
 import type { CommunityPostData } from '#lib/types/YouTube';
 
 @ApplyOptions<ScheduledTask.Options>({
-	name: 'CommunityPostTask',
+	name: AmanekoTasks.CommunityPost,
 	pattern: '0 */5 * * * *', // Every 5 minutes
 	enabled: container.config.enableTasks
 })
-export class Task extends AmanekoTask {
+export class Task extends AmanekoTask<typeof AmanekoTasks.CommunityPost> {
 	public override async run(): Promise<void> {
 		const { tracer, container } = this;
 		const { client, logger, prisma, redis } = container;
@@ -96,5 +96,12 @@ export class Task extends AmanekoTask {
 			content: truncated,
 			isToday: ['day', 'week', 'month', 'year'].every((unit) => !date.includes(unit))
 		};
+	}
+}
+
+declare module '@sapphire/plugin-scheduled-tasks' {
+	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+	interface ScheduledTasks {
+		[AmanekoTasks.CommunityPost]: undefined;
 	}
 }

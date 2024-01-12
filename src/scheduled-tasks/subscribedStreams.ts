@@ -2,7 +2,7 @@ import { AmanekoTask } from '#lib/extensions/AmanekoTask';
 import { YoutubeNotifKey, YoutubePrechatNotifKey, YoutubeScheduleKey } from '#lib/utils/cache';
 import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { arrayIsEqual } from '#lib/utils/functions';
-import { AmanekoEvents } from '#lib/utils/enums';
+import { AmanekoEvents, AmanekoTasks } from '#lib/utils/enums';
 import { canSendGuildMessages } from '#lib/utils/permissions';
 import { videoLink } from '#lib/utils/youtube';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
@@ -15,11 +15,11 @@ import type { GuildWithSubscriptions } from '#lib/types/Discord';
 import type { APIEmbedField } from 'discord.js';
 
 @ApplyOptions<ScheduledTask.Options>({
-	name: 'SubscribedStreamTask',
+	name: AmanekoTasks.SubscribedStreams,
 	pattern: '0 */1 * * * *', // Every minute
 	enabled: container.config.enableTasks
 })
-export class Task extends AmanekoTask {
+export class Task extends AmanekoTask<typeof AmanekoTasks.SubscribedStreams> {
 	private readonly subscribedStreamsKey = 'youtube:subscribed-streams:list';
 
 	public override async run(): Promise<void> {
@@ -251,5 +251,12 @@ export class Task extends AmanekoTask {
 				);
 			}
 		});
+	}
+}
+
+declare module '@sapphire/plugin-scheduled-tasks' {
+	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+	interface ScheduledTasks {
+		[AmanekoTasks.SubscribedStreams]: undefined;
 	}
 }
