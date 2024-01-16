@@ -61,7 +61,7 @@
 		"@sapphire/plugin-scheduled-tasks": "^9.1.0",
 		"@sapphire/plugin-subcommands": "^6.0.1",
 		"bufferutil": "^4.0.8",
-		"bullmq": "^4.17.0",
+		"bullmq": "^5.1.3",
 		"colorette": "^2.0.20",
 		"discord.js": "^14.14.1",
 		"dotenv": "^16.3.1",

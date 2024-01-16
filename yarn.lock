@@ -2775,7 +2775,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^6.15.0"
     "@vitest/coverage-istanbul": "npm:^1.1.0"
     bufferutil: "npm:^4.0.8"
-    bullmq: "npm:^4.17.0"
+    bullmq: "npm:^5.1.3"
     colorette: "npm:^2.0.20"
     discord.js: "npm:^14.14.1"
     dotenv: "npm:^16.3.1"
@@ -3109,20 +3109,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bullmq@npm:^4.17.0":
-  version: 4.17.0
-  resolution: "bullmq@npm:4.17.0"
+"bullmq@npm:^5.1.3":
+  version: 5.1.3
+  resolution: "bullmq@npm:5.1.3"
   dependencies:
     cron-parser: "npm:^4.6.0"
     glob: "npm:^8.0.3"
     ioredis: "npm:^5.3.2"
     lodash: "npm:^4.17.21"
-    msgpackr: "npm:^1.6.2"
+    msgpackr: "npm:^1.10.1"
     node-abort-controller: "npm:^3.1.1"
     semver: "npm:^7.5.4"
     tslib: "npm:^2.0.0"
     uuid: "npm:^9.0.0"
-  checksum: a703499172dd38c74b353cf97c58ffb692e1fd757555334e4b8375d518bc0d882bd4bb0954b29217ff87ed064328e178a60ecec988cb72201f2d94e9eb1cd465
+  checksum: 23568096749b1732ef8060a0bf3c5800a84bcea95f32f48ce1b572d2b21addbe55c4eef29cc6acb9faed0b9d958b3749472351cb030d1fc5c279f1acdda84a8c
   languageName: node
   linkType: hard
 
@@ -6465,15 +6465,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msgpackr@npm:^1.6.2":
-  version: 1.10.0
-  resolution: "msgpackr@npm:1.10.0"
+"msgpackr@npm:^1.10.1, msgpackr@npm:^1.6.2":
+  version: 1.10.1
+  resolution: "msgpackr@npm:1.10.1"
   dependencies:
     msgpackr-extract: "npm:^3.0.2"
   dependenciesMeta:
     msgpackr-extract:
       optional: true
-  checksum: 2f4330a5ce34fafaeddcb8dd1e830ba36b0943d8aad3d903fe68a220cd1e52603e569780b339e91802d7b1b636f00b9a3ea3ee49d123e591c0d15ee1c25eba8b
+  checksum: 9fc78c78435a773ed919720ab4f276f6781c6feac0e88233783d00deb64ef1c1caf75781f4a5c675bb535292bb9a67f2262ffc15b64cdc16b176b5220997d564
   languageName: node
   linkType: hard
 
