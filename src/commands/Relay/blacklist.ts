@@ -74,9 +74,9 @@ export class Command extends AmanekoSubcommand {
 			return interaction.respond([]);
 		}
 
-		const filteredOptions = guildData.blacklist.filter(
-			(entry) => entry.channelName.startsWith(focusedValue) || entry.channelId.startsWith(focusedValue)
-		);
+		const filteredOptions = guildData.blacklist.filter((entry) => {
+			return entry.channelName.startsWith(focusedValue) ?? entry.channelId.startsWith(focusedValue);
+		});
 		const options: ApplicationCommandOptionChoiceData[] = filteredOptions.map((option) => ({
 			name: option.channelName === 'Username not found' ? option.channelId : option.channelName,
 			value: option.channelId
