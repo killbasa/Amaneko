@@ -1,5 +1,6 @@
 import { HolodexMembersOnlyPatterns } from '#lib/utils/constants';
 import { AmanekoTask } from '#lib/extensions/AmanekoTask';
+import { AmanekoTasks } from '#lib/utils/enums';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
@@ -7,11 +8,11 @@ import { container } from '@sapphire/framework';
 import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<ScheduledTask.Options>({
-	name: 'StreamTask',
+	name: AmanekoTasks.Streams,
 	pattern: '0 */1 * * * *', // Every minute
 	enabled: container.config.enableTasks
 })
-export class Task extends AmanekoTask {
+export class Task extends AmanekoTask<typeof AmanekoTasks.Streams> {
 	private readonly streamsKey = 'youtube:streams:list';
 
 	public override async run(): Promise<void> {
@@ -59,5 +60,12 @@ export class Task extends AmanekoTask {
 				}
 			});
 		});
+	}
+}
+
+declare module '@sapphire/plugin-scheduled-tasks' {
+	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+	interface ScheduledTasks {
+		[AmanekoTasks.Streams]: undefined;
 	}
 }

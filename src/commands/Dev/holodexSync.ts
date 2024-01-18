@@ -33,8 +33,10 @@ export class Command extends AmanekoCommand {
 		}
 
 		await this.container.tasks.create(
-			AmanekoTasks.HolodexSync, //
-			{ page: 0 },
+			{
+				name: AmanekoTasks.HolodexSync,
+				payload: { page: 0 }
+			},
 			{ repeated: false, delay: 0 }
 		);
 

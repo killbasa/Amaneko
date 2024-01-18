@@ -12,8 +12,8 @@ import type { HolodexChannel } from '@prisma/client';
 	pattern: '0 0 0 * * 6', // Every saturday
 	enabled: container.config.enableTasks
 })
-export class Task extends AmanekoTask {
-	public override async run(data: { page: number } | undefined): Promise<void> {
+export class Task extends AmanekoTask<typeof AmanekoTasks.HolodexSync> {
+	public override async run(data?: { page: number }): Promise<void> {
 		const { prisma, holodex, meili, logger } = this.container;
 
 		const page = data ? data.page : 0;
@@ -74,8 +74,10 @@ export class Task extends AmanekoTask {
 
 	private async scheduleNextPage(page: number): Promise<void> {
 		await this.container.tasks.create(
-			AmanekoTasks.HolodexSync, //
-			{ page },
+			{
+				name: AmanekoTasks.HolodexSync, //
+				payload: { page }
+			},
 			{ repeated: false, delay: Time.Second * 30 }
 		);
 	}
@@ -84,6 +86,6 @@ export class Task extends AmanekoTask {
 declare module '@sapphire/plugin-scheduled-tasks' {
 	// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 	interface ScheduledTasks {
-		[AmanekoTasks.HolodexSync]: never;
+		[AmanekoTasks.HolodexSync]?: { page: number };
 	}
 }

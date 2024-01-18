@@ -88,7 +88,7 @@ export class AmanekoClient extends SapphireClient {
 	public override async destroy(): Promise<void> {
 		await Promise.allSettled([
 			container.prisma.$disconnect(), //
-			container.redis.quit(),
+			container.redis.client.quit(),
 			container.tldex.destroy(),
 			container.otel.destroy(),
 			container.metrics.destroy()

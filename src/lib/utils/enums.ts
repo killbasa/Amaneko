@@ -15,8 +15,13 @@ export const AmanekoEvents = {
 } as const;
 
 export const AmanekoTasks = {
-	HolodexSync: 'HolodexSync'
+	CommunityPost: 'CommunityPost',
+	HolodexSync: 'HolodexSync',
+	Streams: 'Streams',
+	SubscribedStreams: 'SubscribedStreams',
+	UpdateActivity: 'UpdateActivity'
 } as const;
+export type AmanekoTasks = (typeof AmanekoTasks)[keyof typeof AmanekoTasks];
 
 export const CustomIDs = {
 	Feedback: 'amaneko/feedback',

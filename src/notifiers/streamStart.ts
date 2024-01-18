@@ -40,7 +40,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamStart> 
 			.setURL(videoLink(video.id))
 			.setThumbnail(video.channel.photo)
 			.setImage(`https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`)
-			.setDescription(video.description?.slice(0, 50) || null)
+			.setDescription(video.description?.slice(0, 50) ?? null)
 			.setFooter({ text: `Powered by Holodex` })
 			.setTimestamp();
 
