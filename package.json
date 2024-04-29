@@ -68,6 +68,7 @@
 		"ioredis": "^5.4.1",
 		"meilisearch": "^0.38.0",
 		"socket.io-client": "^4.7.5",
+		"zlib-sync": "^0.1.9",
 		"zod": "^3.23.5"
 	},
 	"devDependencies": {
@@ -107,7 +108,7 @@
 	},
 	"packageManager": "yarn@4.1.1",
 	"volta": {
-		"node": "22.0.0",
+		"node": "20.12.2",
 		"yarn": "4.1.1"
 	}
 }
