@@ -1,5 +1,5 @@
 module.exports = {
-	...require('@kbotdev/prettier-config'),
+	...require('@killbasa/prettier-config'),
 	overrides: [
 		{
 			files: '*.{yml,yaml}',

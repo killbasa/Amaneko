@@ -1,12 +1,10 @@
-import { ScrapeSchema } from '#lib/schemas/ScrapeSchema';
 import { AmanekoEvents, AmanekoTasks } from '#lib/utils/enums';
 import { sleep } from '#lib/utils/functions';
 import { AmanekoTask } from '#lib/extensions/AmanekoTask';
+import { getLatestCommunityPost } from '#lib/utils/youtube';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
-import { FetchResultTypes, fetch } from '@sapphire/fetch';
-import type { CommunityPostData } from '#lib/types/YouTube';
 
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.CommunityPost,
@@ -38,7 +36,8 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.CommunityPost> {
 							logger.debug(`[CommunityPosts] Checking posts for ${channelId}`);
 
 							const post = await tracer.createSpan(`process_channel:${channelId}:scrape`, async () => {
-								return await this.getLatestPost(channelId);
+								const result = await getLatestCommunityPost(channelId);
+								return result;
 							});
 							if (!post?.isToday) return;
 
@@ -55,47 +54,6 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.CommunityPost> {
 				}
 			});
 		});
-	}
-
-	private async getLatestPost(channelId: string): Promise<CommunityPostData | undefined> {
-		const channelUrl = `https://www.youtube.com/channel/${channelId}/community`;
-		const headers: Record<string, string> = { 'Accept-Language': 'en' };
-		const page = await fetch(channelUrl, { headers }, FetchResultTypes.Text);
-
-		const dataRegex = /(?<=var ytInitialData = )(.*?)(?=;<\/script>)/;
-
-		const data = JSON.parse(page.match(dataRegex)?.at(0) ?? '');
-		return this.parse(data, channelId);
-	}
-
-	private parse(ytData: any, channelId: string): CommunityPostData | undefined {
-		const result = ScrapeSchema.parse(
-			ytData.contents?.twoColumnBrowseResultsRenderer.tabs.filter((e: any) => e.tabRenderer) //
-		);
-
-		const communityTab = result.find((tab) => tab?.tabRenderer?.title === 'Community');
-		const content = communityTab?.tabRenderer?.content;
-		if (content === undefined) return undefined;
-
-		const sectionList = content.sectionListRenderer?.contents.at(0);
-		const sectionRenderer = sectionList?.itemSectionRenderer?.contents.at(0);
-		const latestPost = sectionRenderer?.backstagePostThreadRenderer?.post.backstagePostRenderer;
-		if (!latestPost) return undefined;
-
-		const postContent = latestPost.contentText.runs;
-		const postText = postContent.map((item) => item.text).join(' ');
-		const truncated = postText.length < 2000 ? postText : `${postText.substring(0, 1999)}…`;
-		const date = latestPost.publishedTimeText.runs[0].text;
-
-		return {
-			id: latestPost.postId,
-			channelId,
-			channelName: latestPost.authorText.runs[0].text,
-			avatar: `https:${latestPost.authorThumbnail.thumbnails[2].url}`,
-			url: `https://youtube.com/post/${latestPost.postId}`,
-			content: truncated,
-			isToday: ['day', 'week', 'month', 'year'].every((unit) => !date.includes(unit))
-		};
 	}
 }
 
