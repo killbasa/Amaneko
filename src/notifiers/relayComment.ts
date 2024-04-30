@@ -1,14 +1,14 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { cleanEmojis, videoLink } from '#lib/utils/youtube';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
-import { calculateTimestamp } from '#lib/utils/functions';
-import { resolveRelayQuery, shouldFilterComment } from '#lib/utils/notifications';
-import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
+import { AmanekoNotifier } from '../lib/extensions/AmanekoNotifier.js';
+import { AmanekoEmojis, VTuberOrgEmojis } from '../lib/utils/constants.js';
+import { AmanekoEvents } from '../lib/utils/enums.js';
+import { calculateTimestamp } from '../lib/utils/functions.js';
+import { resolveRelayQuery, shouldFilterComment } from '../lib/utils/notifications.js';
+import { canSendGuildMessages } from '../lib/utils/permissions.js';
+import { cleanEmojis, videoLink } from '../lib/utils/youtube.js';
 import { ApplyOptions } from '@sapphire/decorators';
+import type { TLDex } from '../lib/types/TLDex.js';
+import type { Holodex } from '../lib/types/Holodex.js';
 import type { GuildTextBasedChannel, Message } from 'discord.js';
-import type { TLDex } from '#lib/types/TLDex';
-import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<AmanekoNotifier.Options>({
 	name: 'RelayComment',
@@ -23,7 +23,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		if (shouldFilterComment(comment, video)) return this.none();
 
 		const relayChannelIds = await tracer.createSpan('find_subscriptions', async () => {
-			return prisma.subscription.findMany({
+			return await prisma.subscription.findMany({
 				where: resolveRelayQuery(comment, video),
 				select: { guildId: true, relayChannelId: true }
 			});
@@ -36,7 +36,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		const channels = await tracer.createSpan('fetch_channels', async () => {
 			const fetchedChannels = await Promise.allSettled(
 				relayChannelIds.map(async ({ relayChannelId }) => {
-					return client.channels.fetch(relayChannelId!);
+					return await client.channels.fetch(relayChannelId!);
 				})
 			);
 
@@ -66,7 +66,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 
 		const messages = await Promise.allSettled(
 			channels.map(async (channel) => {
-				return channel.send({ content });
+				return await channel.send({ content });
 			})
 		);
 

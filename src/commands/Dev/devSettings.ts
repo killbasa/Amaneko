@@ -1,9 +1,9 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { BrandColors, DevSettingsKey } from '#lib/utils/constants';
-import { canSendGuildEmbeds } from '#lib/utils/permissions';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { BrandColors, DevSettingsKey } from '../../lib/utils/constants.js';
+import { canSendGuildEmbeds } from '../../lib/utils/permissions.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ChannelType, EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
-import type { DevSettings } from '#lib/types/Dev';
+import type { DevSettings } from '../../lib/types/Dev.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Manage dev settings',
@@ -70,7 +70,7 @@ export class Command extends AmanekoSubcommand {
 
 		await this.saveSettings(settings);
 
-		return interaction.reply({
+		return await interaction.reply({
 			embeds: [await this.showSettings(settings, warnings)]
 		});
 	}
@@ -85,7 +85,7 @@ export class Command extends AmanekoSubcommand {
 
 		await this.saveSettings(settings);
 
-		return interaction.reply({
+		return await interaction.reply({
 			embeds: [await this.showSettings(settings)]
 		});
 	}
@@ -93,7 +93,7 @@ export class Command extends AmanekoSubcommand {
 	public async handleCheck(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		const settings = await this.getSettings();
 
-		return interaction.reply({
+		return await interaction.reply({
 			embeds: [await this.showSettings(settings)]
 		});
 	}

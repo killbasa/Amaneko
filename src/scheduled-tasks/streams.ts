@@ -1,11 +1,11 @@
-import { HolodexMembersOnlyPatterns } from '#lib/utils/constants';
-import { AmanekoTask } from '#lib/extensions/AmanekoTask';
-import { AmanekoTasks } from '#lib/utils/enums';
+import { AmanekoTask } from '../lib/extensions/AmanekoTask.js';
+import { HolodexMembersOnlyPatterns } from '../lib/utils/constants.js';
+import { AmanekoTasks } from '../lib/utils/enums.js';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
 import { container } from '@sapphire/framework';
-import type { Holodex } from '#lib/types/Holodex';
+import type { Holodex } from '../lib/types/Holodex.js';
 
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.Streams,
@@ -23,7 +23,7 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.Streams> {
 			logger.debug('[StreamTask] Checking streams');
 
 			const liveStreams = await tracer.createSpan('fetch_streams', async () => {
-				return holodex.getVideos({
+				return await holodex.getVideos({
 					maxUpcoming: Time.Minute * 15
 				});
 			});
@@ -32,7 +32,7 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.Streams> {
 				for (const stream of liveStreams) {
 					// Only relay non-member streams
 					if (!stream.topic_id || !HolodexMembersOnlyPatterns.includes(stream.topic_id)) {
-						tldex.subscribe(stream);
+						await tldex.subscribe(stream);
 					}
 				}
 			});

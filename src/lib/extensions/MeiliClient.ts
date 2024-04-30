@@ -1,6 +1,6 @@
-import { MeiliCategories } from '#lib/types/Meili';
+import { MeiliCategories } from '../types/Meili.js';
 import { MeiliSearch } from 'meilisearch';
-import type { MeiliClientOptions, MeiliDocument, MeiliIndex } from '#lib/types/Meili';
+import type { MeiliClientOptions, MeiliDocument, MeiliIndex } from '../types/Meili.js';
 import type { EnqueuedTask, SearchParams, SearchResponse } from 'meilisearch';
 
 export class MeiliClient extends MeiliSearch {

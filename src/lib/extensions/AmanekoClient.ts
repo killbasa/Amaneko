@@ -1,10 +1,10 @@
-import { HolodexClient } from '#lib/structures/HolodexClient';
-import { MeiliClient } from '#lib/extensions/MeiliClient';
-import { TLDexClient } from '#lib/structures/TLDexClient';
-import { MetricsClient } from '#lib/structures/MetricsClient';
-import { OpenTelemetryClient } from '#lib/structures/OpenTelemetryClient';
-import { AmanekoLogger } from '#lib/extensions/AmanekoLogger';
-import { mainFolder } from '#lib/utils/constants';
+import { AmanekoLogger } from './AmanekoLogger.js';
+import { MeiliClient } from './MeiliClient.js';
+import { HolodexClient } from '../structures/HolodexClient.js';
+import { MetricsClient } from '../structures/MetricsClient.js';
+import { OpenTelemetryClient } from '../structures/OpenTelemetryClient.js';
+import { TLDexClient } from '../structures/TLDexClient.js';
+import { mainFolder } from '../utils/constants.js';
 import { RedisClient } from '@killbasa/redis-utils';
 import { PrismaClient } from '@prisma/client';
 import { LogLevel, SapphireClient, container } from '@sapphire/framework';
@@ -89,6 +89,7 @@ export class AmanekoClient extends SapphireClient {
 		await Promise.allSettled([
 			container.prisma.$disconnect(), //
 			container.redis.client.quit(),
+			// eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
 			container.tldex.destroy(),
 			container.otel.destroy(),
 			container.metrics.destroy()

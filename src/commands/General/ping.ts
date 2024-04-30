@@ -1,4 +1,4 @@
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PermissionFlagsBits } from 'discord.js';
 
@@ -22,6 +22,6 @@ export class Command extends AmanekoCommand {
 		const diff = message.createdTimestamp - interaction.createdTimestamp;
 		const ping = Math.round(this.container.client.ws.ping);
 
-		return interaction.editReply(`Pong! (Round trip took: ${diff}ms. Heartbeat: ${ping}ms.)`);
+		return await interaction.editReply(`Pong! (Round trip took: ${diff}ms. Heartbeat: ${ping}ms.)`);
 	}
 }

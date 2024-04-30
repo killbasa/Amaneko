@@ -1,4 +1,4 @@
-import { errorReply } from '#lib/utils/reply';
+import { errorReply } from '../../lib/utils/reply.js';
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { ContextMenuCommandDeniedPayload, UserError } from '@sapphire/framework';

@@ -42,16 +42,13 @@ jobs:
           yarn install --immutable
           yarn db:push
 
-      - name: Run typecheck
-        run: yarn typecheck
+      - name: Run build
+        run: yarn build
 
       - name: Run lint
         run: |
           yarn format
           yarn lint
-
-      - name: Run build
-        run: yarn build
 
       - name: Run tests
         run: yarn test

@@ -1,5 +1,5 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { defaultReply, errorReply } from '#lib/utils/reply';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { defaultReply, errorReply } from '../../lib/utils/reply.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PermissionFlagsBits } from 'discord.js';
 
@@ -69,7 +69,7 @@ export class Command extends AmanekoSubcommand {
 			create: { userId }
 		});
 
-		return defaultReply(interaction, `\`${userId}\` has been added to the feedback blacklist.`);
+		return await defaultReply(interaction, `\`${userId}\` has been added to the feedback blacklist.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -80,10 +80,10 @@ export class Command extends AmanekoSubcommand {
 				where: { userId }
 			});
 		} catch (err: unknown) {
-			return errorReply(interaction, `Failed to remove the blacklist for \`${userId}\`.`);
+			return await errorReply(interaction, `Failed to remove the blacklist for \`${userId}\`.`);
 		}
 
-		return defaultReply(interaction, `\`${userId}\` has been removed from the feedback blacklist.`);
+		return await defaultReply(interaction, `\`${userId}\` has been removed from the feedback blacklist.`);
 	}
 
 	public async handleCheck(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -94,9 +94,9 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (result !== null) {
-			return defaultReply(interaction, `\`${userId}\` is blacklisted.`);
+			return await defaultReply(interaction, `\`${userId}\` is blacklisted.`);
 		}
 
-		return defaultReply(interaction, `\`${userId}\` is not blacklisted.`);
+		return await defaultReply(interaction, `\`${userId}\` is not blacklisted.`);
 	}
 }

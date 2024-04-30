@@ -1,4 +1,4 @@
-import { isNotifChannel } from '#lib/utils/discord';
+import { isNotifChannel } from '../../lib/utils/discord.js';
 import { Events, Listener } from '@sapphire/framework';
 import { ApplyOptions } from '@sapphire/decorators';
 import type { DMChannel, NewsChannel, NonThreadGuildBasedChannel, TextChannel } from 'discord.js';

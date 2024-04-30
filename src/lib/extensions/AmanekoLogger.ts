@@ -1,4 +1,4 @@
-import { injectTrace, isPrimitive } from '#lib/utils/functions';
+import { injectTrace, isPrimitive } from '../utils/functions.js';
 import { Logger } from '@sapphire/plugin-logger';
 import { LogLevel } from '@sapphire/framework';
 import { inspect } from 'util';

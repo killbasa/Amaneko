@@ -6,10 +6,6 @@
 	"main": "./dist/Amaneko.js",
 	"private": true,
 	"type": "module",
-	"imports": {
-		"#config": "./dist/config.js",
-		"#lib/*": "./dist/lib/*.js"
-	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/killbasa/amaneko.git"
@@ -20,8 +16,7 @@
 	},
 	"scripts": {
 		"prepare": "husky",
-		"build": "tsup",
-		"typecheck": "tsc -b src",
+		"build": "yarn check && tsup",
 		"dev": "tsup --watch --onSuccess \"yarn start\"",
 		"start": "node --enable-source-maps ./dist/Amaneko.js",
 		"check": "tsc --noEmit -p src",
@@ -38,7 +33,7 @@
 		"docs:build": "vitepress build docs",
 		"docs:preview": "vitepress preview docs",
 		"docker": "docker buildx build -t killbasa/amaneko .",
-		"dry-run": "yarn typecheck && yarn format && yarn lint && yarn build && yarn test",
+		"dry-run": "yarn build && yarn format && yarn lint && yarn test",
 		"update": "yarn upgrade-interactive",
 		"dd": "yarn dedupe --strategy highest"
 	},

@@ -1,4 +1,4 @@
-import { NotifChannelTypes } from '#lib/utils/constants';
+import { NotifChannelTypes } from './constants.js';
 import type { ChannelType } from 'discord.js';
 
 export function isNotifChannel(channel: ChannelType): channel is (typeof NotifChannelTypes)[number] {

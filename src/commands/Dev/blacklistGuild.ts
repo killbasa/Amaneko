@@ -1,5 +1,5 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { defaultReply, errorReply } from '#lib/utils/reply';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { defaultReply, errorReply } from '../../lib/utils/reply.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PermissionFlagsBits } from 'discord.js';
 
@@ -75,10 +75,10 @@ export class Command extends AmanekoSubcommand {
 				await guild.leave();
 			}
 		} catch (err: unknown) {
-			return errorReply(interaction, `Failed to leave ${guildId}.`);
+			return await errorReply(interaction, `Failed to leave ${guildId}.`);
 		}
 
-		return defaultReply(interaction, `${guildId} has been added to the guild blacklist.`);
+		return await defaultReply(interaction, `${guildId} has been added to the guild blacklist.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -89,10 +89,10 @@ export class Command extends AmanekoSubcommand {
 				where: { guildId }
 			});
 		} catch (err: unknown) {
-			return errorReply(interaction, `Failed to remove the blacklist for ${guildId}.`);
+			return await errorReply(interaction, `Failed to remove the blacklist for ${guildId}.`);
 		}
 
-		return defaultReply(interaction, `${guildId} has been removed from the guild blacklist.`);
+		return await defaultReply(interaction, `${guildId} has been removed from the guild blacklist.`);
 	}
 
 	public async handleCheck(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -103,9 +103,9 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (result !== null) {
-			return defaultReply(interaction, `${guildId} is blacklisted.`);
+			return await defaultReply(interaction, `${guildId} is blacklisted.`);
 		}
 
-		return defaultReply(interaction, `${guildId} is not blacklisted.`);
+		return await defaultReply(interaction, `${guildId} is not blacklisted.`);
 	}
 }

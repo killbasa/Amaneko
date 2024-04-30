@@ -1,6 +1,6 @@
-import { getUsername } from '#lib/utils/youtube';
-import { errorReply, successReply } from '#lib/utils/reply';
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
+import { getUsername } from '../../lib/utils/youtube.js';
+import { errorReply, successReply } from '../../lib/utils/reply.js';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { ApplicationCommandType, PermissionFlagsBits } from 'discord.js';
 
@@ -29,7 +29,7 @@ export class ContextCommand extends AmanekoCommand {
 			select: { channelId: true }
 		});
 		if (!userToBlacklist?.channelId) {
-			return errorReply(interaction, 'This message is either not a stream comment or the stream is over.');
+			return await errorReply(interaction, 'This message is either not a stream comment or the stream is over.');
 		}
 
 		const blacklistedUsername = await getUsername(userToBlacklist.channelId);
@@ -52,6 +52,6 @@ export class ContextCommand extends AmanekoCommand {
 			}
 		});
 
-		return successReply(interaction, `Added **${blacklistedUser.channelName}** to the blacklist.`);
+		return await successReply(interaction, `Added **${blacklistedUser.channelName}** to the blacklist.`);
 	}
 }

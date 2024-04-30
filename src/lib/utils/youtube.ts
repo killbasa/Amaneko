@@ -1,10 +1,10 @@
-import { YoutubeEmojiRegex } from '#lib/utils/constants';
-import { YoutubeDataSchema } from '#lib/schemas/YoutubeDataSchema';
-import { ScrapeSchema } from '#lib/schemas/ScrapeSchema';
+import { YoutubeEmojiRegex } from './constants.js';
+import { ScrapeSchema } from '../schemas/ScrapeSchema.js';
+import { YoutubeDataSchema } from '../schemas/YoutubeDataSchema.js';
 import { container } from '@sapphire/framework';
 import { FetchResultTypes, fetch } from '@sapphire/fetch';
-import type { YoutubeData } from '#lib/schemas/YoutubeDataSchema';
-import type { CommunityPostData } from '#lib/types/YouTube';
+import type { YoutubeData } from '../schemas/YoutubeDataSchema.js';
+import type { CommunityPostData } from '../types/YouTube.js';
 
 export const getUsername = async (id: string): Promise<string> => {
 	try {

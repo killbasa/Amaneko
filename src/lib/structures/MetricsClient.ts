@@ -1,4 +1,4 @@
-import { Counters } from '#lib/structures/otel/Counters';
+import { Counters } from './otel/Counters.js';
 import { container } from '@sapphire/framework';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { metrics, resources } from '@opentelemetry/sdk-node';

@@ -1,9 +1,9 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { NotifChannelTypes } from '#lib/utils/constants';
-import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
-import { canSendGuildAttachments } from '#lib/utils/permissions';
-import { ApplyOptions } from '@sapphire/decorators';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { NotifChannelTypes } from '../../lib/utils/constants.js';
+import { canSendGuildAttachments } from '../../lib/utils/permissions.js';
+import { defaultReply, errorReply, successReply } from '../../lib/utils/reply.js';
 import { PermissionFlagsBits, channelMention } from 'discord.js';
+import { ApplyOptions } from '@sapphire/decorators';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Have relay logs sent to a specific channel.',
@@ -52,7 +52,7 @@ export class Command extends AmanekoSubcommand {
 		const channelId = channel.id;
 
 		if (!canSendGuildAttachments(channel)) {
-			return errorReply(interaction, `I am not able to send files in ${channelMention(channelId)}`);
+			return await errorReply(interaction, `I am not able to send files in ${channelMention(channelId)}`);
 		}
 
 		await this.container.prisma.guild.upsert({
@@ -61,7 +61,7 @@ export class Command extends AmanekoSubcommand {
 			create: { id: interaction.guildId, relayHistoryChannelId: channel.id }
 		});
 
-		return successReply(interaction, `Relay logs will now be sent to ${channelMention(channel.id)}`);
+		return await successReply(interaction, `Relay logs will now be sent to ${channelMention(channel.id)}`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -72,7 +72,7 @@ export class Command extends AmanekoSubcommand {
 			select: { relayHistoryChannelId: true }
 		});
 		if (!oldSettings?.relayHistoryChannelId) {
-			return defaultReply(interaction, 'Relay logs are not being sent to a specific channel.');
+			return await defaultReply(interaction, 'Relay logs are not being sent to a specific channel.');
 		}
 
 		await this.container.prisma.guild.upsert({
@@ -81,7 +81,7 @@ export class Command extends AmanekoSubcommand {
 			create: { id: interaction.guildId, relayHistoryChannelId: null }
 		});
 
-		return successReply(interaction, `Relay logs will no longer be sent to ${channelMention(oldSettings.relayHistoryChannelId)}`);
+		return await successReply(interaction, `Relay logs will no longer be sent to ${channelMention(oldSettings.relayHistoryChannelId)}`);
 	}
 
 	public async handleShow(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -92,9 +92,9 @@ export class Command extends AmanekoSubcommand {
 			select: { relayHistoryChannelId: true }
 		});
 		if (!result?.relayHistoryChannelId) {
-			return defaultReply(interaction, 'Relay logs are not being sent to a specific channel.');
+			return await defaultReply(interaction, 'Relay logs are not being sent to a specific channel.');
 		}
 
-		return defaultReply(interaction, `Relays logs are being sent to ${channelMention(result.relayHistoryChannelId)}`);
+		return await defaultReply(interaction, `Relays logs are being sent to ${channelMention(result.relayHistoryChannelId)}`);
 	}
 }

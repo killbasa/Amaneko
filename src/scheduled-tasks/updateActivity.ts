@@ -1,5 +1,5 @@
-import { AmanekoTask } from '#lib/extensions/AmanekoTask';
-import { AmanekoTasks } from '#lib/utils/enums';
+import { AmanekoTask } from '../lib/extensions/AmanekoTask.js';
+import { AmanekoTasks } from '../lib/utils/enums.js';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';

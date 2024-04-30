@@ -1,10 +1,10 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { BrandColors } from '#lib/utils/constants';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
-import { ApplyOptions } from '@sapphire/decorators';
+import { AmanekoEvents } from '../lib/utils/enums.js';
+import { AmanekoNotifier } from '../lib/extensions/AmanekoNotifier.js';
+import { BrandColors } from '../lib/utils/constants.js';
+import { canSendGuildMessages } from '../lib/utils/permissions.js';
 import { EmbedBuilder, roleMention } from 'discord.js';
-import type { CommunityPostData } from '#lib/types/YouTube';
+import { ApplyOptions } from '@sapphire/decorators';
+import type { CommunityPostData } from '../lib/types/YouTube.js';
 
 @ApplyOptions<AmanekoNotifier.Options>({
 	name: AmanekoEvents.CommunityPost,
@@ -16,7 +16,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.CommunityPost
 		const { prisma } = container;
 
 		const subscriptions = await tracer.createSpan('find-subscriptions', async () => {
-			return prisma.subscription.findMany({
+			return await prisma.subscription.findMany({
 				where: { channelId: post.channelId, communityPostChannelId: { not: null } },
 				select: { guildId: true, communityPostChannelId: true, communityPostRoleId: true }
 			});
@@ -38,13 +38,13 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.CommunityPost
 
 		const messages = await Promise.allSettled([
 			subscriptions.map(async ({ guildId, communityPostChannelId, communityPostRoleId }) => {
-				return tracer.createSpan(`process_subscription:${guildId}`, async () => {
+				return await tracer.createSpan(`process_subscription:${guildId}`, async () => {
 					const channel = await client.channels.fetch(communityPostChannelId!);
 					if (!canSendGuildMessages(channel)) return;
 
 					const rolePing = communityPostRoleId ? roleMention(communityPostRoleId) : '';
 
-					return channel.send({
+					return await channel.send({
 						content: `:loudspeaker: ${rolePing} ${post.channelName} just published a community post!\n${post.url}`,
 						embeds: [embed]
 					});

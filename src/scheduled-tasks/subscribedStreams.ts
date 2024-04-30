@@ -1,18 +1,18 @@
-import { AmanekoTask } from '#lib/extensions/AmanekoTask';
-import { YoutubeNotifKey, YoutubePrechatNotifKey, YoutubeScheduleKey } from '#lib/utils/cache';
-import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
-import { arrayIsEqual } from '#lib/utils/functions';
-import { AmanekoEvents, AmanekoTasks } from '#lib/utils/enums';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { videoLink } from '#lib/utils/youtube';
+import { AmanekoTask } from '../lib/extensions/AmanekoTask.js';
+import { YoutubeNotifKey, YoutubePrechatNotifKey, YoutubeScheduleKey } from '../lib/utils/cache.js';
+import { BrandColors, HolodexMembersOnlyPatterns } from '../lib/utils/constants.js';
+import { AmanekoEvents, AmanekoTasks } from '../lib/utils/enums.js';
+import { arrayIsEqual } from '../lib/utils/functions.js';
+import { canSendGuildMessages } from '../lib/utils/permissions.js';
+import { videoLink } from '../lib/utils/youtube.js';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';
 import { Time } from '@sapphire/duration';
 import { EmbedBuilder } from 'discord.js';
-import type { Holodex } from '#lib/types/Holodex';
-import type { GuildWithSubscriptions } from '#lib/types/Discord';
 import type { APIEmbedField } from 'discord.js';
+import type { GuildWithSubscriptions } from '../lib/types/Discord.js';
+import type { Holodex } from '../lib/types/Holodex.js';
 
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.SubscribedStreams,
@@ -47,7 +47,7 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.SubscribedStreams> {
 
 			const upcomingStreams: Holodex.VideoWithChannel[] = [];
 			const liveStreams = await tracer.createSpan('fetch_streams', async () => {
-				return holodex.getLiveVideos({
+				return await holodex.getLiveVideos({
 					channels: channelIds,
 					maxUpcoming: Time.Day * 5
 				});
@@ -158,7 +158,7 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.SubscribedStreams> {
 						});
 					}
 
-					return this.container.redis.set<string[]>(
+					return await this.container.redis.set<string[]>(
 						YoutubeScheduleKey(guild.id),
 						guildUpcomingStreams.map((stream) => stream.id)
 					);
@@ -203,7 +203,7 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.SubscribedStreams> {
 						});
 					}
 
-					return this.container.redis.delete(YoutubeScheduleKey(guild.id));
+					return await this.container.redis.delete(YoutubeScheduleKey(guild.id));
 				});
 			})
 		);
@@ -235,7 +235,7 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.SubscribedStreams> {
 			}
 
 			if (danglingStreamIds.length > 0) {
-				prisma.streamComment.deleteMany({
+				await prisma.streamComment.deleteMany({
 					where: { videoId: { in: danglingStreamIds } }
 				});
 			}

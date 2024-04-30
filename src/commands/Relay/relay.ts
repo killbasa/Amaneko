@@ -1,9 +1,9 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { MeiliCategories } from '#lib/types/Meili';
-import { BrandColors, NotifChannelTypes } from '#lib/utils/constants';
-import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { channelLink } from '#lib/utils/youtube';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { MeiliCategories } from '../../lib/types/Meili.js';
+import { BrandColors, NotifChannelTypes } from '../../lib/utils/constants.js';
+import { defaultReply, errorReply, successReply } from '../../lib/utils/reply.js';
+import { canSendGuildMessages } from '../../lib/utils/permissions.js';
+import { channelLink } from '../../lib/utils/youtube.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
@@ -102,7 +102,10 @@ export class Command extends AmanekoSubcommand {
 				where: { guildId: interaction.guildId, relayChannelId: { not: null } },
 				select: { channel: true }
 			});
-			if (channels.length === 0) return interaction.respond([]);
+			if (channels.length === 0) {
+				await interaction.respond([]);
+				return;
+			}
 
 			options = channels.map(({ channel }) => ({
 				name: channel.name,
@@ -110,7 +113,7 @@ export class Command extends AmanekoSubcommand {
 			}));
 		}
 
-		return interaction.respond(options);
+		await interaction.respond(options);
 	}
 
 	public async handleAdd(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -124,16 +127,16 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return defaultReply(interaction, 'You can only have a maximum of 25 relay subscriptions.');
+			return await defaultReply(interaction, 'You can only have a maximum of 25 relay subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		if (!canSendGuildMessages(interaction.channel)) {
-			return errorReply(interaction, `I am not able to send messages in ${channelMention(interaction.channelId)}`);
+			return await errorReply(interaction, `I am not able to send messages in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
@@ -153,7 +156,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		return successReply(
+		return await successReply(
 			interaction, //
 			`Relays from ${channelLink(channel.name, channel.id)} will now be sent to this channel.`
 		);
@@ -165,7 +168,7 @@ export class Command extends AmanekoSubcommand {
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		const oldSettings = await this.container.prisma.subscription.findUnique({
@@ -173,7 +176,7 @@ export class Command extends AmanekoSubcommand {
 			select: { relayChannelId: true }
 		});
 		if (!oldSettings?.relayChannelId) {
-			return defaultReply(interaction, `Relays for ${channel.name} are not being sent to this server.`);
+			return await defaultReply(interaction, `Relays for ${channel.name} are not being sent to this server.`);
 		}
 
 		await this.container.prisma.subscription.update({
@@ -181,7 +184,7 @@ export class Command extends AmanekoSubcommand {
 			data: { relayChannelId: null }
 		});
 
-		return successReply(
+		return await successReply(
 			interaction,
 			`Relays for ${channelLink(channel.name, channel.id)} will no longer be sent to ${channelMention(oldSettings.relayChannelId)}`
 		);
@@ -194,7 +197,7 @@ export class Command extends AmanekoSubcommand {
 
 		if (enableMods === null && enableTls === null) {
 			const embed = await this.formatSettings(interaction);
-			return interaction.editReply({
+			return await interaction.editReply({
 				embeds: [embed]
 			});
 		}
@@ -212,7 +215,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		return successReply(interaction, `The new relay settings have been successfully applied.`);
+		return await successReply(interaction, `The new relay settings have been successfully applied.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -225,7 +228,7 @@ export class Command extends AmanekoSubcommand {
 			data: { relayChannelId: null }
 		});
 
-		return successReply(interaction, `Relays will no longer be sent in ${channelMention(channelId)}`);
+		return await successReply(interaction, `Relays will no longer be sent in ${channelMention(channelId)}`);
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -240,7 +243,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no relays being sent to this server. You can add one with `/relay add`.');
+			return await defaultReply(interaction, 'There are no relays being sent to this server. You can add one with `/relay add`.');
 		}
 
 		const embed = new EmbedBuilder() //
@@ -254,7 +257,7 @@ export class Command extends AmanekoSubcommand {
 					.join('\n')
 			);
 
-		return interaction.editReply({
+		return await interaction.editReply({
 			embeds: [embed]
 		});
 	}

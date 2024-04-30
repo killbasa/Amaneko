@@ -1,6 +1,6 @@
 import { container } from '@sapphire/framework';
-import type { Holodex } from '#lib/types/Holodex';
-import type { TLDex } from '#lib/types/TLDex';
+import type { Holodex } from '../types/Holodex.js';
+import type { TLDex } from '../types/TLDex.js';
 import type { Prisma } from '@prisma/client';
 
 export function resolveRelayQuery(comment: TLDex.CommentPayload, video: Holodex.VideoWithChannel): Prisma.SubscriptionWhereInput {

@@ -1,5 +1,5 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { AmanekoEmojis } from '#lib/utils/constants';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { AmanekoEmojis } from '../../lib/utils/constants.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PermissionFlagsBits } from 'discord.js';
 
@@ -46,7 +46,7 @@ export class Command extends AmanekoSubcommand {
 		const roomID = interaction.options.getString('room_id', true);
 		const result = this.container.tldex.hasRoom(roomID);
 
-		return interaction.reply({
+		return await interaction.reply({
 			content: `Subscribed to \`${roomID}\`: ${result ? AmanekoEmojis.GreenCheck : AmanekoEmojis.RedX}`
 		});
 	}
@@ -54,10 +54,10 @@ export class Command extends AmanekoSubcommand {
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
 		const rooms = this.container.tldex.getRoomList();
 		if (rooms.length === 0) {
-			return interaction.reply({ content: 'There are no rooms.' });
+			return await interaction.reply({ content: 'There are no rooms.' });
 		}
 
-		return interaction.reply({
+		return await interaction.reply({
 			content: `TLDex rooms: ${rooms.length}`,
 			files: [{ name: 'tldex_rooms.txt', attachment: Buffer.from(rooms.join('\n')) }]
 		});

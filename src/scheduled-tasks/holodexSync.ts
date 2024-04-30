@@ -1,6 +1,6 @@
-import { MeiliCategories } from '#lib/types/Meili';
-import { AmanekoTasks } from '#lib/utils/enums';
-import { AmanekoTask } from '#lib/extensions/AmanekoTask';
+import { AmanekoTask } from '../lib/extensions/AmanekoTask.js';
+import { MeiliCategories } from '../lib/types/Meili.js';
+import { AmanekoTasks } from '../lib/utils/enums.js';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 import { ApplyOptions } from '@sapphire/decorators';
 import { container } from '@sapphire/framework';

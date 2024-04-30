@@ -1,4 +1,4 @@
-import { BrandColors } from '#lib/utils/constants';
+import { BrandColors } from './constants.js';
 import { EmbedBuilder } from 'discord.js';
 import type { CommandInteraction, InteractionResponse, Message, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 

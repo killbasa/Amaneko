@@ -19,7 +19,7 @@ export namespace Holodex {
 	export type ChannelMin = {
 		id: string;
 		name: string;
-		english_name: string;
+		english_name: string | null;
 		type: string;
 		photo: string;
 	};

@@ -1,14 +1,14 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { cleanEmojis, videoLink } from '#lib/utils/youtube';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { AmanekoEmojis, VTuberOrgEmojis } from '#lib/utils/constants';
-import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
-import { shouldFilterCameo } from '#lib/utils/notifications';
+import { AmanekoNotifier } from '../lib/extensions/AmanekoNotifier.js';
+import { AmanekoEmojis, VTuberOrgEmojis } from '../lib/utils/constants.js';
+import { AmanekoEvents } from '../lib/utils/enums.js';
+import { shouldFilterCameo } from '../lib/utils/notifications.js';
+import { canSendGuildMessages } from '../lib/utils/permissions.js';
+import { cleanEmojis, videoLink } from '../lib/utils/youtube.js';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { TLDex } from '#lib/types/TLDex';
-import type { Holodex } from '#lib/types/Holodex';
-import type { GuildTextBasedChannel } from 'discord.js';
+import type { TLDex } from '../lib/types/TLDex.js';
+import type { Holodex } from '../lib/types/Holodex.js';
 import type { HolodexChannel } from '@prisma/client';
+import type { GuildTextBasedChannel } from 'discord.js';
 
 @ApplyOptions<AmanekoNotifier.Options>({
 	name: 'RelayCameo',
@@ -28,7 +28,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		}
 
 		const cameoChannelIds = await tracer.createSpan('find_subscriptions', async () => {
-			return prisma.subscription.findMany({
+			return await prisma.subscription.findMany({
 				where: {
 					channelId: comment.channel_id,
 					cameoChannelId: { not: null }
@@ -44,7 +44,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 		const channels = await tracer.createSpan('fetch_channels', async () => {
 			const fetchedChannels = await Promise.allSettled(
 				cameoChannelIds.map(async ({ cameoChannelId }) => {
-					return client.channels.fetch(cameoChannelId!);
+					return await client.channels.fetch(cameoChannelId!);
 				})
 			);
 
@@ -73,7 +73,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamComment
 
 		const messages = await Promise.allSettled(
 			channels.map(async (channel) => {
-				return channel.send({ content });
+				return await channel.send({ content });
 			})
 		);
 

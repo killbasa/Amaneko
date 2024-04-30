@@ -1,13 +1,13 @@
-import { toSnakeCase } from '#lib/utils/functions';
+import { toSnakeCase } from '../utils/functions.js';
 import { Listener, Piece, Result } from '@sapphire/framework';
 import { AsyncQueue } from '@sapphire/async-queue';
 import { Option } from '@sapphire/result';
 import type { Awaitable } from '@sapphire/framework';
-import type { AmanekoEvents } from '#lib/utils/enums';
-import type { CommunityPostData } from '#lib/types/YouTube';
-import type { Holodex } from '#lib/types/Holodex';
-import type { TLDex } from '#lib/types/TLDex';
-import type { AmanekoTracer } from '#lib/structures/otel/AmanekoTracer';
+import type { AmanekoTracer } from '../structures/otel/AmanekoTracer.js';
+import type { Holodex } from '../types/Holodex.js';
+import type { TLDex } from '../types/TLDex.js';
+import type { CommunityPostData } from '../types/YouTube.js';
+import type { AmanekoEvents } from '../utils/enums.js';
 
 export abstract class AmanekoNotifier<E extends keyof AmanekoNotifications> extends Listener {
 	protected readonly tracer: AmanekoTracer;

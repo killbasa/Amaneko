@@ -1,4 +1,4 @@
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { LogLevel } from '@sapphire/framework';
 import { PermissionFlagsBits } from 'discord.js';
@@ -36,6 +36,6 @@ export class Command extends AmanekoCommand {
 		const level = interaction.options.getString('level', true);
 		this.container.logger.setLevel(Number(level));
 
-		return interaction.reply(`Log level set to ${level} (20 = debug, 30 = info)`);
+		return await interaction.reply(`Log level set to ${level} (20 = debug, 30 = info)`);
 	}
 }

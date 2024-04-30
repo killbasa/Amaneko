@@ -1,7 +1,7 @@
-import { toSnakeCase } from '#lib/utils/functions';
+import { toSnakeCase } from '../utils/functions.js';
 import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
-import type { AmanekoTracer } from '#lib/structures/otel/AmanekoTracer';
-import type { AmanekoTasks } from '#lib/utils/enums';
+import type { AmanekoTracer } from '../structures/otel/AmanekoTracer.js';
+import type { AmanekoTasks } from '../utils/enums.js';
 
 export abstract class AmanekoTask<T extends AmanekoTasks = AmanekoTasks> extends ScheduledTask<T> {
 	protected readonly tracer: AmanekoTracer;

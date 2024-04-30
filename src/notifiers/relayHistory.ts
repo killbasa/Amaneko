@@ -1,9 +1,9 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { videoLink } from '#lib/utils/youtube';
-import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
+import { AmanekoNotifier } from '../lib/extensions/AmanekoNotifier.js';
+import { AmanekoEvents } from '../lib/utils/enums.js';
+import { canSendGuildMessages } from '../lib/utils/permissions.js';
+import { videoLink } from '../lib/utils/youtube.js';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { Holodex } from '#lib/types/Holodex';
+import type { Holodex } from '../lib/types/Holodex.js';
 
 @ApplyOptions<AmanekoNotifier.Options>({
 	name: 'StreamEndRelayHistory',
@@ -15,7 +15,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamEnd> {
 		const { prisma } = container;
 
 		const subscriptions = await tracer.createSpan('find_subscriptions', async () => {
-			return prisma.subscription.findMany({
+			return await prisma.subscription.findMany({
 				where: {
 					channelId: video.channel.id,
 					relayChannelId: { not: null }
@@ -57,7 +57,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamEnd> {
 							});
 							if (comments.length === 0) return;
 
-							return channel.send({
+							return await channel.send({
 								content: `Here are the stream logs for ${video.title}\n${videoLink(video.id)}`,
 								files: [
 									{

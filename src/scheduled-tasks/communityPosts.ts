@@ -1,10 +1,10 @@
-import { AmanekoEvents, AmanekoTasks } from '#lib/utils/enums';
-import { sleep } from '#lib/utils/functions';
-import { AmanekoTask } from '#lib/extensions/AmanekoTask';
-import { getLatestCommunityPost } from '#lib/utils/youtube';
-import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
-import { ApplyOptions } from '@sapphire/decorators';
+import { AmanekoTask } from '../lib/extensions/AmanekoTask.js';
+import { AmanekoEvents, AmanekoTasks } from '../lib/utils/enums.js';
+import { sleep } from '../lib/utils/functions.js';
+import { getLatestCommunityPost } from '../lib/utils/youtube.js';
 import { container } from '@sapphire/framework';
+import { ApplyOptions } from '@sapphire/decorators';
+import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.CommunityPost,
@@ -18,7 +18,7 @@ export class Task extends AmanekoTask<typeof AmanekoTasks.CommunityPost> {
 
 		await tracer.createSpan(`community_posts`, async () => {
 			const channelIds = await tracer.createSpan('find_channels', async () => {
-				return prisma.subscription
+				return await prisma.subscription
 					.groupBy({
 						where: { NOT: { communityPostChannelId: null } },
 						by: ['channelId']

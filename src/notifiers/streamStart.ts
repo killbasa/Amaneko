@@ -1,13 +1,13 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
-import { YoutubeEmbedsKey } from '#lib/utils/cache';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { videoLink } from '#lib/utils/youtube';
-import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
-import { ApplyOptions } from '@sapphire/decorators';
+import { AmanekoNotifier } from '../lib/extensions/AmanekoNotifier.js';
+import { YoutubeEmbedsKey } from '../lib/utils/cache.js';
+import { BrandColors, HolodexMembersOnlyPatterns } from '../lib/utils/constants.js';
+import { AmanekoEvents } from '../lib/utils/enums.js';
+import { canSendGuildMessages } from '../lib/utils/permissions.js';
+import { videoLink } from '../lib/utils/youtube.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, roleMention } from 'discord.js';
+import { ApplyOptions } from '@sapphire/decorators';
+import type { Holodex } from '../lib/types/Holodex.js';
 import type { Channel } from 'discord.js';
-import type { Holodex } from '#lib/types/Holodex';
 
 @ApplyOptions<AmanekoNotifier.Options>({
 	name: AmanekoEvents.StreamStart,
@@ -19,7 +19,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamStart> 
 		const { prisma } = container;
 
 		const subscriptions = await tracer.createSpan('find_subscriptions', async () => {
-			return prisma.subscription.findMany({
+			return await prisma.subscription.findMany({
 				where: {
 					channelId: video.channel.id,
 					OR: [{ discordChannelId: { not: null } }, { memberDiscordChannelId: { not: null } }]
@@ -70,7 +70,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamStart> 
 
 		const messages = await Promise.allSettled(
 			subscriptions.map(async ({ guildId, discordChannelId, memberDiscordChannelId, roleId, memberRoleId }) => {
-				return tracer.createSpan(`process_subscription:${guildId}`, async () => {
+				return await tracer.createSpan(`process_subscription:${guildId}`, async () => {
 					let discordChannel: Channel | null = null;
 					let role = '';
 					const allowedRoles: string[] = [];
@@ -91,7 +91,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamStart> 
 
 					if (!canSendGuildMessages(discordChannel)) return;
 
-					return discordChannel.send({
+					return await discordChannel.send({
 						content: `${role}${video.channel.name} is now live!`,
 						allowedMentions: { roles: allowedRoles },
 						embeds: [embed],
