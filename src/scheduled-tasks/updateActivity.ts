@@ -8,7 +8,10 @@ import { ActivityType } from 'discord.js';
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.UpdateActivity,
 	pattern: '0 */15 * * * *', // Every 15 minutes
-	enabled: container.config.enableTasks
+	enabled: container.config.enableTasks,
+	customJobOptions: {
+		jobId: AmanekoTasks.UpdateActivity
+	}
 })
 export class Task extends AmanekoTask<typeof AmanekoTasks.UpdateActivity> {
 	public override async run(): Promise<void> {

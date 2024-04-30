@@ -10,7 +10,10 @@ import type { Holodex } from '../lib/types/Holodex.js';
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.Streams,
 	pattern: '0 */1 * * * *', // Every minute
-	enabled: container.config.enableTasks
+	enabled: container.config.enableTasks,
+	customJobOptions: {
+		jobId: AmanekoTasks.Streams
+	}
 })
 export class Task extends AmanekoTask<typeof AmanekoTasks.Streams> {
 	private readonly streamsKey = 'youtube:streams:list';

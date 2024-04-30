@@ -9,7 +9,10 @@ import { ScheduledTask } from '@sapphire/plugin-scheduled-tasks';
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.CommunityPost,
 	pattern: '0 */5 * * * *', // Every 5 minutes
-	enabled: container.config.enableTasks
+	enabled: container.config.enableTasks,
+	customJobOptions: {
+		jobId: AmanekoTasks.CommunityPost
+	}
 })
 export class Task extends AmanekoTask<typeof AmanekoTasks.CommunityPost> {
 	public override async run(): Promise<void> {

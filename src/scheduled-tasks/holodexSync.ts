@@ -10,7 +10,10 @@ import type { HolodexChannel } from '@prisma/client';
 @ApplyOptions<ScheduledTask.Options>({
 	name: AmanekoTasks.HolodexSync,
 	pattern: '0 0 0 * * 6', // Every saturday
-	enabled: container.config.enableTasks
+	enabled: container.config.enableTasks,
+	customJobOptions: {
+		jobId: AmanekoTasks.HolodexSync
+	}
 })
 export class Task extends AmanekoTask<typeof AmanekoTasks.HolodexSync> {
 	public override async run(data?: { page: number }): Promise<void> {
