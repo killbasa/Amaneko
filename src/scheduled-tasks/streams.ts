@@ -12,7 +12,7 @@ import type { Holodex } from '../lib/types/Holodex.js';
 	pattern: '0 */1 * * * *', // Every minute
 	enabled: container.config.enableTasks,
 	customJobOptions: {
-		jobId: AmanekoTasks.Streams
+		jobId: `tasks:${AmanekoTasks.Streams}`
 	}
 })
 export class Task extends AmanekoTask<typeof AmanekoTasks.Streams> {

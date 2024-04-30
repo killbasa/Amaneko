@@ -10,7 +10,7 @@ import { ActivityType } from 'discord.js';
 	pattern: '0 */15 * * * *', // Every 15 minutes
 	enabled: container.config.enableTasks,
 	customJobOptions: {
-		jobId: AmanekoTasks.UpdateActivity
+		jobId: `tasks:${AmanekoTasks.UpdateActivity}`
 	}
 })
 export class Task extends AmanekoTask<typeof AmanekoTasks.UpdateActivity> {

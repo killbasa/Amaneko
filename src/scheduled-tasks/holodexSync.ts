@@ -12,7 +12,7 @@ import type { HolodexChannel } from '@prisma/client';
 	pattern: '0 0 0 * * 6', // Every saturday
 	enabled: container.config.enableTasks,
 	customJobOptions: {
-		jobId: AmanekoTasks.HolodexSync
+		jobId: `tasks:${AmanekoTasks.HolodexSync}`
 	}
 })
 export class Task extends AmanekoTask<typeof AmanekoTasks.HolodexSync> {
