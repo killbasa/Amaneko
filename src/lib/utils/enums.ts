@@ -15,11 +15,11 @@ export const AmanekoEvents = {
 } as const;
 
 export const AmanekoTasks = {
-	CommunityPost: 'CommunityPost',
-	HolodexSync: 'HolodexSync',
-	Streams: 'Streams',
-	SubscribedStreams: 'SubscribedStreams',
-	UpdateActivity: 'UpdateActivity'
+	CommunityPost: 'CommunityPostTask',
+	HolodexSync: 'HolodexSyncTask',
+	Streams: 'StreamsTask',
+	SubscribedStreams: 'SubscribedStreamsTask',
+	UpdateActivity: 'UpdateActivityTask'
 } as const;
 export type AmanekoTasks = (typeof AmanekoTasks)[keyof typeof AmanekoTasks];
 

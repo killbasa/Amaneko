@@ -4,3 +4,5 @@
 *.jpg binary
 *.gif binary
 *.webp binary
+
+tests/data/* linguist-generated
