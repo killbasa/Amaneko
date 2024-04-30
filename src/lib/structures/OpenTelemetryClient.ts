@@ -1,4 +1,4 @@
-import { AmanekoTracer } from '#lib/structures/otel/AmanekoTracer';
+import { AmanekoTracer } from './otel/AmanekoTracer.js';
 import { NodeSDK, api, resources, tracing } from '@opentelemetry/sdk-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';

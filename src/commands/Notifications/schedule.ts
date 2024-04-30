@@ -1,7 +1,7 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
-import { canSendGuildEmbeds } from '#lib/utils/permissions';
-import { NotifChannelTypes } from '#lib/utils/constants';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { defaultReply, errorReply, successReply } from '../../lib/utils/reply.js';
+import { canSendGuildEmbeds } from '../../lib/utils/permissions.js';
+import { NotifChannelTypes } from '../../lib/utils/constants.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
@@ -61,7 +61,7 @@ export class Command extends AmanekoSubcommand {
 		const channelId = discordChannel.id;
 
 		if (!canSendGuildEmbeds(discordChannel)) {
-			return errorReply(interaction, `I am not able to send embeds in ${channelMention(channelId)}`);
+			return await errorReply(interaction, `I am not able to send embeds in ${channelMention(channelId)}`);
 		}
 
 		const embed = new EmbedBuilder() //
@@ -86,7 +86,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		return successReply(interaction, `A schedule has been successfully set up in ${channelMention(discordChannel.id)}.`);
+		return await successReply(interaction, `A schedule has been successfully set up in ${channelMention(discordChannel.id)}.`);
 	}
 
 	public async handleSettings(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -96,7 +96,7 @@ export class Command extends AmanekoSubcommand {
 
 		const channelId = discordChannel.id;
 		if (!canSendGuildEmbeds(discordChannel)) {
-			return errorReply(interaction, `I am not able to send embeds in ${channelMention(channelId)}`);
+			return await errorReply(interaction, `I am not able to send embeds in ${channelMention(channelId)}`);
 		}
 
 		const embed = new EmbedBuilder() //
@@ -109,13 +109,13 @@ export class Command extends AmanekoSubcommand {
 			select: { scheduleChannelId: true, scheduleMessageId: true }
 		});
 
-		if (!previousGuild?.scheduleMessageId || !previousGuild?.scheduleChannelId) {
-			return errorReply(
+		if (!previousGuild?.scheduleMessageId || !previousGuild.scheduleChannelId) {
+			return await errorReply(
 				interaction,
 				"Something went wrong while trying to change the schedule's channel. Please run `/schedule set` before attempting any changes."
 			);
 		} else if (previousGuild.scheduleChannelId === discordChannel.id) {
-			return defaultReply(interaction, `Schedule is already set up in that channel.`);
+			return await defaultReply(interaction, `Schedule is already set up in that channel.`);
 		}
 
 		try {
@@ -134,23 +134,23 @@ export class Command extends AmanekoSubcommand {
 			this.container.logger.warn(err, {
 				command: this.name
 			});
-			return errorReply(interaction, `Something went wrong while changing the schedule's channel.`);
+			return await errorReply(interaction, `Something went wrong while changing the schedule's channel.`);
 		}
 
 		try {
 			const channel = await this.container.client.channels.fetch(previousGuild.scheduleChannelId);
 			if (channel?.isTextBased()) {
 				const message = await channel.messages.fetch({ message: previousGuild.scheduleMessageId, force: true });
-				message.delete();
+				await message.delete();
 			}
 		} catch (err) {
 			this.container.logger.warn(err, {
 				command: this.name
 			});
-			return defaultReply(interaction, `Could not delete the schedule's old message but the settings have been applied.`);
+			return await defaultReply(interaction, `Could not delete the schedule's old message but the settings have been applied.`);
 		}
 
-		return successReply(interaction, `The schedule will now be sent in ${channelMention(discordChannel.id)}.`);
+		return await successReply(interaction, `The schedule will now be sent in ${channelMention(discordChannel.id)}.`);
 	}
 
 	public async handleUnset(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -165,7 +165,7 @@ export class Command extends AmanekoSubcommand {
 			select: { scheduleChannelId: true, scheduleMessageId: true }
 		});
 		if (!guildData) {
-			return defaultReply(interaction, `This server does not have a schedule setup.`);
+			return await defaultReply(interaction, `This server does not have a schedule setup.`);
 		}
 
 		await this.container.prisma.guild.update({
@@ -180,7 +180,7 @@ export class Command extends AmanekoSubcommand {
 			const channel = await this.container.client.channels.fetch(guildData.scheduleChannelId!);
 			if (channel?.isTextBased()) {
 				const message = await channel.messages.fetch({ force: true, message: guildData.scheduleMessageId! });
-				message.delete();
+				await message.delete();
 			}
 		} catch (err) {
 			// This will only give an error if it cannot fetch a message, which would only happen if either it's been
@@ -189,9 +189,9 @@ export class Command extends AmanekoSubcommand {
 				command: this.name
 			});
 			// On second thought I do want to give some explanation to the users as well
-			return errorReply(interaction, "Could not delete the schedule's old message.");
+			return await errorReply(interaction, "Could not delete the schedule's old message.");
 		}
 
-		return successReply(interaction, 'A schedule is no longer set up in this server.');
+		return await successReply(interaction, 'A schedule is no longer set up in this server.');
 	}
 }

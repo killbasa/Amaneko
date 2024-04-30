@@ -1,5 +1,5 @@
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
-import { BrandColors } from '#lib/utils/constants';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
+import { BrandColors } from '../../lib/utils/constants.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder } from 'discord.js';
 
@@ -22,7 +22,7 @@ export class Command extends AmanekoCommand {
 			extension: 'png'
 		})!;
 
-		return interaction.reply({
+		return await interaction.reply({
 			embeds: [
 				new EmbedBuilder() //
 					.setColor(BrandColors.Default)

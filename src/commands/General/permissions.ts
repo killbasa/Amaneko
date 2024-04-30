@@ -1,8 +1,8 @@
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
-import { AmanekoEmojis, BrandColors } from '#lib/utils/constants';
-import { canSendGuildEmbeds, canSendGuildMessages, hasPermissions } from '#lib/utils/permissions';
-import { channelLink } from '#lib/utils/youtube';
-import { defaultReply } from '#lib/utils/reply';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
+import { AmanekoEmojis, BrandColors } from '../../lib/utils/constants.js';
+import { canSendGuildEmbeds, canSendGuildMessages, hasPermissions } from '../../lib/utils/permissions.js';
+import { channelLink } from '../../lib/utils/youtube.js';
+import { defaultReply } from '../../lib/utils/reply.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits, channelMention } from 'discord.js';
 import type { ChannelTypes } from '@sapphire/discord.js-utilities';

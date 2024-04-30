@@ -1,6 +1,6 @@
-import { HOLODEX_BASE_URL, HOLODEX_HEADER } from '#lib/utils/constants';
+import { HOLODEX_BASE_URL, HOLODEX_HEADER } from '../utils/constants.js';
 import { FetchMethods, FetchResultTypes, fetch } from '@sapphire/fetch';
-import type { Holodex } from '#lib/types/Holodex';
+import type { Holodex } from '../types/Holodex.js';
 
 export class HolodexClient {
 	private readonly apiKey;

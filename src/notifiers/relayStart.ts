@@ -1,11 +1,11 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { BrandColors, HolodexMembersOnlyPatterns } from '#lib/utils/constants';
-import { canSendGuildMessages } from '#lib/utils/permissions';
-import { videoLink } from '#lib/utils/youtube';
-import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
-import { ApplyOptions } from '@sapphire/decorators';
+import { AmanekoNotifier } from '../lib/extensions/AmanekoNotifier.js';
+import { BrandColors, HolodexMembersOnlyPatterns } from '../lib/utils/constants.js';
+import { AmanekoEvents } from '../lib/utils/enums.js';
+import { canSendGuildMessages } from '../lib/utils/permissions.js';
+import { videoLink } from '../lib/utils/youtube.js';
 import { EmbedBuilder } from 'discord.js';
-import type { Holodex } from '#lib/types/Holodex';
+import { ApplyOptions } from '@sapphire/decorators';
+import type { Holodex } from '../lib/types/Holodex.js';
 
 @ApplyOptions<AmanekoNotifier.Options>({
 	name: AmanekoEvents.StreamPrechat,
@@ -21,7 +21,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamPrechat
 		}
 
 		const subscriptions = await tracer.createSpan('find_subscriptions', async () => {
-			return prisma.subscription.findMany({
+			return await prisma.subscription.findMany({
 				where: { channelId: video.channel.id, relayChannelId: { not: null } },
 				select: { guildId: true, relayChannelId: true }
 			});
@@ -46,7 +46,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamPrechat
 					const discordChannel = await client.channels.fetch(relayChannelId!);
 					if (!canSendGuildMessages(discordChannel)) return;
 
-					return discordChannel.send({
+					return await discordChannel.send({
 						embeds: [embed]
 					});
 				});

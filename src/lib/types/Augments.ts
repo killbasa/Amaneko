@@ -1,17 +1,17 @@
-import type { ClientConfig } from '#lib/types/Config';
-import type { AmanekoEvents } from '#lib/utils/enums';
+import type { ClientConfig } from './Config.js';
+import type { AmanekoEvents } from '../utils/enums.js';
 import type { Primitive, RedisClient } from '@killbasa/redis-utils';
 import type { HolodexChannel, PrismaClient } from '@prisma/client';
-import type { CommunityPostData } from '#lib/types/YouTube';
-import type { MeiliClient } from '#lib/extensions/MeiliClient';
-import type { HolodexClient } from '#lib/structures/HolodexClient';
-import type { TLDexClient } from '#lib/structures/TLDexClient';
+import type { CommunityPostData } from './YouTube.js';
+import type { MeiliClient } from '../extensions/MeiliClient.js';
+import type { HolodexClient } from '../structures/HolodexClient.js';
+import type { TLDexClient } from '../structures/TLDexClient.js';
 import type { Collection } from 'discord.js';
-import type { TLDex } from '#lib/types/TLDex';
-import type { Holodex } from '#lib/types/Holodex';
-import type { MetricsClient } from '#lib/structures/MetricsClient';
+import type { TLDex } from './TLDex.js';
+import type { Holodex } from './Holodex.js';
+import type { MetricsClient } from '../structures/MetricsClient.js';
 import type { youtube_v3 } from 'googleapis';
-import type { OpenTelemetryClient } from '#lib/structures/OpenTelemetryClient';
+import type { OpenTelemetryClient } from '../structures/OpenTelemetryClient.js';
 import type { LogLevel } from '@sapphire/framework';
 
 declare module 'discord.js' {

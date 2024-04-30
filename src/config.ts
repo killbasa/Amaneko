@@ -1,11 +1,11 @@
-import { ClientConfigSchema } from '#lib/types/Config';
-import { mainFolder } from '#lib/utils/constants';
-import { NodeEnv } from '#lib/utils/enums';
+import { NodeEnv } from './lib/utils/enums.js';
+import { ClientConfigSchema } from './lib/types/Config.js';
+import { mainFolder } from './lib/utils/constants.js';
 import { container } from '@sapphire/framework';
 import { config } from 'dotenv';
 import { resolve } from 'path';
-import type { ClientConfig } from '#lib/types/Config';
-import type { Unvalidated } from '#lib/types/Generic';
+import type { ClientConfig } from './lib/types/Config.js';
+import type { Unvalidated } from './lib/types/Generic.js';
 
 export function loadConfig(): void {
 	process.env.NODE_ENV ??= NodeEnv.Dev;

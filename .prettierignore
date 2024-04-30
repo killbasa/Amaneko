@@ -7,5 +7,6 @@ docs/.vitepress/cache/
 docs/.vitepress/dist/
 prisma/
 node_modules/
+tests/data/
 LICENSE
 yarn.lock

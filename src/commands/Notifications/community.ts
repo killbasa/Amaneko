@@ -1,9 +1,9 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { BrandColors, NotifChannelTypes } from '#lib/utils/constants';
-import { MeiliCategories } from '#lib/types/Meili';
-import { channelLink } from '#lib/utils/youtube';
-import { canSendGuildEmbeds } from '#lib/utils/permissions';
-import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { BrandColors, NotifChannelTypes } from '../../lib/utils/constants.js';
+import { MeiliCategories } from '../../lib/types/Meili.js';
+import { channelLink } from '../../lib/utils/youtube.js';
+import { canSendGuildEmbeds } from '../../lib/utils/permissions.js';
+import { defaultReply, errorReply, successReply } from '../../lib/utils/reply.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits, channelMention, roleMention } from 'discord.js';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
@@ -92,7 +92,10 @@ export class Command extends AmanekoSubcommand {
 				where: { guildId: interaction.guildId, communityPostChannelId: { not: null } },
 				select: { channel: true }
 			});
-			if (channels.length === 0) return interaction.respond([]);
+			if (channels.length === 0) {
+				await interaction.respond([]);
+				return;
+			}
 
 			options = channels.map(({ channel }) => ({
 				name: channel.name,
@@ -100,7 +103,7 @@ export class Command extends AmanekoSubcommand {
 			}));
 		}
 
-		return interaction.respond(options);
+		await interaction.respond(options);
 	}
 
 	public async handleAdd(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -115,16 +118,16 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return defaultReply(interaction, 'You can only have a maximum of 25 community post subscriptions.');
+			return await defaultReply(interaction, 'You can only have a maximum of 25 community post subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		if (!canSendGuildEmbeds(interaction.channel)) {
-			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
+			return await errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
@@ -147,7 +150,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		const embed = this.communityPostEmbed(channel, role?.id);
-		return interaction.editReply({
+		return await interaction.editReply({
 			content: 'New community posts will now be sent to this channel.',
 			embeds: [embed]
 		});
@@ -159,7 +162,7 @@ export class Command extends AmanekoSubcommand {
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		const oldSettings = await this.container.prisma.subscription.findUnique({
@@ -167,7 +170,7 @@ export class Command extends AmanekoSubcommand {
 			select: { communityPostChannelId: true }
 		});
 		if (!oldSettings?.communityPostChannelId) {
-			return defaultReply(interaction, `Community posts for ${channelLink(channel.name, channel.id)} are not being sent to this server.`);
+			return await defaultReply(interaction, `Community posts for ${channelLink(channel.name, channel.id)} are not being sent to this server.`);
 		}
 
 		await this.container.prisma.subscription.update({
@@ -175,7 +178,7 @@ export class Command extends AmanekoSubcommand {
 			data: { communityPostChannelId: null, communityPostRoleId: null }
 		});
 
-		return successReply(
+		return await successReply(
 			interaction,
 			`Community posts for ${channelLink(channel.name, channel.id)} will no longer be sent to ${channelMention(oldSettings.communityPostChannelId)}`
 		);
@@ -191,7 +194,7 @@ export class Command extends AmanekoSubcommand {
 			data: { communityPostChannelId: null, communityPostRoleId: null }
 		});
 
-		return successReply(interaction, `Community posts will no longer be sent in ${channelMention(channelId)}`);
+		return await successReply(interaction, `Community posts will no longer be sent in ${channelMention(channelId)}`);
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -207,7 +210,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (data.length === 0) {
-			return defaultReply(interaction, 'There are no community posts being sent to this server. You can add one with `/community add`.');
+			return await defaultReply(interaction, 'There are no community posts being sent to this server. You can add one with `/community add`.');
 		}
 
 		const embed = new EmbedBuilder() //
@@ -224,7 +227,7 @@ export class Command extends AmanekoSubcommand {
 					.join('\n')
 			);
 
-		return interaction.editReply({
+		return await interaction.editReply({
 			embeds: [embed]
 		});
 	}

@@ -1,4 +1,4 @@
-import { NodeEnv } from '#lib/utils/enums';
+import { NodeEnv } from '../utils/enums.js';
 import { z } from 'zod';
 
 export const ClientConfigSchema = z

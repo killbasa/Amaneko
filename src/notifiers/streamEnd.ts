@@ -1,8 +1,8 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { YoutubeEmbedsKey } from '#lib/utils/cache';
-import { AmanekoNotifier } from '#lib/extensions/AmanekoNotifier';
+import { AmanekoNotifier } from '../lib/extensions/AmanekoNotifier.js';
+import { YoutubeEmbedsKey } from '../lib/utils/cache.js';
+import { AmanekoEvents } from '../lib/utils/enums.js';
 import { ApplyOptions } from '@sapphire/decorators';
-import type { Holodex } from '#lib/types/Holodex';
+import type { Holodex } from '../lib/types/Holodex.js';
 
 @ApplyOptions<AmanekoNotifier.Options>({
 	name: 'StreamEndCleanup',
@@ -14,7 +14,7 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamEnd> {
 		const { redis } = container;
 
 		const embeds = await tracer.createSpan('fetch_messages', async () => {
-			return redis.hGetAll<string>(YoutubeEmbedsKey(video.id));
+			return await redis.hGetAll<string>(YoutubeEmbedsKey(video.id));
 		});
 		if (embeds.size === 0) return this.none();
 
@@ -27,14 +27,14 @@ export class Notifier extends AmanekoNotifier<typeof AmanekoEvents.StreamEnd> {
 
 		await Promise.allSettled(
 			Array.from(embeds).map(async ([messageId, channelId]) => {
-				return tracer.createSpan(`process_message:${messageId}`, async () => {
+				return await tracer.createSpan(`process_message:${messageId}`, async () => {
 					const discordChannel = await client.channels.fetch(channelId);
 					if (!discordChannel?.isTextBased()) return;
 
 					const embedMessage = await discordChannel.messages.fetch(messageId).catch(() => null);
 					if (!embedMessage) return;
 
-					return embedMessage.delete().catch(() => null);
+					return await embedMessage.delete().catch(() => null);
 				});
 			})
 		);

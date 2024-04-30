@@ -1,10 +1,10 @@
-import { AmanekoEvents } from '#lib/utils/enums';
-import { HOLODEX_WEBSOCKET_URL } from '#lib/utils/constants';
+import { AmanekoEvents } from '../utils/enums.js';
+import { HOLODEX_WEBSOCKET_URL } from '../utils/constants.js';
 import { container } from '@sapphire/framework';
 import { io } from 'socket.io-client';
 import { Time } from '@sapphire/duration';
-import type { TLDex } from '#lib/types/TLDex';
-import type { Holodex } from '#lib/types/Holodex';
+import type { TLDex } from '../types/TLDex.js';
+import type { Holodex } from '../types/Holodex.js';
 
 export class TLDexClient {
 	private readonly socket: TLDex.TypedSocket;
@@ -61,14 +61,10 @@ export class TLDexClient {
 		});
 
 		this.socket.on('subscribeSuccess', (payload) => {
-			if (payload.id === undefined) {
-				container.logger.error(`[TLDex] Received undefined for ID: ${payload.id} (${JSON.stringify(payload)})`);
-			} else {
-				container.logger.debug(`[TLDex] Joined room: ${payload.id}`);
+			container.logger.debug(`[TLDex] Joined room: ${payload.id}`);
 
-				this.queue.delete(payload.id);
-				this.retries.delete(payload.id);
-			}
+			this.queue.delete(payload.id);
+			this.retries.delete(payload.id);
 		});
 
 		this.socket.on('subscribeError', (payload) => {

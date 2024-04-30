@@ -1,13 +1,13 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { AmanekoError } from '#lib/structures/AmanekoError';
-import { BrandColors } from '#lib/utils/constants';
-import { getUsername } from '#lib/utils/youtube';
-import { successReply } from '#lib/utils/reply';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { AmanekoError } from '../../lib/structures/AmanekoError.js';
+import { BrandColors } from '../../lib/utils/constants.js';
+import { successReply } from '../../lib/utils/reply.js';
+import { getUsername } from '../../lib/utils/youtube.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
-import type { Blacklist } from '#lib/types/YouTube';
+import type { Blacklist } from '@prisma/client';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Manage the stream chat relay blacklist.',
@@ -63,7 +63,7 @@ export class Command extends AmanekoSubcommand {
 		);
 	}
 
-	public override async autocompleteRun(interaction: AmanekoSubcommand.AutocompleteInteraction): Promise<unknown> {
+	public override async autocompleteRun(interaction: AmanekoSubcommand.AutocompleteInteraction): Promise<void> {
 		const guildData = await this.container.prisma.guild.findUnique({
 			where: { id: interaction.guildId },
 			select: { blacklist: true }
@@ -71,18 +71,19 @@ export class Command extends AmanekoSubcommand {
 		const focusedValue = interaction.options.getFocused();
 
 		if (!guildData) {
-			return interaction.respond([]);
+			await interaction.respond([]);
+			return;
 		}
 
 		const filteredOptions = guildData.blacklist.filter((entry) => {
-			return entry.channelName.startsWith(focusedValue) ?? entry.channelId.startsWith(focusedValue);
+			return entry.channelName.startsWith(focusedValue);
 		});
 		const options: ApplicationCommandOptionChoiceData[] = filteredOptions.map((option) => ({
 			name: option.channelName === 'Username not found' ? option.channelId : option.channelName,
 			value: option.channelId
 		}));
 
-		return interaction.respond(options);
+		await interaction.respond(options);
 	}
 
 	public async handleAdd(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -113,7 +114,7 @@ export class Command extends AmanekoSubcommand {
 			select: { channelName: true, channelId: true }
 		});
 
-		return successReply(interaction, `Added **${channelName === 'Username not found' ? data.channelId : data.channelName}** to the blacklist.`);
+		return await successReply(interaction, `Added **${channelName === 'Username not found' ? data.channelId : data.channelName}** to the blacklist.`);
 	}
 
 	public async handleRemove(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -135,13 +136,13 @@ export class Command extends AmanekoSubcommand {
 				throw new AmanekoError('This channel is not blacklisted');
 			}
 
-			return prisma.blacklist.delete({
+			return await prisma.blacklist.delete({
 				where: { channelId_guildId: { channelId: idToUnblacklist, guildId: interaction.guildId } },
 				select: { channelName: true }
 			});
 		});
 
-		return successReply(interaction, `Removed **${channelName === 'Username not found' ? idToUnblacklist : channelName}** from the blacklist.`);
+		return await successReply(interaction, `Removed **${channelName === 'Username not found' ? idToUnblacklist : channelName}** from the blacklist.`);
 	}
 
 	public async handleClear(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -151,7 +152,7 @@ export class Command extends AmanekoSubcommand {
 			where: { guildId: interaction.guildId }
 		});
 
-		return successReply(interaction, 'All users have been removed from the blacklist.');
+		return await successReply(interaction, 'All users have been removed from the blacklist.');
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -165,7 +166,7 @@ export class Command extends AmanekoSubcommand {
 
 		if (!blacklist || blacklist.length === 0) {
 			const embed = this.blacklistEmbed([]);
-			return interaction.editReply({ embeds: [embed] });
+			return await interaction.editReply({ embeds: [embed] });
 		}
 
 		const menu = new PaginatedMessage();

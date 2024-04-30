@@ -1,6 +1,6 @@
-import { AmanekoEmojis, BrandColors } from '#lib/utils/constants';
-import { CustomIDs } from '#lib/utils/enums';
-import { errorReply, successReply } from '#lib/utils/reply';
+import { AmanekoEmojis, BrandColors } from '../lib/utils/constants.js';
+import { CustomIDs } from '../lib/utils/enums.js';
+import { errorReply, successReply } from '../lib/utils/reply.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ButtonInteraction, EmbedBuilder } from 'discord.js';

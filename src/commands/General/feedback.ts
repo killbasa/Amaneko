@@ -1,5 +1,5 @@
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
-import { CustomIDs } from '#lib/utils/enums';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
+import { CustomIDs } from '../../lib/utils/enums.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
 import { BucketScope } from '@sapphire/framework';
@@ -21,7 +21,7 @@ export class Command extends AmanekoCommand {
 		);
 	}
 
-	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction<'raw'>): Promise<unknown> {
+	public override async chatInputRun(interaction: AmanekoCommand.ChatInputCommandInteraction<'raw'>): Promise<void> {
 		const modal = new ModalBuilder({
 			custom_id: CustomIDs.Feedback,
 			title: 'Amaneko feedback',
@@ -37,6 +37,6 @@ export class Command extends AmanekoCommand {
 			]
 		});
 
-		return interaction.showModal(modal);
+		await interaction.showModal(modal);
 	}
 }

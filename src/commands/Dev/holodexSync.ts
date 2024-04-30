@@ -1,5 +1,5 @@
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
-import { AmanekoTasks } from '#lib/utils/enums';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
+import { AmanekoTasks } from '../../lib/utils/enums.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Time } from '@sapphire/duration';
 import { PermissionFlagsBits } from 'discord.js';
@@ -29,7 +29,7 @@ export class Command extends AmanekoCommand {
 		const currentTask = await this.container.tasks.get(AmanekoTasks.HolodexSync);
 
 		if (currentTask) {
-			return interaction.reply(`There is already an ongoing sync.`);
+			return await interaction.reply(`There is already an ongoing sync.`);
 		}
 
 		await this.container.tasks.create(
@@ -40,6 +40,6 @@ export class Command extends AmanekoCommand {
 			{ repeated: false, delay: 0 }
 		);
 
-		return interaction.reply(`Holodex sync started.`);
+		return await interaction.reply(`Holodex sync started.`);
 	}
 }

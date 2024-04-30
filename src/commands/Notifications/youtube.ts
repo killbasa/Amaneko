@@ -1,16 +1,15 @@
-import { AmanekoSubcommand } from '#lib/extensions/AmanekoSubcommand';
-import { MeiliCategories } from '#lib/types/Meili';
-import { BrandColors, NotifChannelTypes } from '#lib/utils/constants';
-import { defaultReply, errorReply, successReply } from '#lib/utils/reply';
-import { canSendGuildEmbeds } from '#lib/utils/permissions';
-import { channelLink } from '#lib/utils/youtube';
-import { EmbedBuilder, PermissionFlagsBits, Role, channelMention, roleMention } from 'discord.js';
+import { AmanekoSubcommand } from '../../lib/extensions/AmanekoSubcommand.js';
+import { MeiliCategories } from '../../lib/types/Meili.js';
+import { BrandColors, NotifChannelTypes } from '../../lib/utils/constants.js';
+import { canSendGuildEmbeds } from '../../lib/utils/permissions.js';
+import { defaultReply, errorReply, successReply } from '../../lib/utils/reply.js';
+import { EmbedBuilder, PermissionFlagsBits, Role, channelLink, channelMention, roleMention } from 'discord.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { PaginatedMessage } from '@sapphire/discord.js-utilities';
 import type { ApplicationCommandOptionChoiceData } from 'discord.js';
 import type { ApplicationCommandRegistry } from '@sapphire/framework';
 import type { HolodexChannel, Prisma } from '@prisma/client';
-import type { LivestreamSubscription } from '#lib/types/YouTube';
+import type { LivestreamSubscription } from '../../lib/types/YouTube.js';
 
 @ApplyOptions<AmanekoSubcommand.Options>({
 	description: 'Manage YouTube livestream notifications.',
@@ -155,7 +154,7 @@ export class Command extends AmanekoSubcommand {
 				}));
 		}
 
-		return interaction.respond(options);
+		await interaction.respond(options);
 	}
 
 	public async handleSubscribe(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -171,16 +170,16 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
+			return await defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		if (!canSendGuildEmbeds(interaction.channel)) {
-			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
+			return await errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
@@ -203,7 +202,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		const embed = this.youtubeEmbedBuilder(channel, role);
-		return interaction.editReply({
+		return await interaction.editReply({
 			content: `Livestream notifications will now be sent to this channel.`,
 			embeds: [embed]
 		});
@@ -215,7 +214,7 @@ export class Command extends AmanekoSubcommand {
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		const subscriptionData = await this.container.prisma.subscription
@@ -229,13 +228,13 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(
+			return await errorReply(
 				interaction, //
 				`Livestream notifications for **${channelLink(channel.name, channel.id)}** are not being sent to this server.`
 			);
 		}
 
-		return successReply(
+		return await successReply(
 			interaction,
 			`Livestream notifications for **${channelLink(channel.name, channel.id)}** will no longer be sent to this server.`
 		);
@@ -254,16 +253,16 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 		if (count >= 25) {
-			return defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
+			return await defaultReply(interaction, 'You can only have a maximum of 25 livestream subscriptions.');
 		}
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		if (!canSendGuildEmbeds(interaction.channel)) {
-			return errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
+			return await errorReply(interaction, `I am not able to send embeds in ${channelMention(interaction.channelId)}`);
 		}
 
 		await this.container.prisma.subscription.upsert({
@@ -287,7 +286,7 @@ export class Command extends AmanekoSubcommand {
 
 		const embed = this.youtubeEmbedBuilder(channel, role);
 
-		return interaction.editReply({
+		return await interaction.editReply({
 			content: `Member livestream notifications will now be sent to this channel.`,
 			embeds: [embed]
 		});
@@ -299,7 +298,7 @@ export class Command extends AmanekoSubcommand {
 
 		const channel = this.container.cache.holodexChannels.get(channelId);
 		if (!channel) {
-			return errorReply(interaction, 'I was not able to find a channel with that name.');
+			return await errorReply(interaction, 'I was not able to find a channel with that name.');
 		}
 
 		const subscriptionData = await this.container.prisma.subscription
@@ -313,13 +312,13 @@ export class Command extends AmanekoSubcommand {
 			.catch(() => null);
 
 		if (!subscriptionData) {
-			return errorReply(
+			return await errorReply(
 				interaction,
 				`Member livestream notifications for **${channelLink(channel.name, channel.id)}** are not being sent to this server.`
 			);
 		}
 
-		return successReply(
+		return await successReply(
 			interaction,
 			`Member livestream notifications for **${channelLink(channel.name, channel.id)}** will no longer be sent to this server.`
 		);
@@ -343,7 +342,7 @@ export class Command extends AmanekoSubcommand {
 				}
 			});
 
-			return successReply(interaction, `Livestream notifications will no longer be sent to ${channelMention(channel.id)}.`);
+			return await successReply(interaction, `Livestream notifications will no longer be sent to ${channelMention(channel.id)}.`);
 		}
 		await this.container.prisma.subscription.updateMany({
 			where: { guildId: interaction.guildId },
@@ -355,7 +354,7 @@ export class Command extends AmanekoSubcommand {
 			}
 		});
 
-		return successReply(interaction, `Livestream notifications will no longer be sent to this server.`);
+		return await successReply(interaction, `Livestream notifications will no longer be sent to this server.`);
 	}
 
 	public async handleList(interaction: AmanekoSubcommand.ChatInputCommandInteraction): Promise<unknown> {
@@ -370,7 +369,7 @@ export class Command extends AmanekoSubcommand {
 		});
 
 		if (subscriptions.length === 0) {
-			return defaultReply(
+			return await defaultReply(
 				interaction,
 				'This server is not subscribed to any channels. You can add one with `/youtube subscribe` or `/youtube member subscribe`.'
 			);

@@ -17,8 +17,8 @@ tests/
 .gitignore
 .prettierignore
 .prettierrc.cjs
-docker-compose.yml
-docker-compose.*.yml
+compose.yml
+compose.*.yml
 Dockerfile
 LICENSE
 README.md

@@ -1,5 +1,5 @@
-import { AmanekoCommand } from '#lib/extensions/AmanekoCommand';
-import { BrandColors } from '#lib/utils/constants';
+import { AmanekoCommand } from '../../lib/extensions/AmanekoCommand.js';
+import { BrandColors } from '../../lib/utils/constants.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import type { APIEmbedField } from 'discord.js';

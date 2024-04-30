@@ -1,11 +1,11 @@
-import { BrandColors, DevSettingsKey } from '#lib/utils/constants';
-import { CustomIDs } from '#lib/utils/enums';
-import { canSendGuildEmbeds } from '#lib/utils/permissions';
-import { successReply } from '#lib/utils/reply';
+import { BrandColors, DevSettingsKey } from '../lib/utils/constants.js';
+import { CustomIDs } from '../lib/utils/enums.js';
+import { canSendGuildEmbeds } from '../lib/utils/permissions.js';
+import { successReply } from '../lib/utils/reply.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { InteractionHandler, InteractionHandlerTypes } from '@sapphire/framework';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, ModalSubmitInteraction, codeBlock } from 'discord.js';
-import type { DevSettings } from '#lib/types/Dev';
+import type { DevSettings } from '../lib/types/Dev.js';
 
 @ApplyOptions<InteractionHandler.Options>({
 	name: CustomIDs.Feedback,

@@ -1,5 +1,5 @@
-import { AmanekoError } from '#lib/structures/AmanekoError';
-import { errorReply } from '#lib/utils/reply';
+import { AmanekoError } from '../../lib/structures/AmanekoError.js';
+import { errorReply } from '../../lib/utils/reply.js';
 import { ApplyOptions } from '@sapphire/decorators';
 import { Events, Listener, container } from '@sapphire/framework';
 import { SubcommandPluginEvents } from '@sapphire/plugin-subcommands';
