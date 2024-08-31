@@ -2749,7 +2749,7 @@ __metadata:
     eslint-import-resolver-typescript: "npm:^3.6.1"
     eslint-plugin-import: "npm:^2.29.1"
     eslint-plugin-prettier: "npm:^5.1.3"
-    googleapis: "npm:^135.0.0"
+    googleapis: "npm:^143.0.0"
     husky: "npm:^9.0.11"
     ioredis: "npm:^5.4.1"
     lint-staged: "npm:^15.2.2"
@@ -4550,13 +4550,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"googleapis@npm:^135.0.0":
-  version: 135.0.0
-  resolution: "googleapis@npm:135.0.0"
+"googleapis@npm:^143.0.0":
+  version: 143.0.0
+  resolution: "googleapis@npm:143.0.0"
   dependencies:
     google-auth-library: "npm:^9.0.0"
     googleapis-common: "npm:^7.0.0"
-  checksum: 10/5ca752175bd65bec171b4adb3de2017ccd321c5797c7ae0f430e299d863c60d6ef701c6bf1dbdd23b406d2be7773336e619d31372bb7b41c6b5a4f2661fbda36
+  checksum: 10/54751094fc9e6c453a5035fa5a1501e2e264e758d2371133fa84b28e53dd939099f14d5446363bba3fdd23302e5647e891fa174cbfe17e133e127137adeb1690
   languageName: node
   linkType: hard
 
